@@ -8,63 +8,53 @@ struct HormonesView: View {
     @State private var expandedCards: Set<HormoneKey> = Set(HormoneKey.allCases)
 
     private var totalDays: Int { cycleService.cycleStats.avgCycleLength }
-
-    private var displayDay: Int? {
-        hoverDay ?? cycleService.currentPhase?.cycleDay
-    }
+    private var displayDay: Int? { hoverDay ?? cycleService.currentPhase?.cycleDay }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Header
-                    if let phase = cycleService.currentPhase {
-                        PhaseHeaderView(phase: phase)
-                    }
-
-                    Text("Hormones")
-                        .font(.heading(32))
-                        .foregroundStyle(.ink)
-
-                    Text("Reference curves scaled to your \(totalDays)-day cycle.")
-                        .font(.body(13))
-                        .foregroundStyle(.muted)
-
-                    // Legend toggles
-                    legendRow
-
-                    // Chart
-                    HormoneChartView(
-                        totalDays: totalDays,
-                        visible: visible,
-                        cycleDay: cycleService.currentPhase?.cycleDay,
-                        phaseColor: cycleService.currentPhase.flatMap { Color(hex: phaseColorHex(for: $0.phaseSlug)) },
-                        phaseRanges: cycleService.phaseRanges,
-                        hoverDay: $hoverDay
-                    )
-
-                    // Day detail panel
-                    if let day = displayDay {
-                        dayDetailPanel(day: day)
-                    }
-
-                    // Hormone info cards
-                    ForEach(HormoneKey.allCases) { key in
-                        if let meta = HormoneData.meta[key] {
-                            hormoneCard(key: key, meta: meta)
-                        }
-                    }
-
-                    // Disclaimer
-                    Text("These curves represent population averages from peer-reviewed reference ranges. Individual variation is significant. This is not a diagnostic tool.")
-                        .font(.body(10))
-                        .foregroundStyle(.muted.opacity(0.5))
-                        .padding(.top, 8)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                if let phase = cycleService.currentPhase {
+                    PhaseHeaderView(phase: phase)
                 }
-                .padding()
+
+                Text("Reference curves scaled to your \(totalDays)-day cycle.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                // Legend toggles
+                legendRow
+
+                // Chart
+                HormoneChartView(
+                    totalDays: totalDays,
+                    visible: visible,
+                    cycleDay: cycleService.currentPhase?.cycleDay,
+                    phaseColor: cycleService.currentPhase.flatMap { PhaseColors.forSlug($0.phaseSlug).color },
+                    phaseRanges: cycleService.phaseRanges,
+                    hoverDay: $hoverDay
+                )
+
+                // Day detail panel
+                if let day = displayDay {
+                    dayDetailPanel(day: day)
+                }
+
+                // Hormone info cards
+                ForEach(HormoneKey.allCases) { key in
+                    if let meta = HormoneData.meta[key] {
+                        hormoneCard(key: key, meta: meta)
+                    }
+                }
+
+                // Disclaimer
+                Text("These curves represent population averages from peer-reviewed reference ranges. Individual variation is significant. This is not a diagnostic tool.")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 8)
             }
-            .background(Color.paper)
+            .padding()
         }
+        .navigationTitle("Hormones")
     }
 
     // MARK: - Legend
@@ -79,23 +69,23 @@ struct HormonesView: View {
                         } label: {
                             HStack(spacing: 6) {
                                 Circle()
-                                    .fill(visible[key] == true ? meta.color : Color.border)
+                                    .fill(visible[key] == true ? meta.color : Color(uiColor: .separator))
                                     .frame(width: 8, height: 8)
                                 Text(meta.fullName)
-                                    .font(.bodyMedium(10))
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
                                     .textCase(.uppercase)
-                                    .tracking(1.2)
+                                    .tracking(1)
                             }
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
+                            .foregroundStyle(visible[key] == true ? meta.color : .secondary)
+                            .background(visible[key] == true ? meta.color.opacity(0.1) : .clear)
+                            .clipShape(Capsule())
                             .overlay(
-                                RoundedRectangle(cornerRadius: 0)
-                                    .stroke(
-                                        visible[key] == true ? meta.color.opacity(0.5) : Color.border,
-                                        lineWidth: 1
-                                    )
+                                Capsule()
+                                    .stroke(visible[key] == true ? meta.color.opacity(0.3) : Color(uiColor: .separator), lineWidth: 1)
                             )
-                            .foregroundStyle(visible[key] == true ? meta.color : .muted)
                         }
                         .buttonStyle(.plain)
                     }
@@ -104,7 +94,7 @@ struct HormonesView: View {
         }
     }
 
-    // MARK: - Day Detail Panel
+    // MARK: - Day Detail
 
     private func dayDetailPanel(day: Int) -> some View {
         let refDay = Int(round(Double(day - 1) / Double(totalDays - 1) * 27.0)) + 1
@@ -112,15 +102,16 @@ struct HormonesView: View {
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Day \(day)")
-                    .font(.bodyMedium(9))
+                    .font(.caption2)
+                    .fontWeight(.medium)
                     .textCase(.uppercase)
                     .tracking(2)
-                    .foregroundStyle(.ink)
+                    .foregroundStyle(.primary)
                 Spacer()
                 if let date = calendarDate(for: day) {
                     Text(date)
-                        .font(.body(8))
-                        .foregroundStyle(.muted.opacity(0.5))
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
                 }
             }
 
@@ -135,14 +126,15 @@ struct HormonesView: View {
                                 .padding(.top, 3)
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(meta.name)
-                                    .font(.bodyMedium(10))
-                                    .foregroundStyle(.ink)
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary)
                                 Text(desc.label)
-                                    .font(.body(9))
-                                    .foregroundStyle(.muted)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
                                 Text(desc.range)
-                                    .font(.body(8))
-                                    .foregroundStyle(.muted.opacity(0.6))
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
                             }
                             Spacer()
                         }
@@ -151,87 +143,62 @@ struct HormonesView: View {
             }
         }
         .padding(12)
-        .background(Color.white)
-        .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: - Hormone Cards
 
     private func hormoneCard(key: HormoneKey, meta: HormoneMeta) -> some View {
-        VStack(spacing: 0) {
-            Button {
-                if expandedCards.contains(key) {
-                    expandedCards.remove(key)
-                } else {
-                    expandedCards.insert(key)
-                }
-            } label: {
-                HStack {
-                    Circle()
-                        .fill(meta.color)
-                        .frame(width: 10, height: 10)
-                    Text(meta.fullName)
-                        .font(.bodyMedium(11))
-                        .foregroundStyle(.ink)
-                    Text(meta.unit)
-                        .font(.body(9))
-                        .foregroundStyle(.muted)
-                    Spacer()
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.muted)
-                        .rotationEffect(expandedCards.contains(key) ? .degrees(180) : .zero)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+        DisclosureGroup(isExpanded: Binding(
+            get: { expandedCards.contains(key) },
+            set: { if $0 { expandedCards.insert(key) } else { expandedCards.remove(key) } }
+        )) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(meta.description)
+                    .font(.footnote)
+                    .foregroundStyle(.primary)
+                Text(meta.feel)
+                    .font(.caption)
+                    .italic()
+                    .foregroundStyle(.secondary)
+                Text(meta.peakLabel)
+                    .font(.caption2)
+                    .fontWeight(.medium)
+                    .textCase(.uppercase)
+                    .tracking(1)
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 4)
             }
-            .buttonStyle(.plain)
-
-            if expandedCards.contains(key) {
-                Divider()
-                    .padding(.horizontal, 16)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(meta.description)
-                        .font(.body(12))
-                        .foregroundStyle(.ink)
-                    Text(meta.feel)
-                        .font(.body(11))
-                        .italic()
-                        .foregroundStyle(.muted)
-                    Text(meta.peakLabel)
-                        .font(.bodyMedium(9))
-                        .textCase(.uppercase)
-                        .tracking(1)
-                        .foregroundStyle(.muted.opacity(0.6))
-                        .padding(.top, 4)
-                }
-                .padding(16)
+        } label: {
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(meta.color)
+                    .frame(width: 10, height: 10)
+                Text(meta.fullName)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+                Text(meta.unit)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
-        .background(Color.white)
-        .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
+        .padding(14)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: - Helpers
 
     private func calendarDate(for day: Int) -> String? {
         guard let startDate = cycleService.currentPhase?.periodStartDate else { return nil }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        guard let start = formatter.date(from: startDate) else { return nil }
-        guard let date = Calendar.current.date(byAdding: .day, value: day - 1, to: start) else { return nil }
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        guard let start = f.date(from: startDate),
+              let date = Calendar.current.date(byAdding: .day, value: day - 1, to: start) else { return nil }
         let display = DateFormatter()
         display.dateFormat = "M/d"
         return display.string(from: date)
-    }
-
-    private func phaseColorHex(for slug: String) -> UInt {
-        switch slug {
-        case "menstrual":  return 0xB85252
-        case "follicular": return 0x4A8C6A
-        case "ovulatory":  return 0xC49A3C
-        case "luteal":     return 0x7A5C9C
-        default: return 0x9A8A7A
-        }
     }
 }
