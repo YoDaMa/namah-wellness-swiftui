@@ -1,16 +1,8 @@
 import SwiftUI
 
-// MARK: - Colors
+// MARK: - Brand Colors (Phase accents — these are brand identity, not text/background)
 
 extension Color {
-    static let ink = Color(hex: 0x1C1712)
-    static let paper = Color(hex: 0xF9F5EF)
-    static let warm = Color(hex: 0xF2EBE0)
-    static let warmer = Color(hex: 0xE8DDD0)
-    static let spice = Color(hex: 0xC4693A)
-    static let spiceSoft = Color(hex: 0xFAF0EB)
-    static let muted = Color(hex: 0x9A8A7A)
-
     // Phase colors
     static let phaseM = Color(hex: 0xB85252)
     static let phaseMSoft = Color(hex: 0xF9EDED)
@@ -33,9 +25,8 @@ extension Color {
     static let macroCarbs = Color(hex: 0x8A6200)
     static let macroFat = Color(hex: 0x4A8C6A)
 
-    // Border
-    static let border = Color.ink.opacity(0.10)
-    static let borderStrong = Color.ink.opacity(0.18)
+    // Brand accent
+    static let spice = Color(hex: 0xC4693A)
 
     init(hex: UInt, alpha: Double = 1.0) {
         self.init(
@@ -49,13 +40,6 @@ extension Color {
 
 // ShapeStyle extensions for foregroundStyle compatibility
 extension ShapeStyle where Self == Color {
-    static var ink: Color { Color.ink }
-    static var paper: Color { Color.paper }
-    static var warm: Color { Color.warm }
-    static var warmer: Color { Color.warmer }
-    static var spice: Color { Color.spice }
-    static var spiceSoft: Color { Color.spiceSoft }
-    static var muted: Color { Color.muted }
     static var phaseM: Color { Color.phaseM }
     static var phaseMSoft: Color { Color.phaseMSoft }
     static var phaseMMid: Color { Color.phaseMMid }
@@ -71,6 +55,7 @@ extension ShapeStyle where Self == Color {
     static var macroProtein: Color { Color.macroProtein }
     static var macroCarbs: Color { Color.macroCarbs }
     static var macroFat: Color { Color.macroFat }
+    static var spice: Color { Color.spice }
 }
 
 // MARK: - Phase Color Lookup
@@ -86,63 +71,36 @@ struct PhaseColors {
         case "follicular": return PhaseColors(color: .phaseF, soft: .phaseFSoft, mid: .phaseFMid)
         case "ovulatory":  return PhaseColors(color: .phaseO, soft: .phaseOSoft, mid: .phaseOMid)
         case "luteal":     return PhaseColors(color: .phaseL, soft: .phaseLSoft, mid: .phaseLMid)
-        default:           return PhaseColors(color: .muted, soft: .warm, mid: .warmer)
+        default:           return PhaseColors(color: .secondary, soft: Color(uiColor: .tertiarySystemFill), mid: Color(uiColor: .secondarySystemFill))
         }
     }
 }
 
-// MARK: - Typography
+// MARK: - Typography (keep serif heading as brand identity)
 
 extension Font {
     static func heading(_ size: CGFloat) -> Font {
-        .custom("CormorantGaramond-Light", size: size)
+        .system(size: size, weight: .light, design: .serif)
     }
 
     static func headingMedium(_ size: CGFloat) -> Font {
-        .custom("CormorantGaramond-Medium", size: size)
+        .system(size: size, weight: .medium, design: .serif)
     }
-
-    static func body(_ size: CGFloat) -> Font {
-        .custom("DMSans-Regular", size: size)
-    }
-
-    static func bodyLight(_ size: CGFloat) -> Font {
-        .custom("DMSans-Light", size: size)
-    }
-
-    static func bodyMedium(_ size: CGFloat) -> Font {
-        .custom("DMSans-Medium", size: size)
-    }
-
-    static let label = Font.custom("DMSans-Medium", size: 9)
 }
 
-// MARK: - View Modifiers
+// MARK: - Label Style (editorial brand element)
 
 struct NamahLabelStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(.bodyMedium(9))
-            .textCase(.uppercase)
-            .tracking(2.5)
-            .foregroundStyle(Color.muted)
-    }
-}
-
-struct NamahButtonStyle: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .font(.bodyMedium(10))
+            .font(.caption2)
+            .fontWeight(.medium)
             .textCase(.uppercase)
             .tracking(2)
-            .foregroundStyle(Color.paper)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .background(Color.ink)
+            .foregroundStyle(.secondary)
     }
 }
 
 extension View {
     func namahLabel() -> some View { modifier(NamahLabelStyle()) }
-    func namahButton() -> some View { modifier(NamahButtonStyle()) }
 }

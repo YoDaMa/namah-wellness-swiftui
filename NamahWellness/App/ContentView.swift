@@ -25,28 +25,13 @@ struct ContentView: View {
                 }
                 .tag(1)
 
-            HormonesView(cycleService: cycleService)
+            MyCycleView(cycleService: cycleService)
                 .tabItem {
-                    Image(systemName: "flask")
-                    Text("Hormones")
+                    Image(systemName: "circle.dotted.circle")
+                    Text("My Cycle")
                 }
                 .tag(2)
-
-            ExerciseView()
-                .tabItem {
-                    Image(systemName: "figure.run")
-                    Text("Workouts")
-                }
-                .tag(3)
-
-            ProfileView(cycleService: cycleService)
-                .tabItem {
-                    Image(systemName: "person")
-                    Text("Profile")
-                }
-                .tag(4)
         }
-        .tint(.ink)
         .onAppear { seedIfNeeded(); recalculate() }
         .onChange(of: cycleLogs.count) { recalculate() }
     }

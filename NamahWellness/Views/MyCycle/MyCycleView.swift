@@ -614,5 +614,17 @@ struct MyCycleView: View {
     }
 }
 
-// NOTE: RoundedCornersShape is defined in CalendarView.swift
-// It will be moved here when CalendarView is deleted in the cleanup task.
+// MARK: - Helpers
+
+struct RoundedCornersShape: Shape {
+    var corners: UIRectCorner
+    var radius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect, byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
+}

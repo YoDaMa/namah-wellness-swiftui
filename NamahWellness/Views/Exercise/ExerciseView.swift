@@ -2,6 +2,9 @@ import SwiftUI
 import SwiftData
 
 struct ExerciseView: View {
+    let cycleService: CycleService
+
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \Workout.dayOfWeek) private var workouts: [Workout]
     @Query private var sessions: [WorkoutSession]
     @Query private var exercises: [CoreExercise]
@@ -11,35 +14,25 @@ struct ExerciseView: View {
     @State private var showCoreExercises = false
 
     private var todayDow: Int {
-        // Monday=0 through Sunday=6
         let weekday = Calendar.current.component(.weekday, from: Date())
         return (weekday + 5) % 7
     }
 
-    private var currentDow: Int {
-        selectedDayOfWeek ?? todayDow
-    }
-
-    private var currentWorkout: Workout? {
-        workouts.first { $0.dayOfWeek == currentDow }
-    }
-
+    private var currentDow: Int { selectedDayOfWeek ?? todayDow }
+    private var currentWorkout: Workout? { workouts.first { $0.dayOfWeek == currentDow } }
     private var currentSessions: [WorkoutSession] {
         guard let workout = currentWorkout else { return [] }
         return sessions.filter { $0.workoutId == workout.id }
     }
-
-    private var completedSessionIds: Set<String> {
-        Set(completions.map(\.workoutId))
-    }
+    private var completedSessionIds: Set<String> { Set(completions.map(\.workoutId)) }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("Workouts")
-                        .font(.heading(32))
-                        .foregroundStyle(.ink)
+                    if let phase = cycleService.currentPhase {
+                        PhaseHeaderView(phase: phase)
+                    }
 
                     // Day selector
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -50,9 +43,9 @@ struct ExerciseView: View {
                                 } label: {
                                     VStack(spacing: 2) {
                                         Text(String(workout.dayLabel.prefix(3)))
-                                            .font(.bodyMedium(9))
+                                            .font(.caption2)
+                                            .fontWeight(.medium)
                                             .textCase(.uppercase)
-                                            .tracking(1)
                                         if workout.dayOfWeek == todayDow {
                                             Circle()
                                                 .fill(Color.spice)
@@ -60,11 +53,12 @@ struct ExerciseView: View {
                                         }
                                     }
                                     .frame(width: 44, height: 44)
-                                    .foregroundStyle(currentDow == workout.dayOfWeek ? .white : .muted)
-                                    .background(currentDow == workout.dayOfWeek ? Color.ink : .clear)
+                                    .foregroundStyle(currentDow == workout.dayOfWeek ? .white : .secondary)
+                                    .background(currentDow == workout.dayOfWeek ? Color.primary : .clear)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
                                     .overlay(
-                                        Rectangle()
-                                            .stroke(currentDow == workout.dayOfWeek ? .clear : Color.border, lineWidth: 1)
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(currentDow == workout.dayOfWeek ? .clear : Color(uiColor: .separator), lineWidth: 1)
                                     )
                                 }
                                 .buttonStyle(.plain)
@@ -76,18 +70,19 @@ struct ExerciseView: View {
                     if let workout = currentWorkout {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(workout.dayLabel)
-                                .font(.heading(20))
-                                .foregroundStyle(.ink)
+                                .font(.title3)
+                                .fontDesign(.serif)
                             Text(workout.dayFocus)
-                                .font(.body(13))
-                                .foregroundStyle(.muted)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                             if workout.isRestDay {
                                 Text("REST DAY")
-                                    .font(.bodyMedium(9))
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
                                     .textCase(.uppercase)
                                     .tracking(2)
                                     .foregroundStyle(.spice)
-                                    .padding(.top, 4)
+                                    .padding(.top, 2)
                             }
                         }
                     }
@@ -97,39 +92,26 @@ struct ExerciseView: View {
                         sessionCard(session)
                     }
 
-                    // Core exercises toggle
+                    // Core exercises
                     if !exercises.isEmpty {
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                showCoreExercises.toggle()
-                            }
-                        } label: {
-                            HStack {
-                                Text("Daily Core Protocol")
-                                    .font(.bodyMedium(11))
-                                    .foregroundStyle(.ink)
-                                Spacer()
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(.muted)
-                                    .rotationEffect(showCoreExercises ? .degrees(180) : .zero)
-                            }
-                            .padding(14)
-                            .background(Color.white)
-                            .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
-                        }
-                        .buttonStyle(.plain)
-
-                        if showCoreExercises {
+                        DisclosureGroup(isExpanded: $showCoreExercises) {
                             ForEach(exercises, id: \.id) { exercise in
                                 exerciseCard(exercise)
                             }
+                        } label: {
+                            Text("Daily Core Protocol")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
                         }
+                        .padding(14)
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
                 .padding()
             }
-            .background(Color.paper)
+            .navigationTitle("Workouts")
         }
     }
 
@@ -141,65 +123,62 @@ struct ExerciseView: View {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: completed ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 18))
-                    .foregroundStyle(completed ? .phaseF : .muted.opacity(0.4))
+                    .foregroundStyle(completed ? Color.phaseF : Color(uiColor: .tertiaryLabel))
                     .padding(.top, 2)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(session.timeSlot)
-                        .font(.bodyMedium(9))
-                        .foregroundStyle(.muted)
+                        .font(.caption2)
+                        .fontWeight(.medium)
                         .textCase(.uppercase)
                         .tracking(1)
+                        .foregroundStyle(.secondary)
                     Text(session.title)
-                        .font(.bodyMedium(13))
-                        .foregroundStyle(completed ? .muted : .ink)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(completed ? .secondary : .primary)
                         .strikethrough(completed)
                     if !session.sessionDescription.isEmpty {
                         Text(session.sessionDescription)
-                            .font(.body(11))
-                            .foregroundStyle(.muted)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                             .lineLimit(3)
                     }
                 }
                 Spacer()
             }
             .padding(12)
-            .background(Color.white)
-            .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
     }
 
     private func exerciseCard(_ exercise: CoreExercise) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(exercise.name)
-                    .font(.bodyMedium(13))
-                    .foregroundStyle(.ink)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
                 Spacer()
                 Text(exercise.sets)
-                    .font(.body(10))
-                    .foregroundStyle(.muted)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             Text(exercise.exerciseDescription)
-                .font(.body(11))
-                .foregroundStyle(.muted)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
-        .padding(12)
-        .background(Color.white)
-        .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
+        .padding(.vertical, 6)
     }
-
-    @Environment(\.modelContext) private var modelContext
 
     private func toggleSession(_ sessionId: String) {
         if let existing = completions.first(where: { $0.workoutId == sessionId }) {
             modelContext.delete(existing)
         } else {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd"
-            let today = formatter.string(from: Date())
-            modelContext.insert(WorkoutCompletion(workoutId: sessionId, date: today))
+            let f = DateFormatter()
+            f.dateFormat = "yyyy-MM-dd"
+            modelContext.insert(WorkoutCompletion(workoutId: sessionId, date: f.string(from: Date())))
         }
     }
 }

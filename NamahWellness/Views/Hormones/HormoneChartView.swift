@@ -49,7 +49,7 @@ struct HormoneChartView: View {
                 var path = Path()
                 path.move(to: CGPoint(x: pad.left * scaleX, y: y))
                 path.addLine(to: CGPoint(x: (chartWidth - pad.right) * scaleX, y: y))
-                context.stroke(path, with: .color(.ink.opacity(0.06)), lineWidth: 1)
+                context.stroke(path, with: .color(.secondary.opacity(0.15)), lineWidth: 1)
             }
 
             // Hormone curves
@@ -95,23 +95,21 @@ struct HormoneChartView: View {
                 var line = Path()
                 line.move(to: CGPoint(x: x, y: pad.top * scaleY))
                 line.addLine(to: CGPoint(x: x, y: (pad.top + cH) * scaleY))
-                context.stroke(line, with: .color(.ink.opacity(0.25)), lineWidth: 1)
+                context.stroke(line, with: .color(.secondary.opacity(0.4)), lineWidth: 1)
 
-                // Dots on curves
                 for key in HormoneKey.allCases {
                     guard visible[key] == true, let curve = HormoneData.curves[key], let meta = HormoneData.meta[key] else { continue }
                     let val = HormoneData.interpolateCurve(curve, day: hd, totalDays: totalDays)
                     let pt = CGPoint(x: x, y: valToY(val) * scaleY)
                     let dotRect = CGRect(x: pt.x - 4, y: pt.y - 4, width: 8, height: 8)
                     context.fill(Path(ellipseIn: dotRect), with: .color(meta.color))
-                    let ringRect = CGRect(x: pt.x - 4, y: pt.y - 4, width: 8, height: 8)
-                    context.stroke(Path(ellipseIn: ringRect), with: .color(.white), lineWidth: 1.5)
+                    context.stroke(Path(ellipseIn: dotRect), with: .color(.white), lineWidth: 1.5)
                 }
             }
         }
         .frame(height: 180)
-        .background(Color.white)
-        .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { value in
@@ -119,9 +117,7 @@ struct HormoneChartView: View {
                     let day = Int(round(fraction * CGFloat(totalDays - 1))) + 1
                     hoverDay = max(1, min(totalDays, day))
                 }
-                .onEnded { _ in
-                    hoverDay = nil
-                }
+                .onEnded { _ in hoverDay = nil }
         )
     }
 }

@@ -463,5 +463,47 @@ enum SeedService {
         n(lId, "\u{1fab8}", "Fiber (hormone waste removal)")
         n(lId, "\u{1f414}", "Tryptophan (turkey, eggs \u{2192} serotonin)")
         n(lId, "\u{2615}", "Limit caffeine (worsens anxiety + bloating)")
+
+        // ── Supplements ──────────────────────────────────────────────
+
+        func sup(
+            _ name: String, brand: String? = nil, cat: String,
+            size: Int = 1, unit: String = "capsule",
+            nutrients: [(String, Double, String)] = []
+        ) {
+            let def = SupplementDefinition(
+                name: name, brand: brand, category: cat,
+                servingSize: size, servingUnit: unit
+            )
+            ctx.insert(def)
+            for (key, amt, u) in nutrients {
+                ctx.insert(SupplementNutrient(supplementId: def.id, nutrientKey: key, amount: amt, unit: u))
+            }
+        }
+
+        sup("Vitamin D3", brand: "NatureWise", cat: "Vitamins", unit: "softgel",
+            nutrients: [("vitaminD3", 2000, "IU")])
+        sup("Magnesium Glycinate", brand: "Doctor's Best", cat: "Minerals",
+            nutrients: [("magnesium", 200, "mg")])
+        sup("Omega-3 Fish Oil", brand: "Nordic Naturals", cat: "Omega / Fatty Acids", unit: "softgel",
+            nutrients: [("omega3EPA", 425, "mg"), ("omega3DHA", 250, "mg")])
+        sup("Iron Bisglycinate", brand: "Thorne", cat: "Minerals",
+            nutrients: [("iron", 25, "mg")])
+        sup("Calcium + K2", brand: "Solaray", cat: "Minerals",
+            nutrients: [("calcium", 500, "mg"), ("vitaminK2", 50, "mcg")])
+        sup("Vitamin B6", brand: "Pure Encapsulations", cat: "Vitamins",
+            nutrients: [("vitaminB6", 50, "mg")])
+        sup("Vitamin B12", brand: "Jarrow", cat: "Vitamins", unit: "lozenge",
+            nutrients: [("vitaminB12", 1000, "mcg")])
+        sup("Zinc Picolinate", brand: "Thorne", cat: "Minerals",
+            nutrients: [("zinc", 15, "mg")])
+        sup("Evening Primrose Oil", brand: "NOW Foods", cat: "Omega / Fatty Acids", unit: "softgel",
+            nutrients: [("gla", 135, "mg")])
+        sup("Probiotic 50B", brand: "Garden of Life", cat: "Probiotics",
+            nutrients: [("probiotics", 50, "B CFU")])
+        sup("Ashwagandha KSM-66", brand: "Nootropics Depot", cat: "Herbal",
+            nutrients: [("ashwagandha", 600, "mg")])
+        sup("DIM + Broccoli Extract", brand: "Smoky Mountain", cat: "Herbal",
+            nutrients: [("dim", 200, "mg")])
     }
 }

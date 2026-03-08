@@ -22,40 +22,34 @@ struct MacroSummaryBar: View {
     }
 
     var body: some View {
-        HStack(spacing: 16) {
-            macroItem(value: "\(totalCalories)", label: "CAL")
-            divider
-            macroItem(value: "\(totalProtein)g", label: "P", color: .macroProtein)
-            divider
-            macroItem(value: "\(totalCarbs)g", label: "C", color: .macroCarbs)
-            divider
-            macroItem(value: "\(totalFat)g", label: "F", color: .macroFat)
-            Spacer()
-            Text("\(completionPercent)%")
-                .font(.bodyMedium(11))
-                .foregroundStyle(.muted)
+        HStack(spacing: 0) {
+            summaryItem("\(totalCalories)", "CAL")
+            Divider().frame(height: 24)
+            summaryItem("\(totalProtein)g", "P")
+            Divider().frame(height: 24)
+            summaryItem("\(totalCarbs)g", "C")
+            Divider().frame(height: 24)
+            summaryItem("\(totalFat)g", "F")
+            Divider().frame(height: 24)
+            summaryItem("\(completionPercent)%", "DONE")
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(Color.warm)
+        .padding(12)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func macroItem(value: String, label: String, color: Color = .ink) -> some View {
-        HStack(spacing: 4) {
+    private func summaryItem(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 2) {
             Text(value)
-                .font(.bodyMedium(11))
-                .foregroundStyle(color)
+                .font(.footnote)
+                .fontWeight(.medium)
+                .foregroundStyle(.primary)
             Text(label)
-                .font(.bodyMedium(8))
-                .foregroundStyle(.muted)
+                .font(.system(size: 8, weight: .medium))
                 .textCase(.uppercase)
                 .tracking(1)
+                .foregroundStyle(.secondary)
         }
-    }
-
-    private var divider: some View {
-        Rectangle()
-            .fill(Color.border)
-            .frame(width: 1, height: 14)
+        .frame(maxWidth: .infinity)
     }
 }

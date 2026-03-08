@@ -8,50 +8,48 @@ struct MealCardView: View {
     var body: some View {
         Button(action: onToggle) {
             HStack(alignment: .top, spacing: 12) {
-                // Checkbox
                 Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 18))
-                    .foregroundStyle(isCompleted ? .phaseF : .muted.opacity(0.4))
+                    .foregroundStyle(isCompleted ? Color.phaseF : Color(uiColor: .tertiaryLabel))
                     .padding(.top, 2)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    // Time + type
                     HStack(spacing: 8) {
                         Text(meal.time)
-                            .font(.bodyMedium(9))
-                            .foregroundStyle(.muted)
+                            .font(.caption2)
+                            .fontWeight(.medium)
                             .textCase(.uppercase)
                             .tracking(1)
+                            .foregroundStyle(.secondary)
                         Text(meal.mealType)
-                            .font(.bodyMedium(9))
-                            .foregroundStyle(.muted.opacity(0.6))
+                            .font(.caption2)
+                            .fontWeight(.medium)
                             .textCase(.uppercase)
                             .tracking(1)
+                            .foregroundStyle(.tertiary)
                     }
 
-                    // Title
                     Text(meal.title)
-                        .font(.bodyMedium(13))
-                        .foregroundStyle(isCompleted ? .muted : .ink)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(isCompleted ? .secondary : .primary)
                         .strikethrough(isCompleted)
 
-                    // Macros row
                     if let p = meal.proteinG, let c = meal.carbsG, let f = meal.fatG {
                         HStack(spacing: 6) {
                             MacroPill(label: "\(p)P", color: .macroProtein)
                             MacroPill(label: "\(c)C", color: .macroCarbs)
                             MacroPill(label: "\(f)F", color: .macroFat)
                             Text(meal.calories)
-                                .font(.body(9))
-                                .foregroundStyle(.muted.opacity(0.6))
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
                         }
                     }
 
-                    // Description
                     if !meal.mealDescription.isEmpty {
                         Text(meal.mealDescription)
-                            .font(.body(11))
-                            .foregroundStyle(.muted)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                             .lineLimit(2)
                     }
                 }
@@ -59,11 +57,8 @@ struct MealCardView: View {
                 Spacer()
             }
             .padding(12)
-            .background(Color.white)
-            .overlay(
-                Rectangle()
-                    .stroke(Color.border, lineWidth: 1)
-            )
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
     }
@@ -75,11 +70,13 @@ struct MacroPill: View {
 
     var body: some View {
         Text(label)
-            .font(.bodyMedium(9))
+            .font(.caption2)
+            .fontWeight(.medium)
             .tracking(0.5)
             .foregroundStyle(color)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(color.opacity(0.1))
+            .background(color.opacity(0.12))
+            .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 }
