@@ -1,0 +1,520 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1FCEB15251A81E567BCDA861 /* MealCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74614E34083D59F3BD2F06CD /* MealCardView.swift */; };
+		24CFECC7E05A555F29097687 /* MacroSummaryBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199440C62E1016C84A8ADDB6 /* MacroSummaryBar.swift */; };
+		442D3067C05A6BFF397A06D8 /* ExerciseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF8D2A51BDB5315F5B41885 /* ExerciseView.swift */; };
+		4BD51021E9A7DC635BACA0FF /* CycleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E5AE582DF244E341C951 /* CycleService.swift */; };
+		4D188D4E73C2D392A1E96BA0 /* SymptomLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC809F47B0D06CD2891BC0E3 /* SymptomLog.swift */; };
+		5E63BD1CFA35BF71A4FA39F3 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DAAFFB2FDB7137CD4420838 /* TodayView.swift */; };
+		60F28E643071535CE5C35361 /* HormonesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5D909D0CE0E5948C5B7B30 /* HormonesView.swift */; };
+		687FFA677A70FC9A07C6194C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1C5125977D07DE7E35DCE9 /* ContentView.swift */; };
+		6987F5E8322291497755E6C5 /* NutritionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C54900E5D20DE7E9A9003D53 /* NutritionView.swift */; };
+		6AF99D677B0EAB761D23F3BC /* Phase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EC3D42C8A5F785258C6136 /* Phase.swift */; };
+		8E5574AA47293414B50271D5 /* Workout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F45B46DC6CFDA59430B339 /* Workout.swift */; };
+		8E868CB450DC435E34B9F1F8 /* HormoneChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6B34A58A694FA421F11C00 /* HormoneChartView.swift */; };
+		959CA95B0E6B0FC924697DEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86932D331AAA25CB182FCB41 /* Assets.xcassets */; };
+		99BB9690759978216DA7CB6A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F04F944466E14D5100AA8E /* ProfileView.swift */; };
+		A4B1DEDBD4EEBC650EE03979 /* PhaseHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA0D889653229CA26878820 /* PhaseHeaderView.swift */; };
+		A5C11CBD7002971C23F562C4 /* HormoneData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E06523D5B2AF57425FCB58 /* HormoneData.swift */; };
+		B821DC990A74D351A4106E40 /* NamahTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC3702C70D1E407D0001AFE /* NamahTheme.swift */; };
+		C3171CC81FF9CD2A155951C2 /* Completion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4EB1437564D16C45AF4C2C /* Completion.swift */; };
+		C44A7517967587186959585B /* GroceryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 095186FF8376AA32A7216280 /* GroceryItem.swift */; };
+		CB8B237ED8E61749185E5299 /* Supplement.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01AE3BCBFBEF573AC5FFC88 /* Supplement.swift */; };
+		CF12D9A71DC5F69035FF5F6B /* CycleLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AF006E3DAEE24FB6B6C291 /* CycleLog.swift */; };
+		DB9B8B8F993FD774204A0270 /* SeedService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18BD64CC6B5C94E8A12DE55A /* SeedService.swift */; };
+		EE2E0A4EC043873B85602A9D /* Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024E36BD82293C99A5D5521F /* Meal.swift */; };
+		F50EFC46E176783032A5E28D /* NamahWellnessApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F449FF1BC04FAF0C6662EA /* NamahWellnessApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		024E36BD82293C99A5D5521F /* Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meal.swift; sourceTree = "<group>"; };
+		095186FF8376AA32A7216280 /* GroceryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryItem.swift; sourceTree = "<group>"; };
+		0A5D909D0CE0E5948C5B7B30 /* HormonesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormonesView.swift; sourceTree = "<group>"; };
+		18BD64CC6B5C94E8A12DE55A /* SeedService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedService.swift; sourceTree = "<group>"; };
+		199440C62E1016C84A8ADDB6 /* MacroSummaryBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroSummaryBar.swift; sourceTree = "<group>"; };
+		1DAAFFB2FDB7137CD4420838 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		25F04F944466E14D5100AA8E /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		3887E5AE582DF244E341C951 /* CycleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleService.swift; sourceTree = "<group>"; };
+		3AC3702C70D1E407D0001AFE /* NamahTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamahTheme.swift; sourceTree = "<group>"; };
+		3BF8D2A51BDB5315F5B41885 /* ExerciseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseView.swift; sourceTree = "<group>"; };
+		42E06523D5B2AF57425FCB58 /* HormoneData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneData.swift; sourceTree = "<group>"; };
+		4E4EB1437564D16C45AF4C2C /* Completion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Completion.swift; sourceTree = "<group>"; };
+		62EC3D42C8A5F785258C6136 /* Phase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase.swift; sourceTree = "<group>"; };
+		67F449FF1BC04FAF0C6662EA /* NamahWellnessApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamahWellnessApp.swift; sourceTree = "<group>"; };
+		74614E34083D59F3BD2F06CD /* MealCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCardView.swift; sourceTree = "<group>"; };
+		79F45B46DC6CFDA59430B339 /* Workout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workout.swift; sourceTree = "<group>"; };
+		86932D331AAA25CB182FCB41 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8E1C5125977D07DE7E35DCE9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8E6B34A58A694FA421F11C00 /* HormoneChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneChartView.swift; sourceTree = "<group>"; };
+		9035829E579722DBE6A5FF07 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		96AF006E3DAEE24FB6B6C291 /* CycleLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleLog.swift; sourceTree = "<group>"; };
+		A179EE9B4D61732EBEBB66FE /* NamahWellness.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NamahWellness.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACA0D889653229CA26878820 /* PhaseHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseHeaderView.swift; sourceTree = "<group>"; };
+		B01AE3BCBFBEF573AC5FFC88 /* Supplement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Supplement.swift; sourceTree = "<group>"; };
+		C54900E5D20DE7E9A9003D53 /* NutritionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionView.swift; sourceTree = "<group>"; };
+		FC809F47B0D06CD2891BC0E3 /* SymptomLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymptomLog.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		06AE215241DAECB585C68BA0 /* Calendar */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Calendar;
+			sourceTree = "<group>";
+		};
+		1826F45657D66DA0C5B1117E = {
+			isa = PBXGroup;
+			children = (
+				1B8712C70B919D22CDD2283C /* NamahWellness */,
+				AF2AF15A14AFAEE5948EB8D3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		19382C9C8F964F33D20A6B36 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				199440C62E1016C84A8ADDB6 /* MacroSummaryBar.swift */,
+				74614E34083D59F3BD2F06CD /* MealCardView.swift */,
+				ACA0D889653229CA26878820 /* PhaseHeaderView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		1B8712C70B919D22CDD2283C /* NamahWellness */ = {
+			isa = PBXGroup;
+			children = (
+				46D129754A89F7D733B2F260 /* App */,
+				7E5E3CD4EA7E2883DC7B1DB6 /* Models */,
+				59D04E0B6F1F9B6E247ADBDD /* Resources */,
+				8AC2CEE012D10282E5990537 /* Services */,
+				E49633FE9B6146FC74CD2379 /* Theme */,
+				426A3639C22FD4227478EB55 /* Views */,
+			);
+			path = NamahWellness;
+			sourceTree = "<group>";
+		};
+		2FC2334A6B68D7492B28C3EB /* Nutrition */ = {
+			isa = PBXGroup;
+			children = (
+				C54900E5D20DE7E9A9003D53 /* NutritionView.swift */,
+			);
+			path = Nutrition;
+			sourceTree = "<group>";
+		};
+		36637787C49A0D0E5A63CBE7 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				25F04F944466E14D5100AA8E /* ProfileView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		426A3639C22FD4227478EB55 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				06AE215241DAECB585C68BA0 /* Calendar */,
+				19382C9C8F964F33D20A6B36 /* Components */,
+				7935DB5EA6EE225369C441B5 /* Exercise */,
+				FA0CF78D68433BF0FB7C1FB7 /* Hormones */,
+				2FC2334A6B68D7492B28C3EB /* Nutrition */,
+				A0914458A1C96D8112212571 /* Phase */,
+				36637787C49A0D0E5A63CBE7 /* Profile */,
+				D07F56AE04646B88C439B855 /* Today */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		46D129754A89F7D733B2F260 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				8E1C5125977D07DE7E35DCE9 /* ContentView.swift */,
+				67F449FF1BC04FAF0C6662EA /* NamahWellnessApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		59D04E0B6F1F9B6E247ADBDD /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				86932D331AAA25CB182FCB41 /* Assets.xcassets */,
+				9035829E579722DBE6A5FF07 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		7935DB5EA6EE225369C441B5 /* Exercise */ = {
+			isa = PBXGroup;
+			children = (
+				3BF8D2A51BDB5315F5B41885 /* ExerciseView.swift */,
+			);
+			path = Exercise;
+			sourceTree = "<group>";
+		};
+		7E5E3CD4EA7E2883DC7B1DB6 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				4E4EB1437564D16C45AF4C2C /* Completion.swift */,
+				96AF006E3DAEE24FB6B6C291 /* CycleLog.swift */,
+				095186FF8376AA32A7216280 /* GroceryItem.swift */,
+				024E36BD82293C99A5D5521F /* Meal.swift */,
+				62EC3D42C8A5F785258C6136 /* Phase.swift */,
+				B01AE3BCBFBEF573AC5FFC88 /* Supplement.swift */,
+				FC809F47B0D06CD2891BC0E3 /* SymptomLog.swift */,
+				79F45B46DC6CFDA59430B339 /* Workout.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		8AC2CEE012D10282E5990537 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				3887E5AE582DF244E341C951 /* CycleService.swift */,
+				42E06523D5B2AF57425FCB58 /* HormoneData.swift */,
+				18BD64CC6B5C94E8A12DE55A /* SeedService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A0914458A1C96D8112212571 /* Phase */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Phase;
+			sourceTree = "<group>";
+		};
+		AF2AF15A14AFAEE5948EB8D3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A179EE9B4D61732EBEBB66FE /* NamahWellness.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D07F56AE04646B88C439B855 /* Today */ = {
+			isa = PBXGroup;
+			children = (
+				1DAAFFB2FDB7137CD4420838 /* TodayView.swift */,
+			);
+			path = Today;
+			sourceTree = "<group>";
+		};
+		E49633FE9B6146FC74CD2379 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				3AC3702C70D1E407D0001AFE /* NamahTheme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		FA0CF78D68433BF0FB7C1FB7 /* Hormones */ = {
+			isa = PBXGroup;
+			children = (
+				8E6B34A58A694FA421F11C00 /* HormoneChartView.swift */,
+				0A5D909D0CE0E5948C5B7B30 /* HormonesView.swift */,
+			);
+			path = Hormones;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AD68A0F7B0C883EF402CA4C6 /* NamahWellness */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1C54E941744D4FA216B9F7B /* Build configuration list for PBXNativeTarget "NamahWellness" */;
+			buildPhases = (
+				ADECBDA16617BAEB7494A126 /* Sources */,
+				FFA16FFA26206D44ADF486A0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NamahWellness;
+			packageProductDependencies = (
+			);
+			productName = NamahWellness;
+			productReference = A179EE9B4D61732EBEBB66FE /* NamahWellness.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		26A4E7B0AA8AFC2972B547AA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					AD68A0F7B0C883EF402CA4C6 = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = 5EFB65F9DD3ABC25C9715CC0 /* Build configuration list for PBXProject "NamahWellness" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 1826F45657D66DA0C5B1117E;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = AF2AF15A14AFAEE5948EB8D3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AD68A0F7B0C883EF402CA4C6 /* NamahWellness */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FFA16FFA26206D44ADF486A0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				959CA95B0E6B0FC924697DEE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		ADECBDA16617BAEB7494A126 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C3171CC81FF9CD2A155951C2 /* Completion.swift in Sources */,
+				687FFA677A70FC9A07C6194C /* ContentView.swift in Sources */,
+				CF12D9A71DC5F69035FF5F6B /* CycleLog.swift in Sources */,
+				4BD51021E9A7DC635BACA0FF /* CycleService.swift in Sources */,
+				442D3067C05A6BFF397A06D8 /* ExerciseView.swift in Sources */,
+				C44A7517967587186959585B /* GroceryItem.swift in Sources */,
+				8E868CB450DC435E34B9F1F8 /* HormoneChartView.swift in Sources */,
+				A5C11CBD7002971C23F562C4 /* HormoneData.swift in Sources */,
+				60F28E643071535CE5C35361 /* HormonesView.swift in Sources */,
+				24CFECC7E05A555F29097687 /* MacroSummaryBar.swift in Sources */,
+				EE2E0A4EC043873B85602A9D /* Meal.swift in Sources */,
+				1FCEB15251A81E567BCDA861 /* MealCardView.swift in Sources */,
+				B821DC990A74D351A4106E40 /* NamahTheme.swift in Sources */,
+				F50EFC46E176783032A5E28D /* NamahWellnessApp.swift in Sources */,
+				6987F5E8322291497755E6C5 /* NutritionView.swift in Sources */,
+				6AF99D677B0EAB761D23F3BC /* Phase.swift in Sources */,
+				A4B1DEDBD4EEBC650EE03979 /* PhaseHeaderView.swift in Sources */,
+				99BB9690759978216DA7CB6A /* ProfileView.swift in Sources */,
+				DB9B8B8F993FD774204A0270 /* SeedService.swift in Sources */,
+				CB8B237ED8E61749185E5299 /* Supplement.swift in Sources */,
+				4D188D4E73C2D392A1E96BA0 /* SymptomLog.swift in Sources */,
+				5E63BD1CFA35BF71A4FA39F3 /* TodayView.swift in Sources */,
+				8E5574AA47293414B50271D5 /* Workout.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		192751A91BA76AFBA432EDC8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = NamahWellness/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Namah;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.namah.wellness;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		68F03472A8E455DA186E87F1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = NamahWellness/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A977EF9C887A9C328F51D8D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = NamahWellness/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		B9EEEE1C01C50B084DBF09ED /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = NamahWellness/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Namah;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.namah.wellness;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5EFB65F9DD3ABC25C9715CC0 /* Build configuration list for PBXProject "NamahWellness" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68F03472A8E455DA186E87F1 /* Debug */,
+				A977EF9C887A9C328F51D8D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C1C54E941744D4FA216B9F7B /* Build configuration list for PBXNativeTarget "NamahWellness" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9EEEE1C01C50B084DBF09ED /* Debug */,
+				192751A91BA76AFBA432EDC8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 26A4E7B0AA8AFC2972B547AA /* Project object */;
+}
