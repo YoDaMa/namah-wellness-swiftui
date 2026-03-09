@@ -5,6 +5,7 @@ struct MyCycleView: View {
     let cycleService: CycleService
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(SyncService.self) private var syncService
     @Query(sort: \CycleLog.createdAt, order: .reverse) private var cycleLogs: [CycleLog]
     @Query(sort: \Workout.dayOfWeek) private var workouts: [Workout]
     @Query private var workoutSessions: [WorkoutSession]
@@ -221,6 +222,8 @@ struct MyCycleView: View {
         .alert("Delete Period Log?", isPresented: $showDeleteConfirm) {
             Button("Delete", role: .destructive) {
                 if let log = logToDelete {
+                    syncService.queueChange(table: "cycleLogs", action: "delete",
+                                            data: ["id": log.id], modelContext: modelContext)
                     modelContext.delete(log)
                 }
             }
@@ -650,24 +653,39 @@ struct MyCycleView: View {
     // MARK: - Actions
 
     private func logPeriod() {
-        modelContext.insert(CycleLog(periodStartDate: dateFormatter.string(from: newPeriodDate)))
+        let dateStr = dateFormatter.string(from: newPeriodDate)
+        let log = CycleLog(periodStartDate: dateStr)
+        modelContext.insert(log)
+        syncService.queueChange(table: "cycleLogs", action: "upsert",
+                                data: ["id": log.id, "periodStartDate": dateStr],
+                                modelContext: modelContext)
         showLogSheet = false
     }
 
     private func setOverride(_ slug: String) {
         guard let latest = cycleLogs.first else { return }
         latest.phaseOverride = slug
+        syncService.queueChange(table: "cycleLogs", action: "upsert",
+                                data: ["id": latest.id, "periodStartDate": latest.periodStartDate,
+                                       "phaseOverride": slug],
+                                modelContext: modelContext)
         showOverrideSheet = false
     }
 
     private func clearOverride() {
         guard let latest = cycleLogs.first else { return }
         latest.phaseOverride = nil
+        syncService.queueChange(table: "cycleLogs", action: "upsert",
+                                data: ["id": latest.id, "periodStartDate": latest.periodStartDate],
+                                modelContext: modelContext)
     }
 
     private func deleteLogs(at offsets: IndexSet) {
         for index in offsets {
-            modelContext.delete(cycleLogs[index])
+            let log = cycleLogs[index]
+            syncService.queueChange(table: "cycleLogs", action: "delete",
+                                    data: ["id": log.id], modelContext: modelContext)
+            modelContext.delete(log)
         }
     }
 

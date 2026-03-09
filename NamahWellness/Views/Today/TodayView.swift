@@ -18,6 +18,8 @@ struct TodayView: View {
     @Query private var supplementLogs: [SupplementLog]
     @Query private var coreExercises: [CoreExercise]
 
+    @Environment(SyncService.self) private var syncService
+
     @State private var showProfile = false
     @State private var showCoreProtocol = false
     @State private var showLogSupplement = false
@@ -507,9 +509,15 @@ struct TodayView: View {
 
     private func toggleMeal(_ meal: Meal) {
         if let existing = mealCompletions.first(where: { $0.mealId == meal.id && $0.date == today }) {
+            syncService.queueChange(table: "mealCompletions", action: "delete",
+                                    data: ["id": existing.id], modelContext: modelContext)
             modelContext.delete(existing)
         } else {
-            modelContext.insert(MealCompletion(mealId: meal.id, date: today))
+            let completion = MealCompletion(mealId: meal.id, date: today)
+            modelContext.insert(completion)
+            syncService.queueChange(table: "mealCompletions", action: "upsert",
+                                    data: ["id": completion.id, "mealId": meal.id, "date": today],
+                                    modelContext: modelContext)
         }
     }
 
@@ -517,8 +525,17 @@ struct TodayView: View {
         if let existing = supplementLogs.first(where: { $0.userSupplementId == userSup.id && $0.date == today }) {
             existing.taken.toggle()
             existing.loggedAt = Date()
+            syncService.queueChange(table: "supplementLogs", action: "upsert",
+                                    data: ["id": AnyCodable(existing.id), "userSupplementId": AnyCodable(userSup.id),
+                                           "date": AnyCodable(today), "taken": AnyCodable(existing.taken)],
+                                    modelContext: modelContext)
         } else {
-            modelContext.insert(SupplementLog(userSupplementId: userSup.id, date: today, taken: true))
+            let log = SupplementLog(userSupplementId: userSup.id, date: today, taken: true)
+            modelContext.insert(log)
+            syncService.queueChange(table: "supplementLogs", action: "upsert",
+                                    data: ["id": AnyCodable(log.id), "userSupplementId": AnyCodable(userSup.id),
+                                           "date": AnyCodable(today), "taken": AnyCodable(true)],
+                                    modelContext: modelContext)
         }
     }
 
@@ -527,8 +544,17 @@ struct TodayView: View {
         if let existing = supplementLogs.first(where: { $0.userSupplementId == extraId && $0.date == today }) {
             existing.taken.toggle()
             existing.loggedAt = Date()
+            syncService.queueChange(table: "supplementLogs", action: "upsert",
+                                    data: ["id": AnyCodable(existing.id), "userSupplementId": AnyCodable(extraId),
+                                           "date": AnyCodable(today), "taken": AnyCodable(existing.taken)],
+                                    modelContext: modelContext)
         } else {
-            modelContext.insert(SupplementLog(userSupplementId: extraId, date: today, taken: true))
+            let log = SupplementLog(userSupplementId: extraId, date: today, taken: true)
+            modelContext.insert(log)
+            syncService.queueChange(table: "supplementLogs", action: "upsert",
+                                    data: ["id": AnyCodable(log.id), "userSupplementId": AnyCodable(extraId),
+                                           "date": AnyCodable(today), "taken": AnyCodable(true)],
+                                    modelContext: modelContext)
         }
     }
 
@@ -541,6 +567,7 @@ struct TodayView: View {
 
 struct SymptomsTabView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(SyncService.self) private var syncService
 
     let todaySymptomLog: SymptomLog?
     let todayNote: DailyNote?
@@ -617,6 +644,7 @@ struct SymptomsTabView: View {
                         let log = getOrCreateLog()
                         let idx = Int(flowValue)
                         log.flowIntensity = flowOptions[idx]
+                        queueSymptomSync(log)
                     }
 
                     HStack {
@@ -683,6 +711,7 @@ struct SymptomsTabView: View {
             onChange: { newValue in
                 let log = getOrCreateLog()
                 symptom.set(log, newValue == 0 ? nil : newValue)
+                queueSymptomSync(log)
             }
         )
     }
@@ -696,12 +725,42 @@ struct SymptomsTabView: View {
         return log
     }
 
+    private func queueSymptomSync(_ log: SymptomLog) {
+        var data: [String: AnyCodable] = [
+            "id": AnyCodable(log.id),
+            "date": AnyCodable(log.date),
+        ]
+        if let v = log.mood { data["mood"] = AnyCodable(v) }
+        if let v = log.energy { data["energy"] = AnyCodable(v) }
+        if let v = log.cramps { data["cramps"] = AnyCodable(v) }
+        if let v = log.bloating { data["bloating"] = AnyCodable(v) }
+        if let v = log.fatigue { data["fatigue"] = AnyCodable(v) }
+        if let v = log.acne { data["acne"] = AnyCodable(v) }
+        if let v = log.headache { data["headache"] = AnyCodable(v) }
+        if let v = log.breastTenderness { data["breastTenderness"] = AnyCodable(v) }
+        if let v = log.sleepQuality { data["sleepQuality"] = AnyCodable(v) }
+        if let v = log.anxiety { data["anxiety"] = AnyCodable(v) }
+        if let v = log.irritability { data["irritability"] = AnyCodable(v) }
+        if let v = log.libido { data["libido"] = AnyCodable(v) }
+        if let v = log.appetite { data["appetite"] = AnyCodable(v) }
+        if let v = log.flowIntensity { data["flowIntensity"] = AnyCodable(v) }
+        syncService.queueChange(table: "symptomLogs", action: "upsert",
+                                data: data, modelContext: modelContext)
+    }
+
     private func saveNote() {
         if let existing = todayNote {
             existing.content = noteText
             existing.updatedAt = Date()
+            syncService.queueChange(table: "dailyNotes", action: "upsert",
+                                    data: ["id": existing.id, "date": existing.date, "content": noteText],
+                                    modelContext: modelContext)
         } else if !noteText.isEmpty {
-            modelContext.insert(DailyNote(date: today, content: noteText))
+            let note = DailyNote(date: today, content: noteText)
+            modelContext.insert(note)
+            syncService.queueChange(table: "dailyNotes", action: "upsert",
+                                    data: ["id": note.id, "date": today, "content": noteText],
+                                    modelContext: modelContext)
         }
     }
 }

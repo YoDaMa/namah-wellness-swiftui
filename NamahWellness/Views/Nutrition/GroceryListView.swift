@@ -5,6 +5,7 @@ struct GroceryListView: View {
     let phaseSlug: String
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(SyncService.self) private var syncService
     @Query private var phases: [Phase]
     @Query private var groceryItems: [GroceryItem]
     @Query private var groceryChecks: [GroceryCheck]
@@ -98,8 +99,17 @@ struct GroceryListView: View {
         if let existing = groceryChecks.first(where: { $0.groceryItemId == item.id }) {
             existing.checked.toggle()
             existing.updatedAt = Date()
+            syncService.queueChange(table: "groceryChecks", action: "upsert",
+                                    data: ["id": AnyCodable(existing.id), "groceryItemId": AnyCodable(item.id),
+                                           "checked": AnyCodable(existing.checked)],
+                                    modelContext: modelContext)
         } else {
-            modelContext.insert(GroceryCheck(groceryItemId: item.id, checked: true))
+            let check = GroceryCheck(groceryItemId: item.id, checked: true)
+            modelContext.insert(check)
+            syncService.queueChange(table: "groceryChecks", action: "upsert",
+                                    data: ["id": AnyCodable(check.id), "groceryItemId": AnyCodable(item.id),
+                                           "checked": AnyCodable(true)],
+                                    modelContext: modelContext)
         }
     }
 
@@ -107,6 +117,10 @@ struct GroceryListView: View {
         for check in groceryChecks where checkedIds.contains(check.groceryItemId) {
             check.checked = false
             check.updatedAt = Date()
+            syncService.queueChange(table: "groceryChecks", action: "upsert",
+                                    data: ["id": AnyCodable(check.id), "groceryItemId": AnyCodable(check.groceryItemId),
+                                           "checked": AnyCodable(false)],
+                                    modelContext: modelContext)
         }
     }
 }

@@ -5,6 +5,7 @@ struct PlanView: View {
     let cycleService: CycleService
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(SyncService.self) private var syncService
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
     @Query(sort: \Meal.dayNumber) private var allMeals: [Meal]
     @Query private var reminders: [PhaseReminder]
@@ -762,13 +763,26 @@ struct PlanView: View {
     // MARK: - Actions
 
     private func addToRegimen(_ def: SupplementDefinition) {
-        modelContext.insert(UserSupplement(
+        let sup = UserSupplement(
             supplementId: def.id, dosage: Double(def.servingSize),
             frequency: "daily", timeOfDay: "morning"
-        ))
+        )
+        modelContext.insert(sup)
+        syncService.queueChange(table: "userSupplements", action: "upsert",
+                                data: ["id": AnyCodable(sup.id), "supplementId": AnyCodable(def.id),
+                                       "dosage": AnyCodable(sup.dosage), "frequency": AnyCodable("daily"),
+                                       "timeOfDay": AnyCodable("morning"), "isActive": AnyCodable(true)],
+                                modelContext: modelContext)
     }
 
-    private func removeFromRegimen(_ userSup: UserSupplement) { userSup.isActive = false }
+    private func removeFromRegimen(_ userSup: UserSupplement) {
+        userSup.isActive = false
+        syncService.queueChange(table: "userSupplements", action: "upsert",
+                                data: ["id": AnyCodable(userSup.id), "supplementId": AnyCodable(userSup.supplementId),
+                                       "dosage": AnyCodable(userSup.dosage), "frequency": AnyCodable(userSup.frequency),
+                                       "timeOfDay": AnyCodable(userSup.timeOfDay), "isActive": AnyCodable(false)],
+                                modelContext: modelContext)
+    }
 
     private func formatAmount(_ amount: Double) -> String {
         amount == amount.rounded() ? "\(Int(amount))" : String(format: "%.1f", amount)

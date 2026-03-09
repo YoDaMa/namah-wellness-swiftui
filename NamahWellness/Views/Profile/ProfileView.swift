@@ -6,6 +6,8 @@ struct ProfileView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(AuthService.self) private var authService
+    @Environment(SyncService.self) private var syncService
     @Query private var profiles: [UserProfile]
     @Query(sort: \CycleLog.createdAt, order: .reverse) private var cycleLogs: [CycleLog]
     @Query private var symptomLogs: [SymptomLog]
@@ -40,6 +42,22 @@ struct ProfileView: View {
                 cycleLogSection
                 symptomPatternsSection
                 streaksSection
+
+                Divider().padding(.vertical, 4)
+
+                Button(role: .destructive) {
+                    authService.signOut()
+                    dismiss()
+                } label: {
+                    HStack {
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                        Text("Sign Out")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(14)
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
             }
             .padding()
         }
@@ -509,7 +527,12 @@ struct ProfileView: View {
                     .datePickerStyle(.graphical)
 
                 Button {
-                    modelContext.insert(CycleLog(periodStartDate: dateFormatter.string(from: newPeriodDate)))
+                    let dateStr = dateFormatter.string(from: newPeriodDate)
+                    let log = CycleLog(periodStartDate: dateStr)
+                    modelContext.insert(log)
+                    syncService.queueChange(table: "cycleLogs", action: "upsert",
+                                            data: ["id": log.id, "periodStartDate": dateStr],
+                                            modelContext: modelContext)
                     showLogSheet = false
                 } label: {
                     Text("Log Period")

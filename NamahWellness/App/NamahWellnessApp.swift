@@ -4,6 +4,8 @@ import SwiftData
 @main
 struct NamahWellnessApp: App {
     let modelContainer: ModelContainer
+    @State private var authService = AuthService()
+    @State private var syncService = SyncService()
 
     init() {
         do {
@@ -37,7 +39,7 @@ struct NamahWellnessApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(authService: authService, syncService: syncService)
         }
         .modelContainer(modelContainer)
     }
