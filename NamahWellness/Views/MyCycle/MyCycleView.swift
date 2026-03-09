@@ -22,6 +22,7 @@ struct MyCycleView: View {
     @State private var slideDirection: Edge = .trailing
 
     // Cycle management state
+    @State private var showProfile = false
     @State private var showLogSheet = false
     @State private var newPeriodDate = Date()
     @State private var showOverrideSheet = false
@@ -195,16 +196,17 @@ struct MyCycleView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    NavigationLink {
-                        ProfileView(cycleService: cycleService)
-                    } label: {
-                        Label("Profile", systemImage: "person")
-                    }
+                Button {
+                    showProfile = true
                 } label: {
-                    Image(systemName: "gearshape")
+                    Image(systemName: "person.circle")
                         .foregroundStyle(.secondary)
                 }
+            }
+        }
+        .sheet(isPresented: $showProfile) {
+            NavigationStack {
+                ProfileView(cycleService: cycleService)
             }
         }
         .sheet(isPresented: $showLogSheet) {

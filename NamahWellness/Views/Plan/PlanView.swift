@@ -95,19 +95,17 @@ struct PlanView: View {
                 .padding()
             }
             .navigationTitle("Plan")
-            .navigationDestination(isPresented: $showProfile) {
-                ProfileView(cycleService: cycleService)
+            .sheet(isPresented: $showProfile) {
+                NavigationStack {
+                    ProfileView(cycleService: cycleService)
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button {
-                            showProfile = true
-                        } label: {
-                            Label("Profile", systemImage: "person")
-                        }
+                    Button {
+                        showProfile = true
                     } label: {
-                        Image(systemName: "gearshape")
+                        Image(systemName: "person.circle")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -260,7 +258,9 @@ struct PlanView: View {
 
     private func saNote(_ note: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
-            Text("\u{1f1ee}\u{1f1f3}")
+            Image(systemName: "leaf.fill")
+                .font(.system(size: 16))
+                .foregroundStyle(.spice)
             Text(note)
                 .font(.caption)
                 .foregroundStyle(.primary)

@@ -25,11 +25,11 @@ struct MacroSummaryBar: View {
         HStack(spacing: 0) {
             summaryItem("\(totalCalories)", "CAL")
             Divider().frame(height: 24)
-            summaryItem("\(totalProtein)g", "P")
+            summaryItem("\(totalProtein)g", "PROTEIN")
             Divider().frame(height: 24)
-            summaryItem("\(totalCarbs)g", "C")
+            summaryItem("\(totalCarbs)g", "CARBS")
             Divider().frame(height: 24)
-            summaryItem("\(totalFat)g", "F")
+            summaryItem("\(totalFat)g", "FAT")
             Divider().frame(height: 24)
             summaryItem("\(completionPercent)%", "DONE")
         }

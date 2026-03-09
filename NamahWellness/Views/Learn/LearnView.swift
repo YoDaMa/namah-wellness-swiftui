@@ -57,19 +57,17 @@ struct LearnView: View {
                 .padding()
             }
             .navigationTitle("Learn")
-            .navigationDestination(isPresented: $showProfile) {
-                ProfileView(cycleService: cycleService)
+            .sheet(isPresented: $showProfile) {
+                NavigationStack {
+                    ProfileView(cycleService: cycleService)
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button {
-                            showProfile = true
-                        } label: {
-                            Label("Profile", systemImage: "person")
-                        }
+                    Button {
+                        showProfile = true
                     } label: {
-                        Image(systemName: "gearshape")
+                        Image(systemName: "person.circle")
                             .foregroundStyle(.secondary)
                     }
                 }

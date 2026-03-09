@@ -4,6 +4,7 @@ import SwiftData
 struct ProfileView: View {
     let cycleService: CycleService
 
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
     @Query(sort: \CycleLog.createdAt, order: .reverse) private var cycleLogs: [CycleLog]
@@ -45,6 +46,11 @@ struct ProfileView: View {
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Done") { dismiss() }
+            }
+        }
         .sheet(isPresented: $showLogSheet) {
             logPeriodSheet
         }

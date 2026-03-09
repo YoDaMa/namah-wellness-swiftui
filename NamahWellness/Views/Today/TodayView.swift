@@ -16,8 +16,11 @@ struct TodayView: View {
     @Query private var supplementNutrients: [SupplementNutrient]
     @Query private var userSupplements: [UserSupplement]
     @Query private var supplementLogs: [SupplementLog]
+    @Query private var coreExercises: [CoreExercise]
 
     @State private var showProfile = false
+    @State private var showCoreProtocol = false
+    @State private var showLogSupplement = false
 
     private var today: String {
         let f = DateFormatter()
@@ -89,11 +92,6 @@ struct TodayView: View {
                         )
                     }
 
-                    // Macro summary
-                    if !todayMeals.isEmpty {
-                        MacroSummaryBar(meals: todayMeals, completedIds: todayMealCompletionIds)
-                    }
-
                     // Meals
                     mealsSection
 
@@ -114,19 +112,17 @@ struct TodayView: View {
                 .padding()
             }
             .navigationTitle("Today")
-            .navigationDestination(isPresented: $showProfile) {
-                ProfileView(cycleService: cycleService)
+            .sheet(isPresented: $showProfile) {
+                NavigationStack {
+                    ProfileView(cycleService: cycleService)
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button {
-                            showProfile = true
-                        } label: {
-                            Label("Profile", systemImage: "person")
-                        }
+                    Button {
+                        showProfile = true
                     } label: {
-                        Image(systemName: "gearshape")
+                        Image(systemName: "person.circle")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -153,6 +149,8 @@ struct TodayView: View {
                     description: Text("Log your cycle to see phase-specific meals.")
                 )
             } else {
+                MacroSummaryBar(meals: todayMeals, completedIds: todayMealCompletionIds)
+
                 ForEach(todayMeals, id: \.id) { meal in
                     MealCardView(
                         meal: meal,
@@ -229,7 +227,80 @@ struct TodayView: View {
                     description: Text("No workout data available.")
                 )
             }
+
+            if !coreExercises.isEmpty {
+                Button {
+                    showCoreProtocol = true
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "figure.core.training")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.phaseF)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Daily Core Protocol")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
+                            Text("\(coreExercises.count) exercises")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(14)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(.plain)
+                .sheet(isPresented: $showCoreProtocol) {
+                    coreProtocolSheet
+                }
+            }
         }
+    }
+
+    private var coreProtocolSheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(Array(coreExercises.enumerated()), id: \.element.id) { index, exercise in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(exercise.name)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Spacer()
+                                Text(exercise.sets)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Text(exercise.exerciseDescription)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(14)
+                        if index < coreExercises.count - 1 {
+                            Divider().padding(.leading, 14)
+                        }
+                    }
+                }
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding()
+            }
+            .background(Color(uiColor: .systemGroupedBackground))
+            .navigationTitle("Daily Core Protocol")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { showCoreProtocol = false }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 
     // MARK: - Supplements Section
@@ -274,7 +345,106 @@ struct TodayView: View {
                     }
                 }
             }
+
+            Button {
+                showLogSupplement = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.phaseF)
+                    Text("Log Extra Supplement")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(12)
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .buttonStyle(.plain)
+            .sheet(isPresented: $showLogSupplement) {
+                logSupplementSheet
+            }
         }
+    }
+
+    private var logSupplementSheet: some View {
+        let activeIds = Set(activeRegimen.map(\.supplementId))
+        let extraDefs = definitions.filter { !activeIds.contains($0.id) }
+        let loggedExtraIds = Set(
+            supplementLogs
+                .filter { $0.date == today && $0.taken }
+                .map(\.userSupplementId)
+        )
+
+        return NavigationStack {
+            List {
+                if !extraDefs.isEmpty {
+                    Section("Available Supplements") {
+                        ForEach(extraDefs, id: \.id) { def in
+                            let isLogged = loggedExtraIds.contains("extra-\(def.id)")
+                            Button {
+                                toggleExtraSupplement(def)
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(def.name)
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(.primary)
+                                        if let brand = def.brand, !brand.isEmpty {
+                                            Text(brand)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    Spacer()
+                                    Image(systemName: isLogged ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(isLogged ? Color.phaseF : Color(uiColor: .tertiaryLabel))
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if !activeRegimen.isEmpty {
+                    Section("In Your Plan") {
+                        ForEach(activeRegimen, id: \.id) { userSup in
+                            let def = definitions.first { $0.id == userSup.supplementId }
+                            let isTaken = todaySupplementLogIds.contains(userSup.id)
+                            Button {
+                                toggleSupplement(userSup)
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(def?.name ?? "Unknown")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(.primary)
+                                        Text("\(Int(userSup.dosage)) \(def?.servingUnit ?? "dose")")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: isTaken ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(isTaken ? Color.phaseF : Color(uiColor: .tertiaryLabel))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Log Supplement")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { showLogSupplement = false }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 
     private func supplementCard(_ userSup: UserSupplement) -> some View {
@@ -349,6 +519,16 @@ struct TodayView: View {
             existing.loggedAt = Date()
         } else {
             modelContext.insert(SupplementLog(userSupplementId: userSup.id, date: today, taken: true))
+        }
+    }
+
+    private func toggleExtraSupplement(_ def: SupplementDefinition) {
+        let extraId = "extra-\(def.id)"
+        if let existing = supplementLogs.first(where: { $0.userSupplementId == extraId && $0.date == today }) {
+            existing.taken.toggle()
+            existing.loggedAt = Date()
+        } else {
+            modelContext.insert(SupplementLog(userSupplementId: extraId, date: today, taken: true))
         }
     }
 
