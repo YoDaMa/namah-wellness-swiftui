@@ -23,6 +23,7 @@ struct PlanView: View {
     @State private var showBrowse = false
     @State private var showAddCustom = false
     @State private var searchText = ""
+    @State private var showProfile = false
 
     private var currentSlug: String {
         selectedPhaseSlug ?? cycleService.currentPhase?.phaseSlug ?? "menstrual"
@@ -94,6 +95,23 @@ struct PlanView: View {
                 .padding()
             }
             .navigationTitle("Plan")
+            .navigationDestination(isPresented: $showProfile) {
+                AccountSettingsView()
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button {
+                            showProfile = true
+                        } label: {
+                            Label("Profile", systemImage: "person")
+                        }
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
             .sheet(isPresented: $showBrowse) { browseSheet }
             .sheet(isPresented: $showAddCustom) { AddCustomSupplementView() }
         }
@@ -187,7 +205,7 @@ struct PlanView: View {
                     HStack(spacing: 6) {
                         ForEach(phaseNuts, id: \.id) { nut in
                             HStack(spacing: 4) {
-                                Text(nut.icon).font(.system(size: 12))
+                                Text(nut.icon)
                                 Text(nut.label)
                                     .font(.caption)
                                     .fontWeight(.medium)
@@ -243,7 +261,6 @@ struct PlanView: View {
     private func saNote(_ note: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Text("\u{1f1ee}\u{1f1f3}")
-                .font(.system(size: 16))
             Text(note)
                 .font(.caption)
                 .foregroundStyle(.primary)
@@ -623,7 +640,7 @@ struct PlanView: View {
 
     private func reminderCard(_ reminder: PhaseReminder) -> some View {
         HStack(alignment: .top, spacing: 10) {
-            Text(reminder.icon).font(.system(size: 16))
+            Text(reminder.icon)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(reminder.text)

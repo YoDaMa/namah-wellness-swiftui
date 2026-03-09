@@ -17,6 +17,8 @@ struct TodayView: View {
     @Query private var userSupplements: [UserSupplement]
     @Query private var supplementLogs: [SupplementLog]
 
+    @State private var showProfile = false
+
     private var today: String {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
@@ -112,6 +114,23 @@ struct TodayView: View {
                 .padding()
             }
             .navigationTitle("Today")
+            .navigationDestination(isPresented: $showProfile) {
+                AccountSettingsView()
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button {
+                            showProfile = true
+                        } label: {
+                            Label("Profile", systemImage: "person")
+                        }
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
     }
 

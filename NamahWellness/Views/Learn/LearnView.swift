@@ -8,6 +8,8 @@ struct LearnView: View {
     @Query private var phaseNutrients: [PhaseNutrient]
     @Query private var reminders: [PhaseReminder]
 
+    @State private var showProfile = false
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -55,6 +57,23 @@ struct LearnView: View {
                 .padding()
             }
             .navigationTitle("Learn")
+            .navigationDestination(isPresented: $showProfile) {
+                AccountSettingsView()
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button {
+                            showProfile = true
+                        } label: {
+                            Label("Profile", systemImage: "person")
+                        }
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
     }
 
@@ -93,7 +112,7 @@ struct LearnView: View {
                     HStack(spacing: 6) {
                         ForEach(nutrients, id: \.id) { nut in
                             HStack(spacing: 4) {
-                                Text(nut.icon).font(.system(size: 12))
+                                Text(nut.icon)
                                 Text(nut.label)
                                     .font(.caption)
                                     .fontWeight(.medium)
@@ -112,7 +131,7 @@ struct LearnView: View {
             if !phaseReminders.isEmpty {
                 ForEach(phaseReminders, id: \.id) { reminder in
                     HStack(alignment: .top, spacing: 8) {
-                        Text(reminder.icon).font(.system(size: 14))
+                        Text(reminder.icon)
 
                         VStack(alignment: .leading, spacing: 3) {
                             Text(reminder.text)

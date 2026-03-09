@@ -183,8 +183,12 @@ struct MyCycleView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink {
-                    AccountSettingsView()
+                Menu {
+                    NavigationLink {
+                        AccountSettingsView()
+                    } label: {
+                        Label("Profile", systemImage: "person")
+                    }
                 } label: {
                     Image(systemName: "gearshape")
                         .foregroundStyle(.secondary)
