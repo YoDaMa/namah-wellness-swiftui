@@ -26,6 +26,7 @@ struct NamahWellnessApp: App {
                 SupplementNutrient.self,
                 UserSupplement.self,
                 SupplementLog.self,
+                UserProfile.self,
             ])
             modelContainer = try ModelContainer(for: schema)
         } catch {
