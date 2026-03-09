@@ -50,7 +50,7 @@ final class AuthService {
 
         defer { isLoading = false }
 
-        guard let url = URL(string: "https://namah.yosephmaguire.com/api/auth/sign-in/email") else {
+        guard let url = URL(string: "https://namah.yosephmaguire.com/api/v1/auth") else {
             errorMessage = "Invalid URL"
             return
         }
@@ -73,7 +73,7 @@ final class AuthService {
 
             guard (200...299).contains(httpResponse.statusCode) else {
                 if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                    errorMessage = errorResponse.message ?? "Sign in failed"
+                    errorMessage = errorResponse.displayMessage ?? "Sign in failed"
                 } else {
                     errorMessage = "Sign in failed with status \(httpResponse.statusCode)"
                 }
@@ -137,5 +137,8 @@ private extension AuthService {
 
     struct ErrorResponse: Decodable {
         let message: String?
+        let error: String?
+
+        var displayMessage: String? { error ?? message }
     }
 }
