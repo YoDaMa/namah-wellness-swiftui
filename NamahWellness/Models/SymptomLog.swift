@@ -4,6 +4,7 @@ import SwiftData
 @Model
 final class SymptomLog {
     @Attribute(.unique) var id: String
+    var userId: String
     var date: String          // "YYYY-MM-DD"
     var mood: Int?
     var energy: Int?
@@ -22,6 +23,7 @@ final class SymptomLog {
 
     init(
         id: String = UUID().uuidString,
+        userId: String = "",
         date: String,
         mood: Int? = nil, energy: Int? = nil, cramps: Int? = nil,
         bloating: Int? = nil, fatigue: Int? = nil, acne: Int? = nil,
@@ -30,6 +32,7 @@ final class SymptomLog {
         appetite: Int? = nil, flowIntensity: String? = nil
     ) {
         self.id = id
+        self.userId = userId
         self.date = date
         self.mood = mood
         self.energy = energy
@@ -51,12 +54,14 @@ final class SymptomLog {
 @Model
 final class DailyNote {
     @Attribute(.unique) var id: String
+    var userId: String
     var date: String
     var content: String
     var updatedAt: Date
 
-    init(id: String = UUID().uuidString, date: String, content: String = "", updatedAt: Date = Date()) {
+    init(id: String = UUID().uuidString, userId: String = "", date: String, content: String = "", updatedAt: Date = Date()) {
         self.id = id
+        self.userId = userId
         self.date = date
         self.content = content
         self.updatedAt = updatedAt

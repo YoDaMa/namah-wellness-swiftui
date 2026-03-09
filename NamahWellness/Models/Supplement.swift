@@ -10,13 +10,14 @@ final class SupplementDefinition {
     var servingSize: Int
     var servingUnit: String  // capsule, tablet, softgel, scoop, ml
     var isCustom: Bool
+    var createdByUserId: String?
     var notes: String?
 
     init(
         id: String = UUID().uuidString,
         name: String, brand: String? = nil, category: String,
         servingSize: Int = 1, servingUnit: String = "capsule",
-        isCustom: Bool = false, notes: String? = nil
+        isCustom: Bool = false, createdByUserId: String? = nil, notes: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -25,6 +26,7 @@ final class SupplementDefinition {
         self.servingSize = servingSize
         self.servingUnit = servingUnit
         self.isCustom = isCustom
+        self.createdByUserId = createdByUserId
         self.notes = notes
     }
 }
@@ -49,6 +51,7 @@ final class SupplementNutrient {
 @Model
 final class UserSupplement {
     @Attribute(.unique) var id: String
+    var userId: String
     var supplementId: String
     var dosage: Double
     var frequency: String    // daily, weekly, as_needed
@@ -58,11 +61,13 @@ final class UserSupplement {
 
     init(
         id: String = UUID().uuidString,
+        userId: String = "",
         supplementId: String, dosage: Double = 1.0,
         frequency: String = "daily", timeOfDay: String = "morning",
         isActive: Bool = true, startedAt: Date = Date()
     ) {
         self.id = id
+        self.userId = userId
         self.supplementId = supplementId
         self.dosage = dosage
         self.frequency = frequency
@@ -75,13 +80,15 @@ final class UserSupplement {
 @Model
 final class SupplementLog {
     @Attribute(.unique) var id: String
+    var userId: String
     var userSupplementId: String
     var date: String
     var taken: Bool
     var loggedAt: Date
 
-    init(id: String = UUID().uuidString, userSupplementId: String, date: String, taken: Bool = false, loggedAt: Date = Date()) {
+    init(id: String = UUID().uuidString, userId: String = "", userSupplementId: String, date: String, taken: Bool = false, loggedAt: Date = Date()) {
         self.id = id
+        self.userId = userId
         self.userSupplementId = userSupplementId
         self.date = date
         self.taken = taken
