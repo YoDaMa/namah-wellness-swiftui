@@ -7,7 +7,6 @@ struct PlanView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
     @Query(sort: \Meal.dayNumber) private var allMeals: [Meal]
-    @Query private var groceryItems: [GroceryItem]
     @Query private var reminders: [PhaseReminder]
     @Query private var phaseNutrients: [PhaseNutrient]
     @Query(sort: \Workout.dayOfWeek) private var workouts: [Workout]
@@ -428,7 +427,7 @@ struct PlanView: View {
                     }
                 }
 
-                if !currentWorkout!.isRestDay {
+                if !workout.isRestDay {
                     ForEach(currentSessions, id: \.id) { session in
                         sessionCard(session)
                     }

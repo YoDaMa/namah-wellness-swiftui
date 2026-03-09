@@ -7,7 +7,6 @@ struct TodayView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Meal.dayNumber) private var allMeals: [Meal]
     @Query private var mealCompletions: [MealCompletion]
-    @Query private var workoutCompletions: [WorkoutCompletion]
     @Query(sort: \Workout.dayOfWeek) private var workouts: [Workout]
     @Query private var workoutSessions: [WorkoutSession]
     @Query private var phases: [Phase]
