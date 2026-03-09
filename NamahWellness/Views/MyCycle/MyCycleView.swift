@@ -13,10 +13,15 @@ struct MyCycleView: View {
     @Query private var symptomLogs: [SymptomLog]
 
     // Calendar state
-    @State private var anchor = Date()
+    @State private var anchor: Date = {
+        let cal = Calendar.current
+        let c = cal.dateComponents([.year, .month], from: Date())
+        return cal.date(from: c) ?? Date()
+    }()
     @State private var selectedDayId: String?
+    @State private var slideDirection: Edge = .trailing
 
-    // Cycle management state (from ProfileView)
+    // Cycle management state
     @State private var showLogSheet = false
     @State private var newPeriodDate = Date()
     @State private var showOverrideSheet = false
@@ -55,11 +60,12 @@ struct MyCycleView: View {
         NavigationStack {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // 1. Calendar header (month title + nav buttons)
+                // 1. Calendar header
                 HStack {
                     Text(monthTitle)
                         .font(.title2)
                         .fontDesign(.serif)
+                        .contentTransition(.numericText())
                     Spacer()
                     navigationButtons
                 }
@@ -67,12 +73,17 @@ struct MyCycleView: View {
                 // 2. Legend row
                 legendRow
 
-                // 3. Calendar grid
+                // 3. Calendar grid with month transition
                 calendarGrid
+                    .id(monthTitle)
+                    .transition(.push(from: slideDirection))
+                    .clipped()
+                    .simultaneousGesture(monthSwipeGesture)
 
                 // 4. Selected day phase info
                 if let day = selectedDay {
                     dayPhaseInfo(day)
+                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
 
                 // 5. Divider
@@ -178,6 +189,7 @@ struct MyCycleView: View {
             }
             .padding()
         }
+        .sensoryFeedback(.selection, trigger: selectedDayId)
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("My Cycle")
         .navigationBarTitleDisplayMode(.inline)
@@ -185,7 +197,7 @@ struct MyCycleView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     NavigationLink {
-                        AccountSettingsView()
+                        ProfileView(cycleService: cycleService)
                     } label: {
                         Label("Profile", systemImage: "person")
                     }
@@ -221,17 +233,16 @@ struct MyCycleView: View {
 
     private var navigationButtons: some View {
         HStack(spacing: 0) {
-            Button { shiftWeeks(-1) } label: {
-                Image(systemName: "chevron.up")
-                    .font(.system(size: 11, weight: .medium))
+            Button { changeMonth(-1) } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .frame(width: 32, height: 28)
             }
             .buttonStyle(.plain)
 
             Button {
-                anchor = Date()
-                selectToday()
+                goToToday()
             } label: {
                 Text("Today")
                     .font(.caption2)
@@ -244,9 +255,9 @@ struct MyCycleView: View {
             }
             .buttonStyle(.plain)
 
-            Button { shiftWeeks(1) } label: {
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .medium))
+            Button { changeMonth(1) } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .frame(width: 32, height: 28)
             }
@@ -256,14 +267,38 @@ struct MyCycleView: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
-    private func shiftWeeks(_ count: Int) {
-        if let d = Calendar.current.date(byAdding: .weekOfYear, value: count, to: anchor) { anchor = d }
+    private func changeMonth(_ delta: Int) {
+        slideDirection = delta > 0 ? .trailing : .leading
+        withAnimation(.snappy(duration: 0.35)) {
+            let cal = Calendar.current
+            let c = cal.dateComponents([.year, .month], from: anchor)
+            if let firstOfMonth = cal.date(from: c),
+               let newDate = cal.date(byAdding: .month, value: delta, to: firstOfMonth) {
+                anchor = newDate
+            }
+        }
     }
 
-    private func selectToday() {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd"
-        selectedDayId = f.string(from: Date())
+    private func goToToday() {
+        let cal = Calendar.current
+        let currentMonth = cal.dateComponents([.year, .month], from: Date())
+        let target = cal.date(from: currentMonth) ?? Date()
+        if target > anchor { slideDirection = .trailing }
+        else if target < anchor { slideDirection = .leading }
+        withAnimation(.snappy(duration: 0.35)) {
+            anchor = target
+            selectedDayId = dateFormatter.string(from: Date())
+        }
+    }
+
+    private var monthSwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 60)
+            .onEnded { value in
+                let h = value.translation.width
+                guard abs(h) > abs(value.translation.height) * 2 else { return }
+                if h < -60 { changeMonth(1) }
+                else if h > 60 { changeMonth(-1) }
+            }
     }
 
     // MARK: - Legend
@@ -292,6 +327,7 @@ struct MyCycleView: View {
 
     private var calendarGrid: some View {
         let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 7)
+        let days = calendarDays
 
         return VStack(spacing: 2) {
             LazyVGrid(columns: columns, spacing: 2) {
@@ -307,22 +343,24 @@ struct MyCycleView: View {
             }
 
             LazyVGrid(columns: columns, spacing: 2) {
-                ForEach(calendarDays) { day in
-                    dayCell(day)
+                ForEach(Array(days.enumerated()), id: \.element.id) { index, day in
+                    dayCell(day, index: index, in: days)
                 }
             }
         }
     }
 
-    private func dayCell(_ day: CalendarDay) -> some View {
+    private func dayCell(_ day: CalendarDay, index: Int, in days: [CalendarDay]) -> some View {
         let isSelected = selectedDayId == day.id
 
         return Button {
-            selectedDayId = day.id
+            withAnimation(.easeOut(duration: 0.2)) {
+                selectedDayId = day.id
+            }
         } label: {
             ZStack {
                 if day.phase != nil {
-                    phaseBackground(day)
+                    phaseBackground(day, index: index, in: days)
                 }
 
                 if day.isToday {
@@ -335,7 +373,7 @@ struct MyCycleView: View {
                 } else {
                     Text("\(day.dayOfMonth)")
                         .font(.caption)
-                        .foregroundStyle(day.isCurrentMonth ? .primary : .quaternary)
+                        .foregroundStyle(day.isCurrentMonth ? .primary : .secondary)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -348,28 +386,25 @@ struct MyCycleView: View {
         .buttonStyle(.plain)
     }
 
-    private func phaseBackground(_ day: CalendarDay) -> some View {
+    private func phaseBackground(_ day: CalendarDay, index: Int, in days: [CalendarDay]) -> some View {
         let slug = day.phase?.phaseSlug ?? ""
         let isPeak = day.phase?.isPeak ?? false
         let color = colorForPhase(slug, isPeak: isPeak)
 
-        let idx = calendarDays.firstIndex(where: { $0.id == day.id }) ?? 0
-        let prevSlug = idx > 0 ? calendarDays[idx - 1].phase?.phaseSlug : nil
-        let nextSlug = idx < calendarDays.count - 1 ? calendarDays[idx + 1].phase?.phaseSlug : nil
+        let prevSlug = index > 0 ? days[index - 1].phase?.phaseSlug : nil
+        let nextSlug = index < days.count - 1 ? days[index + 1].phase?.phaseSlug : nil
 
         let isStart = prevSlug != slug
         let isEnd = nextSlug != slug
 
-        let corners: UIRectCorner = {
-            if isStart && isEnd { return .allCorners }
-            if isStart { return [.topLeft, .bottomLeft] }
-            if isEnd { return [.topRight, .bottomRight] }
-            return []
-        }()
-
-        return RoundedCornersShape(corners: corners, radius: 12)
-            .fill(color.opacity(0.35))
-            .padding(.vertical, 4)
+        return UnevenRoundedRectangle(
+            topLeadingRadius: isStart ? 12 : 0,
+            bottomLeadingRadius: isStart ? 12 : 0,
+            bottomTrailingRadius: isEnd ? 12 : 0,
+            topTrailingRadius: isEnd ? 12 : 0
+        )
+        .fill(color.opacity(0.35))
+        .padding(.vertical, 4)
     }
 
     private func colorForPhase(_ slug: String?, isPeak: Bool) -> Color {
@@ -645,20 +680,5 @@ struct MyCycleView: View {
         guard let s = dateFormatter.date(from: start),
               let e = dateFormatter.date(from: end) else { return nil }
         return Calendar.current.dateComponents([.day], from: s, to: e).day
-    }
-}
-
-// MARK: - Helpers
-
-struct RoundedCornersShape: Shape {
-    var corners: UIRectCorner
-    var radius: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect, byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
     }
 }

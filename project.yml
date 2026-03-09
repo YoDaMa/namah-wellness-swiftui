@@ -9,7 +9,7 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: "V78DYGQTSW"
 
 targets:
   NamahWellness:

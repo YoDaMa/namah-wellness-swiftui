@@ -2,6 +2,26 @@ import Foundation
 import SwiftData
 
 enum SeedService {
+    // Migrate emoji icons to SF Symbol names for existing users
+    static func migrateIconsToSFSymbols(in context: ModelContext) {
+        guard !UserDefaults.standard.bool(forKey: "sfSymbolIconsMigrated") else { return }
+        let phases = (try? context.fetch(FetchDescriptor<Phase>())) ?? []
+        guard !phases.isEmpty else { return }
+
+        let mId = phases.first { $0.slug == "menstrual" }?.id ?? ""
+        let fId = phases.first { $0.slug == "follicular" }?.id ?? ""
+        let oId = phases.first { $0.slug == "ovulatory" }?.id ?? ""
+        let lId = phases.first { $0.slug == "luteal" }?.id ?? ""
+
+        try? context.delete(model: PhaseReminder.self)
+        try? context.delete(model: PhaseNutrient.self)
+
+        seedReminders(into: context, menstrualId: mId, follicularId: fId, ovulatoryId: oId, lutealId: lId)
+        seedNutrients(into: context, menstrualId: mId, follicularId: fId, ovulatoryId: oId, lutealId: lId)
+
+        UserDefaults.standard.set(true, forKey: "sfSymbolIconsMigrated")
+    }
+
     static func seed(into context: ModelContext) {
         // Phase IDs
         let menstrualId = UUID().uuidString
@@ -399,34 +419,34 @@ enum SeedService {
         }
 
         // Menstrual
-        r(mId, "\u{1fa78}", "Iron-rich foods are essential \u{2014} menstrual blood loss averages 15\u{2013}30 mg of iron per cycle. Pair iron sources with vitamin C to double absorption. Avoid tea and coffee within an hour of iron-rich meals.", "strong")
-        r(mId, "\u{1f41f}", "Omega-3 fatty acids (300\u{2013}1,800 mg EPA+DHA daily) significantly reduce menstrual cramps by lowering pro-inflammatory prostaglandins \u{2014} the compounds driving cramping. Multiple meta-analyses confirm a large effect.", "strong")
-        r(mId, "\u{1f48a}", "Calcium (1,000\u{2013}1,200 mg/day) reduces overall PMS and menstrual symptoms by up to 48% when taken consistently over 2\u{2013}3 months. Start now \u{2014} the benefit is cumulative.", "strong")
-        r(mId, "\u{1f9d8}", "You can train at any intensity if you feel well. Research shows no meaningful performance reduction during menstruation. Adjust to how your body feels, not a calendar. Yoga, walks, or full sessions are all valid.", "strong")
-        r(mId, "\u{1f321}\u{fe0f}", "Menstrual cramps are driven by prostaglandin F2\u{03b1} contracting the uterus. Anti-inflammatory foods \u{2014} ginger, turmeric, oily fish \u{2014} may ease discomfort alongside NSAIDs.", "moderate")
-        r(mId, "\u{1f4a7}", "2.5L water daily + electrolytes. A pinch of Himalayan salt in water with lemon supports hydration when bleeding. Avoid excess caffeine \u{2014} it depletes iron and can worsen cramps.", "moderate")
+        r(mId, "drop.fill", "Iron-rich foods are essential \u{2014} menstrual blood loss averages 15\u{2013}30 mg of iron per cycle. Pair iron sources with vitamin C to double absorption. Avoid tea and coffee within an hour of iron-rich meals.", "strong")
+        r(mId, "heart.fill", "Omega-3 fatty acids (300\u{2013}1,800 mg EPA+DHA daily) significantly reduce menstrual cramps by lowering pro-inflammatory prostaglandins \u{2014} the compounds driving cramping. Multiple meta-analyses confirm a large effect.", "strong")
+        r(mId, "pill.fill", "Calcium (1,000\u{2013}1,200 mg/day) reduces overall PMS and menstrual symptoms by up to 48% when taken consistently over 2\u{2013}3 months. Start now \u{2014} the benefit is cumulative.", "strong")
+        r(mId, "figure.yoga", "You can train at any intensity if you feel well. Research shows no meaningful performance reduction during menstruation. Adjust to how your body feels, not a calendar. Yoga, walks, or full sessions are all valid.", "strong")
+        r(mId, "flame.fill", "Menstrual cramps are driven by prostaglandin F2\u{03b1} contracting the uterus. Anti-inflammatory foods \u{2014} ginger, turmeric, oily fish \u{2014} may ease discomfort alongside NSAIDs.", "moderate")
+        r(mId, "drop.triangle.fill", "2.5L water daily + electrolytes. A pinch of Himalayan salt in water with lemon supports hydration when bleeding. Avoid excess caffeine \u{2014} it depletes iron and can worsen cramps.", "moderate")
 
         // Follicular
-        r(fId, "\u{26a1}", "Rising estradiol directly boosts serotonin and dopamine synthesis. Most women feel increased energy, motivation, and sociability during this phase \u{2014} this is well-documented neurochemistry, not coincidence.", "strong")
-        r(fId, "\u{1f3c3}", "Many women feel their best physically in the follicular phase. Research on whether this phase produces measurably superior performance is mixed \u{2014} train at whatever intensity matches your energy, not because a schedule says to.", "moderate")
-        r(fId, "\u{1f957}", "Insulin sensitivity is typically higher in the follicular phase (HOMA-IR ~1.35 vs ~1.59 in luteal per BioCycle Study). Your body handles carbohydrates more efficiently now.", "moderate")
-        r(fId, "\u{1f331}", "Seed cycling (follicular phase: flaxseed + pumpkin seeds) is a popular wellness practice believed to support estrogen balance through lignans and zinc. No clinical trials have tested it \u{2014} anecdotal evidence only. Many find it a meaningful daily ritual.", "expert_opinion")
-        r(fId, "\u{1fad9}", "One fermented food daily (yogurt, kefir, lassi) supports gut microbiome health, which influences estrogen metabolism via the estrobolome. Mechanistically sound \u{2014} direct human RCT evidence for cycle effects is limited.", "emerging")
+        r(fId, "bolt.fill", "Rising estradiol directly boosts serotonin and dopamine synthesis. Most women feel increased energy, motivation, and sociability during this phase \u{2014} this is well-documented neurochemistry, not coincidence.", "strong")
+        r(fId, "figure.run", "Many women feel their best physically in the follicular phase. Research on whether this phase produces measurably superior performance is mixed \u{2014} train at whatever intensity matches your energy, not because a schedule says to.", "moderate")
+        r(fId, "leaf.fill", "Insulin sensitivity is typically higher in the follicular phase (HOMA-IR ~1.35 vs ~1.59 in luteal per BioCycle Study). Your body handles carbohydrates more efficiently now.", "moderate")
+        r(fId, "leaf.circle.fill", "Seed cycling (follicular phase: flaxseed + pumpkin seeds) is a popular wellness practice believed to support estrogen balance through lignans and zinc. No clinical trials have tested it \u{2014} anecdotal evidence only. Many find it a meaningful daily ritual.", "expert_opinion")
+        r(fId, "cup.and.saucer.fill", "One fermented food daily (yogurt, kefir, lassi) supports gut microbiome health, which influences estrogen metabolism via the estrobolome. Mechanistically sound \u{2014} direct human RCT evidence for cycle effects is limited.", "emerging")
 
         // Ovulatory
-        r(oId, "\u{1f321}\u{fe0f}", "Your basal body temperature rises 0.3\u{2013}0.5\u{00b0}C after ovulation \u{2014} the most reliable physical sign ovulation has occurred. If tracking BBT, look for this sustained shift.", "strong")
-        r(oId, "\u{26a1}", "Peak estradiol and a mid-cycle testosterone rise create the highest energy and libido of the cycle for most women. This is a real hormonal effect, not placebo.", "strong")
-        r(oId, "\u{1f4a7}", "About 20% of women experience mittelschmerz \u{2014} mild one-sided pelvic pain from follicle rupture, lasting hours to a day. It is harmless and self-resolving.", "strong")
-        r(oId, "\u{1f6ab}", "Avoid alcohol this phase \u{2014} peak estradiol combined with alcohol amplifies estrogenic effects and can worsen the luteal transition. Sparkling water with citrus instead.", "moderate")
+        r(oId, "thermometer.medium", "Your basal body temperature rises 0.3\u{2013}0.5\u{00b0}C after ovulation \u{2014} the most reliable physical sign ovulation has occurred. If tracking BBT, look for this sustained shift.", "strong")
+        r(oId, "bolt.fill", "Peak estradiol and a mid-cycle testosterone rise create the highest energy and libido of the cycle for most women. This is a real hormonal effect, not placebo.", "strong")
+        r(oId, "waveform.path.ecg", "About 20% of women experience mittelschmerz \u{2014} mild one-sided pelvic pain from follicle rupture, lasting hours to a day. It is harmless and self-resolving.", "strong")
+        r(oId, "exclamationmark.triangle.fill", "Avoid alcohol this phase \u{2014} peak estradiol combined with alcohol amplifies estrogenic effects and can worsen the luteal transition. Sparkling water with citrus instead.", "moderate")
 
         // Luteal
-        r(lId, "\u{1f321}\u{fe0f}", "Core body temperature is measurably 0.3\u{2013}0.7\u{00b0}C higher in the luteal phase due to progesterone \u{2014} decades of replicated data confirm this. In hot or humid conditions, prioritize hydration, pre-cooling, and pacing awareness during exercise.", "strong")
-        r(lId, "\u{1f36b}", "Appetite increases 100\u{2013}500 kcal/day in the late luteal phase \u{2014} this is real and driven by progesterone\u{2019}s thermogenic effect. Carbohydrate cravings are likely your body\u{2019}s attempt to boost serotonin via the insulin\u{2192}tryptophan pathway. Dark chocolate (magnesium) and complex carbs are legitimate responses.", "strong")
-        r(lId, "\u{1f634}", "Progesterone\u{2019}s calming metabolite (allopregnanolone) acts on GABA-A receptors \u{2014} you may feel calmer but sleepier in the early luteal phase. As both hormones drop in the late luteal, mood instability can increase. This is neurochemistry, not character.", "strong")
-        r(lId, "\u{1f3cb}\u{fe0f}", "Many practitioners recommend listening to your body more closely in the luteal phase. Note: muscle protein synthesis is identical to the follicular phase (Colenso-Semple 2025, Journal of Physiology). You do not need to avoid strength training \u{2014} but heat management matters more now.", "moderate")
-        r(lId, "\u{1f48a}", "Magnesium (200 mg) + Vitamin B6 (50 mg) showed the strongest supplement results for PMS symptoms in clinical studies. Evening magnesium may also support sleep quality in the late luteal phase.", "moderate")
-        r(lId, "\u{1f331}", "Seed cycling (luteal phase: sesame + sunflower seeds) is believed to support progesterone metabolism via zinc and selenium. No clinical trials to date \u{2014} anecdotal evidence only. If it feels good, there\u{2019}s no harm in continuing.", "expert_opinion")
-        r(lId, "\u{1f9c2}", "Watch sodium \u{2014} you retain water more easily now due to aldosterone-mediated fluid shifts. Avoid high-sodium processed or restaurant food if you are already feeling puffy. You are not gaining fat.", "moderate")
+        r(lId, "thermometer.medium", "Core body temperature is measurably 0.3\u{2013}0.7\u{00b0}C higher in the luteal phase due to progesterone \u{2014} decades of replicated data confirm this. In hot or humid conditions, prioritize hydration, pre-cooling, and pacing awareness during exercise.", "strong")
+        r(lId, "fork.knife", "Appetite increases 100\u{2013}500 kcal/day in the late luteal phase \u{2014} this is real and driven by progesterone\u{2019}s thermogenic effect. Carbohydrate cravings are likely your body\u{2019}s attempt to boost serotonin via the insulin\u{2192}tryptophan pathway. Dark chocolate (magnesium) and complex carbs are legitimate responses.", "strong")
+        r(lId, "moon.zzz.fill", "Progesterone\u{2019}s calming metabolite (allopregnanolone) acts on GABA-A receptors \u{2014} you may feel calmer but sleepier in the early luteal phase. As both hormones drop in the late luteal, mood instability can increase. This is neurochemistry, not character.", "strong")
+        r(lId, "figure.strengthtraining.traditional", "Many practitioners recommend listening to your body more closely in the luteal phase. Note: muscle protein synthesis is identical to the follicular phase (Colenso-Semple 2025, Journal of Physiology). You do not need to avoid strength training \u{2014} but heat management matters more now.", "moderate")
+        r(lId, "pill.fill", "Magnesium (200 mg) + Vitamin B6 (50 mg) showed the strongest supplement results for PMS symptoms in clinical studies. Evening magnesium may also support sleep quality in the late luteal phase.", "moderate")
+        r(lId, "leaf.circle.fill", "Seed cycling (luteal phase: sesame + sunflower seeds) is believed to support progesterone metabolism via zinc and selenium. No clinical trials to date \u{2014} anecdotal evidence only. If it feels good, there\u{2019}s no harm in continuing.", "expert_opinion")
+        r(lId, "scalemass.fill", "Watch sodium \u{2014} you retain water more easily now due to aldosterone-mediated fluid shifts. Avoid high-sodium processed or restaurant food if you are already feeling puffy. You are not gaining fat.", "moderate")
     }
 
     // MARK: - Phase Nutrients
@@ -437,32 +457,32 @@ enum SeedService {
         }
 
         // Menstrual
-        n(mId, "\u{1f534}", "Iron (red meat, lentils, spinach)")
-        n(mId, "\u{1f41f}", "Omega-3 (salmon, walnuts)")
-        n(mId, "\u{1f33f}", "Turmeric + Ginger (anti-cramp)")
-        n(mId, "\u{1f36b}", "Magnesium (dark choc, pumpkin seeds)")
-        n(mId, "\u{1f34b}", "Vitamin C with iron (lemon, bell pepper)")
+        n(mId, "drop.fill", "Iron (red meat, lentils, spinach)")
+        n(mId, "heart.fill", "Omega-3 (salmon, walnuts)")
+        n(mId, "leaf.fill", "Turmeric + Ginger (anti-cramp)")
+        n(mId, "sparkle", "Magnesium (dark choc, pumpkin seeds)")
+        n(mId, "sun.max.fill", "Vitamin C with iron (lemon, bell pepper)")
 
         // Follicular
-        n(fId, "\u{1f957}", "Flaxseed (estrogen metabolism)")
-        n(fId, "\u{1f952}", "Fermented foods (gut-estrogen axis)")
-        n(fId, "\u{1fab0}", "Antioxidants (cellular repair)")
-        n(fId, "\u{1f966}", "Cruciferous veg (estrogen detox / DIM)")
-        n(fId, "\u{1f41f}", "Lean protein (muscle building)")
+        n(fId, "leaf.fill", "Flaxseed (estrogen metabolism)")
+        n(fId, "cup.and.saucer.fill", "Fermented foods (gut-estrogen axis)")
+        n(fId, "sparkle", "Antioxidants (cellular repair)")
+        n(fId, "leaf.circle.fill", "Cruciferous veg (estrogen detox / DIM)")
+        n(fId, "bolt.fill", "Lean protein (muscle building)")
 
         // Ovulatory
-        n(oId, "\u{1f33b}", "Zinc (pumpkin seeds, turkey)")
-        n(oId, "\u{1f41f}", "Omega-3 (salmon, sardines)")
-        n(oId, "\u{1f966}", "Fiber (estrogen clearing)")
-        n(oId, "\u{1f34c}", "Vitamin B6 (turkey, banana \u{2014} preps for luteal)")
-        n(oId, "\u{1f951}", "Healthy fats (hormone production)")
+        n(oId, "shield.fill", "Zinc (pumpkin seeds, turkey)")
+        n(oId, "heart.fill", "Omega-3 (salmon, sardines)")
+        n(oId, "leaf.fill", "Fiber (estrogen clearing)")
+        n(oId, "pill.fill", "Vitamin B6 (turkey, banana \u{2014} preps for luteal)")
+        n(oId, "drop.fill", "Healthy fats (hormone production)")
 
         // Luteal
-        n(lId, "\u{1f360}", "Complex carbs (blood sugar stability)")
-        n(lId, "\u{1f36b}", "Magnesium (dark choc, seeds, greens)")
-        n(lId, "\u{1fab8}", "Fiber (hormone waste removal)")
-        n(lId, "\u{1f414}", "Tryptophan (turkey, eggs \u{2192} serotonin)")
-        n(lId, "\u{2615}", "Limit caffeine (worsens anxiety + bloating)")
+        n(lId, "flame.fill", "Complex carbs (blood sugar stability)")
+        n(lId, "sparkle", "Magnesium (dark choc, seeds, greens)")
+        n(lId, "leaf.fill", "Fiber (hormone waste removal)")
+        n(lId, "moon.fill", "Tryptophan (turkey, eggs \u{2192} serotonin)")
+        n(lId, "cup.and.saucer.fill", "Limit caffeine (worsens anxiety + bloating)")
 
         // ── Supplements ──────────────────────────────────────────────
 

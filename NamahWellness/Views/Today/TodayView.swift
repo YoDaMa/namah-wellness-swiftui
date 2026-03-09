@@ -115,7 +115,7 @@ struct TodayView: View {
             }
             .navigationTitle("Today")
             .navigationDestination(isPresented: $showProfile) {
-                AccountSettingsView()
+                ProfileView(cycleService: cycleService)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

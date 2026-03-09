@@ -96,7 +96,7 @@ struct PlanView: View {
             }
             .navigationTitle("Plan")
             .navigationDestination(isPresented: $showProfile) {
-                AccountSettingsView()
+                ProfileView(cycleService: cycleService)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -205,7 +205,7 @@ struct PlanView: View {
                     HStack(spacing: 6) {
                         ForEach(phaseNuts, id: \.id) { nut in
                             HStack(spacing: 4) {
-                                Text(nut.icon)
+                                phaseIcon(nut.icon)
                                 Text(nut.label)
                                     .font(.caption)
                                     .fontWeight(.medium)
@@ -638,9 +638,22 @@ struct PlanView: View {
         }
     }
 
+    @ViewBuilder
+    private func phaseIcon(_ name: String) -> some View {
+        if UIImage(systemName: name) != nil {
+            Image(systemName: name)
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+                .frame(width: 24, alignment: .center)
+        } else {
+            Text(name)
+                .frame(width: 24, alignment: .center)
+        }
+    }
+
     private func reminderCard(_ reminder: PhaseReminder) -> some View {
         HStack(alignment: .top, spacing: 10) {
-            Text(reminder.icon)
+            phaseIcon(reminder.icon)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(reminder.text)

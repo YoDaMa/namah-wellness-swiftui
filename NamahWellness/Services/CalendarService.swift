@@ -43,11 +43,12 @@ enum CalendarService {
         let today = formatter.string(from: Date())
         let anchorMonth = cal.component(.month, from: anchor)
 
-        // Go back 14 days from anchor, then snap to previous Monday
-        guard let twoWeeksBack = cal.date(byAdding: .day, value: -14, to: anchor) else { return [] }
-        let weekday = cal.component(.weekday, from: twoWeeksBack) // 1=Sun, 2=Mon
+        // Get first day of anchor's month, then snap to previous Monday
+        let monthComponents = cal.dateComponents([.year, .month], from: anchor)
+        guard let firstOfMonth = cal.date(from: monthComponents) else { return [] }
+        let weekday = cal.component(.weekday, from: firstOfMonth) // 1=Sun, 2=Mon
         let mondayOffset = weekday == 1 ? -6 : 2 - weekday
-        guard let gridStart = cal.date(byAdding: .day, value: mondayOffset, to: twoWeeksBack) else { return [] }
+        guard let gridStart = cal.date(byAdding: .day, value: mondayOffset, to: firstOfMonth) else { return [] }
 
         let sortedLogs = logs.sorted { $0.periodStartDate < $1.periodStartDate }
 

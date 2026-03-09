@@ -39,7 +39,7 @@ struct ContentView: View {
                 }
                 .tag(3)
         }
-        .onAppear { seedIfNeeded(); recalculate() }
+        .onAppear { seedIfNeeded(); SeedService.migrateIconsToSFSymbols(in: modelContext); recalculate() }
         .onChange(of: cycleLogs.count) { recalculate() }
     }
 

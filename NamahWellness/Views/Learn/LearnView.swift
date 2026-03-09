@@ -58,7 +58,7 @@ struct LearnView: View {
             }
             .navigationTitle("Learn")
             .navigationDestination(isPresented: $showProfile) {
-                AccountSettingsView()
+                ProfileView(cycleService: cycleService)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -112,7 +112,7 @@ struct LearnView: View {
                     HStack(spacing: 6) {
                         ForEach(nutrients, id: \.id) { nut in
                             HStack(spacing: 4) {
-                                Text(nut.icon)
+                                phaseIcon(nut.icon)
                                 Text(nut.label)
                                     .font(.caption)
                                     .fontWeight(.medium)
@@ -131,7 +131,7 @@ struct LearnView: View {
             if !phaseReminders.isEmpty {
                 ForEach(phaseReminders, id: \.id) { reminder in
                     HStack(alignment: .top, spacing: 8) {
-                        Text(reminder.icon)
+                        phaseIcon(reminder.icon)
 
                         VStack(alignment: .leading, spacing: 3) {
                             Text(reminder.text)
@@ -157,6 +157,19 @@ struct LearnView: View {
         .padding(16)
         .background(colors.soft)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    @ViewBuilder
+    private func phaseIcon(_ name: String) -> some View {
+        if UIImage(systemName: name) != nil {
+            Image(systemName: name)
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+                .frame(width: 24, alignment: .center)
+        } else {
+            Text(name)
+                .frame(width: 24, alignment: .center)
+        }
     }
 
     private func evidenceLabel(_ level: String) -> String {
