@@ -52,6 +52,7 @@ struct MyCycleView: View {
     }
 
     var body: some View {
+        NavigationStack {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 // 1. Calendar header (month title + nav buttons)
@@ -146,6 +147,34 @@ struct MyCycleView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
+
+                // 9. Hormones card
+                NavigationLink {
+                    HormonesView(cycleService: cycleService)
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "flask")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.phaseO)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Hormones")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.primary)
+                            Text("Reference curves scaled to your cycle")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(14)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(.plain)
             }
             .padding()
         }
@@ -180,6 +209,7 @@ struct MyCycleView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This will remove this period log from your history.")
+        }
         }
     }
 
