@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1998C9D3CDF5081A78BDDC34 /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139601881931CFC6FF7B74E1 /* PlanView.swift */; };
 		1FCEB15251A81E567BCDA861 /* MealCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74614E34083D59F3BD2F06CD /* MealCardView.swift */; };
+		2100DEA3D0375304808B57D3 /* LearnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B892F182887563667F5B94 /* LearnView.swift */; };
 		241D91888B767F744E89CAC4 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55559112F1FA8F997EDBD43C /* CalendarService.swift */; };
 		24CFECC7E05A555F29097687 /* MacroSummaryBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199440C62E1016C84A8ADDB6 /* MacroSummaryBar.swift */; };
 		391B30BEF2F89463F895D21A /* MyCycleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE2279ADDF428CBE8E2C7CC /* MyCycleView.swift */; };
@@ -44,6 +46,7 @@
 		095186FF8376AA32A7216280 /* GroceryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryItem.swift; sourceTree = "<group>"; };
 		0A5D909D0CE0E5948C5B7B30 /* HormonesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormonesView.swift; sourceTree = "<group>"; };
 		0AF5463D2FC40A20BE9CE493 /* AccountSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSettingsView.swift; sourceTree = "<group>"; };
+		139601881931CFC6FF7B74E1 /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
 		18BD64CC6B5C94E8A12DE55A /* SeedService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedService.swift; sourceTree = "<group>"; };
 		199440C62E1016C84A8ADDB6 /* MacroSummaryBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroSummaryBar.swift; sourceTree = "<group>"; };
 		1DAAFFB2FDB7137CD4420838 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
@@ -70,6 +73,7 @@
 		ADF32A87E23CC255EEA8048C /* PhaseDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseDetailView.swift; sourceTree = "<group>"; };
 		B01AE3BCBFBEF573AC5FFC88 /* Supplement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Supplement.swift; sourceTree = "<group>"; };
 		C54900E5D20DE7E9A9003D53 /* NutritionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionView.swift; sourceTree = "<group>"; };
+		D3B892F182887563667F5B94 /* LearnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnView.swift; sourceTree = "<group>"; };
 		EFAE8910B36D5AB05B641B60 /* GroceryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryListView.swift; sourceTree = "<group>"; };
 		FC809F47B0D06CD2891BC0E3 /* SymptomLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymptomLog.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -138,9 +142,11 @@
 				19382C9C8F964F33D20A6B36 /* Components */,
 				7935DB5EA6EE225369C441B5 /* Exercise */,
 				FA0CF78D68433BF0FB7C1FB7 /* Hormones */,
+				CC7E7878335558F8E63FD0C8 /* Learn */,
 				68D78137D9DBC686294485CA /* MyCycle */,
 				2FC2334A6B68D7492B28C3EB /* Nutrition */,
 				A0914458A1C96D8112212571 /* Phase */,
+				DDD1B985CF9E827C89B14DA4 /* Plan */,
 				36637787C49A0D0E5A63CBE7 /* Profile */,
 				D07F56AE04646B88C439B855 /* Today */,
 			);
@@ -224,12 +230,28 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		CC7E7878335558F8E63FD0C8 /* Learn */ = {
+			isa = PBXGroup;
+			children = (
+				D3B892F182887563667F5B94 /* LearnView.swift */,
+			);
+			path = Learn;
+			sourceTree = "<group>";
+		};
 		D07F56AE04646B88C439B855 /* Today */ = {
 			isa = PBXGroup;
 			children = (
 				1DAAFFB2FDB7137CD4420838 /* TodayView.swift */,
 			);
 			path = Today;
+			sourceTree = "<group>";
+		};
+		DDD1B985CF9E827C89B14DA4 /* Plan */ = {
+			isa = PBXGroup;
+			children = (
+				139601881931CFC6FF7B74E1 /* PlanView.swift */,
+			);
+			path = Plan;
 			sourceTree = "<group>";
 		};
 		E49633FE9B6146FC74CD2379 /* Theme */ = {
@@ -331,6 +353,7 @@
 				8E868CB450DC435E34B9F1F8 /* HormoneChartView.swift in Sources */,
 				A5C11CBD7002971C23F562C4 /* HormoneData.swift in Sources */,
 				60F28E643071535CE5C35361 /* HormonesView.swift in Sources */,
+				2100DEA3D0375304808B57D3 /* LearnView.swift in Sources */,
 				24CFECC7E05A555F29097687 /* MacroSummaryBar.swift in Sources */,
 				EE2E0A4EC043873B85602A9D /* Meal.swift in Sources */,
 				1FCEB15251A81E567BCDA861 /* MealCardView.swift in Sources */,
@@ -342,6 +365,7 @@
 				D2B078A1A0904E00A730AEE5 /* PhaseDetailView.swift in Sources */,
 				A4B1DEDBD4EEBC650EE03979 /* PhaseHeaderView.swift in Sources */,
 				AC6F2DF69BB78E1AEF682D31 /* PhaseHeroCard.swift in Sources */,
+				1998C9D3CDF5081A78BDDC34 /* PlanView.swift in Sources */,
 				DB9B8B8F993FD774204A0270 /* SeedService.swift in Sources */,
 				CB8B237ED8E61749185E5299 /* Supplement.swift in Sources */,
 				4E69D3B136CE96AAF3FBB9FB /* SupplementsView.swift in Sources */,

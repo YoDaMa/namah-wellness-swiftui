@@ -18,19 +18,26 @@ struct ContentView: View {
                 }
                 .tag(0)
 
-            NutritionView(cycleService: cycleService)
-                .tabItem {
-                    Image(systemName: "fork.knife")
-                    Text("Nutrition")
-                }
-                .tag(1)
-
             MyCycleView(cycleService: cycleService)
                 .tabItem {
                     Image(systemName: "circle.dotted.circle")
                     Text("My Cycle")
                 }
+                .tag(1)
+
+            PlanView(cycleService: cycleService)
+                .tabItem {
+                    Image(systemName: "list.bullet.rectangle")
+                    Text("Plan")
+                }
                 .tag(2)
+
+            LearnView(cycleService: cycleService)
+                .tabItem {
+                    Image(systemName: "book")
+                    Text("Learn")
+                }
+                .tag(3)
         }
         .onAppear { seedIfNeeded(); recalculate() }
         .onChange(of: cycleLogs.count) { recalculate() }
