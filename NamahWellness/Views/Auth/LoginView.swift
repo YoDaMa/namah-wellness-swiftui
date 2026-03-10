@@ -22,60 +22,47 @@ struct LoginView: View {
                 // Logo + tagline
                 VStack(spacing: 16) {
                     Image("Logo")
-                        .renderingMode(.template)
+                        .renderingMode(.original)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 88, height: 88)
-                        .foregroundStyle(.primary)
+                        .frame(width: 100, height: 100)
 
-                    Text("Wellness, in rhythm")
-                        .font(.subheadline)
+                    Text("Wellness, in rhythm.")
+                        .font(.displayItalic(24, relativeTo: .title3))
                         .foregroundStyle(.secondary)
                 }
                 .padding(.bottom, 48)
 
                 // Fields
                 VStack(spacing: 16) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Email")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.secondary)
+                    TextField("Email", text: $email)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .focused($focusedField, equals: .email)
+                        .submitLabel(.next)
+                        .onSubmit { focusedField = .password }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                        .background(Color(uiColor: .tertiarySystemFill))
+                        .clipShape(Capsule())
 
-                        TextField("you@example.com", text: $email)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                            .focused($focusedField, equals: .email)
-                            .submitLabel(.next)
-                            .onSubmit { focusedField = .password }
-                            .padding(14)
-                            .background(Color(uiColor: .secondarySystemGroupedBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Password")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.secondary)
-
-                        SecureField("Enter your password", text: $password)
-                            .textContentType(.password)
-                            .focused($focusedField, equals: .password)
-                            .submitLabel(.go)
-                            .onSubmit { signIn() }
-                            .padding(14)
-                            .background(Color(uiColor: .secondarySystemGroupedBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
+                    SecureField("Password", text: $password)
+                        .textContentType(.password)
+                        .focused($focusedField, equals: .password)
+                        .submitLabel(.go)
+                        .onSubmit { signIn() }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                        .background(Color(uiColor: .tertiarySystemFill))
+                        .clipShape(Capsule())
                 }
 
                 // Error
                 if let error = authService.errorMessage {
                     Text(error)
-                        .font(.caption)
+                        .font(.nCaption)
                         .foregroundStyle(.red)
                         .padding(.top, 12)
                 }
@@ -88,22 +75,22 @@ struct LoginView: View {
                                 .tint(.white)
                         } else {
                             Text("Sign In")
-                                .font(.headline)
+                                .font(.nHeadline)
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(14)
+                    .padding(.vertical, 14)
                 }
                 .foregroundStyle(.white)
                 .background(canSubmit ? Color.primary : Color.secondary)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(Capsule())
                 .disabled(!canSubmit)
                 .padding(.top, 24)
             }
             .padding(.horizontal, 24)
         }
         .scrollDismissesKeyboard(.interactively)
-        .background(Color(uiColor: .systemGroupedBackground))
+        .background(.white)
     }
 
     private func signIn() {

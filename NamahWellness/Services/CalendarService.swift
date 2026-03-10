@@ -21,7 +21,7 @@ enum CalendarService {
     private static let formatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
-        f.timeZone = TimeZone(identifier: "UTC")
+        f.timeZone = .current
         return f
     }()
 

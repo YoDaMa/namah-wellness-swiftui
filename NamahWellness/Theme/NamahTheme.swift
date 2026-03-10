@@ -76,16 +76,46 @@ struct PhaseColors {
     }
 }
 
-// MARK: - Typography (keep serif heading as brand identity)
+// MARK: - Typography
 
 extension Font {
-    static func heading(_ size: CGFloat) -> Font {
-        .system(size: size, weight: .light, design: .serif)
+    // ── Display Serif (DM Serif Display) ──
+    // Page titles, section headers, modal titles — orienting text
+    static func display(_ size: CGFloat, relativeTo style: TextStyle = .title) -> Font {
+        .custom("ETBookOT-Roman", size: size, relativeTo: style)
     }
 
-    static func headingMedium(_ size: CGFloat) -> Font {
-        .system(size: size, weight: .medium, design: .serif)
+    static func displayItalic(_ size: CGFloat, relativeTo style: TextStyle = .title) -> Font {
+        .custom("ETBookOT-Italic", size: size, relativeTo: style)
     }
+
+    // ── Prose (ET Book) ──
+    // Educational / interpretive text the user reads and sits with
+    static func prose(_ size: CGFloat, relativeTo style: TextStyle = .body) -> Font {
+        .custom("ETBookOT-Roman", size: size, relativeTo: style)
+    }
+
+    static func proseBold(_ size: CGFloat, relativeTo style: TextStyle = .body) -> Font {
+        .custom("ETBookOT-Bold", size: size, relativeTo: style)
+    }
+
+    static func proseItalic(_ size: CGFloat, relativeTo style: TextStyle = .body) -> Font {
+        .custom("ETBookOT-Italic", size: size, relativeTo: style)
+    }
+
+    // ── Sans (Plus Jakarta Sans) ──
+    // Everything else: data labels, stats, buttons, nav, form fields
+    static func sans(_ size: CGFloat, relativeTo style: TextStyle = .body) -> Font {
+        .custom("Plus Jakarta Sans", size: size, relativeTo: style)
+    }
+
+    // Named text-style equivalents (Plus Jakarta Sans)
+    static var nTitle: Font  { .sans(28, relativeTo: .title) }
+    static var nHeadline: Font { .sans(17, relativeTo: .headline) }
+    static var nSubheadline: Font { .sans(15, relativeTo: .subheadline) }
+    static var nFootnote: Font { .sans(13, relativeTo: .footnote) }
+    static var nCaption: Font  { .sans(12, relativeTo: .caption) }
+    static var nCaption2: Font { .sans(11, relativeTo: .caption2) }
 }
 
 // MARK: - Label Style (editorial brand element)
@@ -93,7 +123,7 @@ extension Font {
 struct NamahLabelStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(.caption2)
+            .font(.nCaption2)
             .fontWeight(.medium)
             .textCase(.uppercase)
             .tracking(2)

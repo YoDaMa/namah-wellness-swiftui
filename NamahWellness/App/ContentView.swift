@@ -51,7 +51,7 @@ struct ContentView: View {
                 .environment(authService)
                 .environment(cycleLogManager)
                 .onAppear {
-                    syncService.configure(modelContext: modelContext)
+                    syncService.configure(modelContext: modelContext, authService: authService)
                     if cycleLogManager == nil {
                         let manager = CycleLogManager(
                             modelContext: modelContext,

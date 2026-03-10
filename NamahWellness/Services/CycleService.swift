@@ -64,8 +64,8 @@ final class CycleService {
     // MARK: - Pure computation
 
     static func computeCycleStats(logs: [CycleLog]) -> CycleStats {
-        // Logs should be sorted newest-first by createdAt
-        let sorted = logs.sorted { $0.createdAt > $1.createdAt }
+        // Sort by periodStartDate (chronological), newest first
+        let sorted = logs.sorted { $0.periodStartDate > $1.periodStartDate }
 
         guard !sorted.isEmpty else {
             return CycleStats(avgCycleLength: defaultCycleLength, avgPeriodLength: defaultPeriodLength, cycleCount: 0)
@@ -112,21 +112,33 @@ final class CycleService {
     }
 
     static func computeCurrentPhase(logs: [CycleLog], phases: [Phase], stats: CycleStats) -> PhaseInfo? {
-        let sorted = logs.sorted { $0.createdAt > $1.createdAt }
+        // Sort by periodStartDate, newest first
+        let sorted = logs.sorted { $0.periodStartDate > $1.periodStartDate }
         guard let latest = sorted.first else { return nil }
 
+        let ranges = computePhaseRanges(cycleLength: stats.avgCycleLength, periodLength: stats.avgPeriodLength)
+        let rawCycleDay = getCycleDay(from: latest.periodStartDate)
+
+        // Wrap overdue cycles (matches CalendarService behavior)
+        let cycleDay: Int
+        if rawCycleDay > stats.avgCycleLength {
+            cycleDay = ((rawCycleDay - 1) % stats.avgCycleLength) + 1
+        } else {
+            cycleDay = rawCycleDay
+        }
+
         if let override = latest.phaseOverride, let phase = phases.first(where: { $0.slug == override }) {
+            // Compute a meaningful dayInPhase for the override
+            let overrideRange = rangeForSlug(override, ranges: ranges)
+            let dayInPhase = max(1, cycleDay - overrideRange.start + 1)
+
             return PhaseInfo(
                 phaseName: phase.name, phaseSlug: phase.slug,
-                cycleDay: getCycleDay(from: latest.periodStartDate),
-                dayInPhase: 1, periodStartDate: latest.periodStartDate,
+                cycleDay: rawCycleDay,
+                dayInPhase: dayInPhase, periodStartDate: latest.periodStartDate,
                 isOverridden: true, color: phase.color, colorSoft: phase.colorSoft
             )
         }
-
-        let ranges = computePhaseRanges(cycleLength: stats.avgCycleLength, periodLength: stats.avgPeriodLength)
-        let cycleDay = getCycleDay(from: latest.periodStartDate)
-        let effectiveDay = min(cycleDay, stats.avgCycleLength)
 
         let phaseEntries: [(slug: String, range: PhaseRange)] = [
             ("menstrual", ranges.menstrual),
@@ -135,13 +147,13 @@ final class CycleService {
             ("luteal", ranges.luteal),
         ]
 
-        let matched = phaseEntries.first(where: { effectiveDay >= $0.range.start && effectiveDay <= $0.range.end }) ?? phaseEntries[3]
+        let matched = phaseEntries.first(where: { cycleDay >= $0.range.start && cycleDay <= $0.range.end }) ?? phaseEntries[3]
 
         guard let phase = phases.first(where: { $0.slug == matched.slug }) else { return nil }
 
         return PhaseInfo(
             phaseName: phase.name, phaseSlug: phase.slug,
-            cycleDay: cycleDay, dayInPhase: effectiveDay - matched.range.start + 1,
+            cycleDay: rawCycleDay, dayInPhase: cycleDay - matched.range.start + 1,
             periodStartDate: latest.periodStartDate, isOverridden: false,
             color: phase.color, colorSoft: phase.colorSoft
         )
@@ -149,22 +161,34 @@ final class CycleService {
 
     // MARK: - Helpers
 
+    private static func rangeForSlug(_ slug: String, ranges: PhaseRanges) -> PhaseRange {
+        switch slug {
+        case "menstrual": return ranges.menstrual
+        case "follicular": return ranges.follicular
+        case "ovulatory": return ranges.ovulatory
+        case "luteal": return ranges.luteal
+        default: return ranges.luteal
+        }
+    }
+
     private static func getCycleDay(from periodStartDate: String) -> Int {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.timeZone = .current
         guard let start = formatter.date(from: periodStartDate) else { return 1 }
-        let today = Calendar.current.startOfDay(for: Date())
-        let startDay = Calendar.current.startOfDay(for: start)
-        let days = Calendar.current.dateComponents([.day], from: startDay, to: today).day ?? 0
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let startDay = cal.startOfDay(for: start)
+        let days = cal.dateComponents([.day], from: startDay, to: today).day ?? 0
         return max(1, days + 1)
     }
 
     private static func daysBetween(_ from: String, _ to: String) -> Int {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.timeZone = .current
         guard let d1 = formatter.date(from: from), let d2 = formatter.date(from: to) else { return 0 }
-        return Calendar.current.dateComponents([.day], from: d1, to: d2).day ?? 0
+        let cal = Calendar.current
+        return cal.dateComponents([.day], from: cal.startOfDay(for: d1), to: cal.startOfDay(for: d2)).day ?? 0
     }
 }

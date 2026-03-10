@@ -18,7 +18,7 @@ struct HormonesView: View {
                 }
 
                 Text("Reference curves scaled to your \(totalDays)-day cycle.")
-                    .font(.subheadline)
+                    .font(.nSubheadline)
                     .foregroundStyle(.secondary)
 
                 // Legend toggles
@@ -48,7 +48,7 @@ struct HormonesView: View {
 
                 // Disclaimer
                 Text("These curves represent population averages from peer-reviewed reference ranges. Individual variation is significant. This is not a diagnostic tool.")
-                    .font(.caption2)
+                    .font(.prose(11, relativeTo: .caption2))
                     .foregroundStyle(.tertiary)
                     .padding(.top, 8)
             }
@@ -72,7 +72,7 @@ struct HormonesView: View {
                                     .fill(visible[key] == true ? meta.color : Color(uiColor: .separator))
                                     .frame(width: 8, height: 8)
                                 Text(meta.fullName)
-                                    .font(.caption2)
+                                    .font(.nCaption2)
                                     .fontWeight(.medium)
                                     .textCase(.uppercase)
                                     .tracking(1)
@@ -102,7 +102,7 @@ struct HormonesView: View {
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Day \(day)")
-                    .font(.caption2)
+                    .font(.nCaption2)
                     .fontWeight(.medium)
                     .textCase(.uppercase)
                     .tracking(2)
@@ -110,7 +110,7 @@ struct HormonesView: View {
                 Spacer()
                 if let date = calendarDate(for: day) {
                     Text(date)
-                        .font(.caption2)
+                        .font(.nCaption2)
                         .foregroundStyle(.tertiary)
                 }
             }
@@ -126,14 +126,14 @@ struct HormonesView: View {
                                 .padding(.top, 3)
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(meta.name)
-                                    .font(.caption)
+                                    .font(.nCaption)
                                     .fontWeight(.medium)
                                     .foregroundStyle(.primary)
                                 Text(desc.label)
-                                    .font(.caption2)
+                                    .font(.nCaption2)
                                     .foregroundStyle(.secondary)
                                 Text(desc.range)
-                                    .font(.caption2)
+                                    .font(.nCaption2)
                                     .foregroundStyle(.tertiary)
                             }
                             Spacer()
@@ -156,14 +156,13 @@ struct HormonesView: View {
         )) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(meta.description)
-                    .font(.footnote)
+                    .font(.prose(13, relativeTo: .footnote))
                     .foregroundStyle(.primary)
                 Text(meta.feel)
-                    .font(.caption)
-                    .italic()
+                    .font(.proseItalic(12, relativeTo: .caption))
                     .foregroundStyle(.secondary)
                 Text(meta.peakLabel)
-                    .font(.caption2)
+                    .font(.nCaption2)
                     .fontWeight(.medium)
                     .textCase(.uppercase)
                     .tracking(1)
@@ -176,11 +175,11 @@ struct HormonesView: View {
                     .fill(meta.color)
                     .frame(width: 10, height: 10)
                 Text(meta.fullName)
-                    .font(.subheadline)
+                    .font(.nSubheadline)
                     .fontWeight(.medium)
                     .foregroundStyle(.primary)
                 Text(meta.unit)
-                    .font(.caption)
+                    .font(.nCaption)
                     .foregroundStyle(.secondary)
             }
         }

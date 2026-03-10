@@ -10,24 +10,6 @@ enum SyncState: Equatable {
     case error(String)
 }
 
-// MARK: - AnyCodable
-
-struct AnyCodable: Encodable {
-    let value: Any
-    init(_ value: Any) { self.value = value }
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        switch value {
-        case let v as String: try container.encode(v)
-        case let v as Int: try container.encode(v)
-        case let v as Double: try container.encode(v)
-        case let v as Bool: try container.encode(v)
-        case is NSNull: try container.encodeNil()
-        default: try container.encode(String(describing: value))
-        }
-    }
-}
-
 // MARK: - SyncService
 
 @Observable
@@ -38,13 +20,15 @@ final class SyncService {
 
     private let apiClient = APIClient.shared
     private var modelContext: ModelContext?
+    private weak var authService: AuthService?
     private let monitor = NWPathMonitor()
     private var isOnline = false
 
     // MARK: - Configuration
 
-    func configure(modelContext: ModelContext) {
+    func configure(modelContext: ModelContext, authService: AuthService) {
         self.modelContext = modelContext
+        self.authService = authService
         monitor.pathUpdateHandler = { [weak self] path in
             Task { @MainActor in
                 let wasOffline = self?.isOnline == false
@@ -62,7 +46,6 @@ final class SyncService {
     @MainActor
     func sync() async {
         guard let modelContext else { return }
-        guard isOnline else { return }
         guard syncState != .syncing else { return }
 
         syncState = .syncing
@@ -74,9 +57,10 @@ final class SyncService {
             try modelContext.save()
             lastSyncDate = Date()
             syncState = .idle
-        } catch let error as APIError where error is APIError {
+        } catch let error as APIError {
             if case .unauthorized = error {
                 syncState = .error("Session expired. Please sign in again.")
+                authService?.handleUnauthorized()
             } else {
                 syncState = .error(error.localizedDescription)
             }
@@ -87,39 +71,40 @@ final class SyncService {
 
     // MARK: - Queue Change
 
-    func queueChange(table: String, action: String, data: some Encodable, modelContext: ModelContext) {
-        guard let jsonData = try? JSONEncoder().encode(data),
-              let jsonString = String(data: jsonData, encoding: .utf8) else { return }
+    func queueChange(table: String, action: String, data: [String: Any], modelContext: ModelContext) {
+        guard JSONSerialization.isValidJSONObject(data),
+              let jsonData = try? JSONSerialization.data(withJSONObject: data) else { return }
 
+        let jsonString = String(data: jsonData, encoding: .utf8) ?? "{}"
         let change = SyncChange(tableName: table, action: action, payload: jsonString)
         modelContext.insert(change)
     }
 
     // MARK: - Push
 
+    @MainActor
     private func pushPendingChanges(context: ModelContext) async throws {
         let descriptor = FetchDescriptor<SyncChange>(sortBy: [SortDescriptor(\.createdAt)])
         let changes = try context.fetch(descriptor)
 
         guard !changes.isEmpty else { return }
 
-        var changeDicts: [[String: AnyCodable]] = []
+        var changeDicts: [[String: Any]] = []
         for change in changes {
-            var dict: [String: AnyCodable] = [
-                "table": AnyCodable(change.tableName),
-                "action": AnyCodable(change.action),
+            var dict: [String: Any] = [
+                "table": change.tableName,
+                "action": change.action,
             ]
             if let data = change.payload.data(using: .utf8),
                let parsed = try? JSONSerialization.jsonObject(with: data) {
-                dict["data"] = AnyCodable(parsed)
-            } else {
-                dict["data"] = AnyCodable(change.payload)
+                dict["data"] = parsed
             }
             changeDicts.append(dict)
         }
 
-        let body = SyncPushBody(changes: changeDicts)
-        let _: EmptySyncResponse = try await apiClient.post(path: "/api/v1/sync", body: body)
+        let body: [String: Any] = ["changes": changeDicts]
+        let jsonData = try JSONSerialization.data(withJSONObject: body)
+        try await apiClient.postRaw(path: "/api/v1/sync", body: jsonData)
 
         for change in changes {
             context.delete(change)
@@ -128,6 +113,7 @@ final class SyncService {
 
     // MARK: - Pull Content
 
+    @MainActor
     private func pullContent(context: ModelContext) async throws {
         let response: ContentResponse = try await apiClient.get(path: "/api/v1/content")
 
@@ -158,6 +144,7 @@ final class SyncService {
 
     // MARK: - Pull User Data
 
+    @MainActor
     private func pullUserData(context: ModelContext) async throws {
         let response: UserDataResponse = try await apiClient.get(path: "/api/v1/sync")
 
@@ -182,11 +169,3 @@ final class SyncService {
         for dto in response.supplementLogs { context.insert(dto.toModel()) }
     }
 }
-
-// MARK: - Push Body Types
-
-private struct SyncPushBody: Encodable {
-    let changes: [[String: AnyCodable]]
-}
-
-private struct EmptySyncResponse: Decodable {}

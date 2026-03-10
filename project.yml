@@ -33,7 +33,14 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         UISupportedInterfaceOrientations~iphone:
           - UIInterfaceOrientationPortrait
-        UIAppFonts: []
+        UIAppFonts:
+          - DMSerifDisplay-Regular.ttf
+          - DMSerifDisplay-Italic.ttf
+          - PlusJakartaSans-Variable.ttf
+          - PlusJakartaSans-Italic-Variable.ttf
+          - ETBookOT-Roman.otf
+          - ETBookOT-Bold.otf
+          - ETBookOT-Italic.otf
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.namah.wellness

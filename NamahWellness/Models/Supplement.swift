@@ -51,7 +51,7 @@ final class SupplementNutrient {
 @Model
 final class UserSupplement {
     @Attribute(.unique) var id: String
-    var userId: String
+    var userId: String = ""
     var supplementId: String
     var dosage: Double
     var frequency: String    // daily, weekly, as_needed
@@ -80,7 +80,7 @@ final class UserSupplement {
 @Model
 final class SupplementLog {
     @Attribute(.unique) var id: String
-    var userId: String
+    var userId: String = ""
     var userSupplementId: String
     var date: String
     var taken: Bool

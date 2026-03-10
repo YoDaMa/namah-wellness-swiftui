@@ -11,12 +11,10 @@ struct ProfileView: View {
     @Environment(CycleLogManager.self) private var cycleLogManager: CycleLogManager?
     @Query private var profiles: [UserProfile]
     @Query private var cycleLogs: [CycleLog]
-    @Query private var symptomLogs: [SymptomLog]
-    @Query private var mealCompletions: [MealCompletion]
-    @Query private var workoutCompletions: [WorkoutCompletion]
-    @Query private var supplementLogs: [SupplementLog]
 
     @State private var showLogSheet = false
+    @State private var isEditingName = false
+    @State private var editedName = ""
 
     private var profile: UserProfile {
         if let p = profiles.first { return p }
@@ -40,41 +38,33 @@ struct ProfileView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                settingsHeader
+                accountSection
+
                 notificationsSection
 
                 Divider().padding(.vertical, 4)
 
                 cycleLogSection
-                symptomPatternsSection
-                streaksSection
 
                 Divider().padding(.vertical, 4)
 
-                Button(role: .destructive) {
-                    authService.signOut()
-                    dismiss()
-                } label: {
-                    HStack {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                        Text("Sign Out")
-                    }
+                signOutSection
+
+                // App logo
+                Image("Logo")
+                    .renderingMode(.original)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 48, height: 48)
+                    .opacity(0.4)
                     .frame(maxWidth: .infinity)
-                    .padding(14)
-                }
-                .buttonStyle(.bordered)
-                .tint(.red)
+                    .padding(.top, 8)
             }
             .padding()
         }
         .background(Color(uiColor: .systemGroupedBackground))
-        .navigationTitle("Profile")
+        .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
-            }
-        }
         .sheet(isPresented: $showLogSheet) {
             if let manager = cycleLogManager {
                 LogPeriodSheet(
@@ -85,69 +75,63 @@ struct ProfileView: View {
         }
     }
 
-    // MARK: - Settings Header
+    // MARK: - Account
 
-    private var settingsHeader: some View {
-        VStack(spacing: 16) {
-            initialsAvatar
+    private var accountSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("ACCOUNT")
+                .namahLabel()
 
-            TextField("Your Name", text: Binding(
-                get: { profile.name },
-                set: { profile.name = $0 }
-            ))
-            .font(.display(20, relativeTo: .title3))
-            .multilineTextAlignment(.center)
-
-            HStack(spacing: 24) {
-                VStack(spacing: 2) {
-                    Text("\(cycleService.cycleStats.avgCycleLength)")
-                        .font(.display(22, relativeTo: .title2))
-                    Text("DAY CYCLE")
-                        .font(.sans(8)).fontWeight(.medium)
-                        .tracking(1.5).foregroundStyle(.secondary)
+            VStack(spacing: 0) {
+                HStack {
+                    Text("Name")
+                        .font(.nSubheadline)
+                    Spacer()
+                    if isEditingName {
+                        TextField("Your Name", text: $editedName)
+                            .font(.nSubheadline)
+                            .foregroundStyle(.primary)
+                            .multilineTextAlignment(.trailing)
+                            .textContentType(.name)
+                    } else {
+                        Text(profile.name.isEmpty ? "—" : profile.name)
+                            .font(.nSubheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Button {
+                        if isEditingName {
+                            profile.name = editedName
+                            try? modelContext.save()
+                            isEditingName = false
+                        } else {
+                            editedName = profile.name
+                            isEditingName = true
+                        }
+                    } label: {
+                        Text(isEditingName ? "Save" : "Edit")
+                            .font(.nCaption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(phaseColor)
+                    }
+                    .buttonStyle(.plain)
                 }
-                VStack(spacing: 2) {
-                    Text("\(cycleService.cycleStats.avgPeriodLength)")
-                        .font(.display(22, relativeTo: .title2))
-                    Text("DAY PERIOD")
-                        .font(.sans(8)).fontWeight(.medium)
-                        .tracking(1.5).foregroundStyle(.secondary)
-                }
-            }
+                .padding(14)
 
-            Button {
-                showLogSheet = true
-            } label: {
-                Label("Log Period Start", systemImage: "plus.circle")
-                    .font(.nSubheadline)
-                    .fontWeight(.medium)
-                    .frame(maxWidth: .infinity)
-                    .padding(12)
-                    .foregroundStyle(.white)
-                    .background(phaseColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                Divider().padding(.leading, 14)
+
+                HStack {
+                    Text("Email")
+                        .font(.nSubheadline)
+                    Spacer()
+                    Text(authService.userEmail ?? "—")
+                        .font(.nSubheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(14)
             }
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
-        .padding(20)
-        .frame(maxWidth: .infinity)
-        .background(Color(uiColor: .secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private var initialsAvatar: some View {
-        let initials = profile.name.split(separator: " ")
-            .prefix(2)
-            .compactMap(\.first)
-            .map(String.init)
-            .joined()
-        let display = initials.isEmpty ? "?" : initials
-
-        return Text(display)
-            .font(.nTitle)
-            .fontWeight(.medium)
-            .foregroundStyle(.white)
-            .frame(width: 80, height: 80)
-            .background(Circle().fill(phaseColor))
     }
 
     private var phaseColor: Color {
@@ -337,190 +321,23 @@ struct ProfileView: View {
         return .phaseM
     }
 
-    // MARK: - Symptom Patterns
+    // MARK: - Sign Out
 
-    private var symptomPatternsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("SYMPTOM PATTERNS")
-                .namahLabel()
-
-            let insights = computeSymptomInsights()
-            if insights.isEmpty {
-                Text("Log symptoms daily to unlock patterns.")
-                    .font(.nCaption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(20)
-                    .background(Color(uiColor: .secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(insights.enumerated()), id: \.offset) { index, insight in
-                        HStack(spacing: 10) {
-                            Image(systemName: insight.icon)
-                                .font(.sans(14))
-                                .foregroundStyle(.secondary)
-                                .frame(width: 24)
-                            Text(insight.text)
-                                .font(.nCaption)
-                                .foregroundStyle(.primary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Spacer()
-                        }
-                        .padding(14)
-                        if index < insights.count - 1 {
-                            Divider().padding(.leading, 48)
-                        }
-                    }
-                }
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+    private var signOutSection: some View {
+        Button(role: .destructive) {
+            authService.signOut()
+            dismiss()
+        } label: {
+            HStack {
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                Text("Sign Out")
             }
-        }
-    }
-
-    private struct SymptomInsight {
-        let icon: String
-        let text: String
-    }
-
-    private func computeSymptomInsights() -> [SymptomInsight] {
-        guard symptomLogs.count >= 14 else { return [] }
-
-        let symptoms: [(name: String, icon: String, keyPath: KeyPath<SymptomLog, Int?>)] = [
-            ("Fatigue", "moon.zzz.fill", \.fatigue),
-            ("Bloating", "wind", \.bloating),
-            ("Cramps", "bolt.fill", \.cramps),
-            ("Anxiety", "exclamationmark.triangle.fill", \.anxiety),
-            ("Headache", "brain.head.profile", \.headache),
-            ("Mood", "face.smiling.inverse", \.mood),
-            ("Energy", "bolt.heart.fill", \.energy),
-            ("Acne", "circle.dotted.circle", \.acne),
-            ("Irritability", "flame.fill", \.irritability),
-        ]
-
-        let avgCycle = cycleService.cycleStats.avgCycleLength
-        let ranges = CycleService.computePhaseRanges(
-            cycleLength: avgCycle,
-            periodLength: cycleService.cycleStats.avgPeriodLength
-        )
-        let phaseMap: [(name: String, start: Int, end: Int)] = [
-            ("menstrual", ranges.menstrual.start, ranges.menstrual.end),
-            ("follicular", ranges.follicular.start, ranges.follicular.end),
-            ("ovulatory", ranges.ovulatory.start, ranges.ovulatory.end),
-            ("luteal", ranges.luteal.start, ranges.luteal.end),
-        ]
-
-        let sortedLogs = cycleLogs.sorted { $0.periodStartDate < $1.periodStartDate }
-
-        var insights: [SymptomInsight] = []
-
-        for symptom in symptoms {
-            var dayIntensities: [Int: [Int]] = [:]
-
-            for log in symptomLogs {
-                guard let value = log[keyPath: symptom.keyPath], value > 0,
-                      let logDate = dateFormatter.date(from: log.date) else { continue }
-
-                if let cd = cycleDay(for: logDate, logs: sortedLogs, avgCycle: avgCycle) {
-                    dayIntensities[cd, default: []].append(value)
-                }
-            }
-
-            guard !dayIntensities.isEmpty else { continue }
-
-            let dayAverages = dayIntensities.mapValues { values in
-                Double(values.reduce(0, +)) / Double(values.count)
-            }
-            let peakDays = dayAverages.filter { $0.value >= 2.5 }.keys.sorted()
-            guard !peakDays.isEmpty else { continue }
-
-            let peakStart = peakDays.first!
-            let peakEnd = peakDays.last!
-
-            let phaseName = phaseMap.first { peakStart >= $0.start && peakStart <= $0.end }?.name ?? "cycle"
-
-            let dayRange = peakStart == peakEnd ? "day \(peakStart)" : "days \(peakStart)\u{2013}\(peakEnd)"
-            insights.append(SymptomInsight(
-                icon: symptom.icon,
-                text: "\(symptom.name) peaks on \(dayRange) (\(phaseName))"
-            ))
-        }
-
-        return Array(insights.prefix(4))
-    }
-
-    private func cycleDay(for date: Date, logs: [CycleLog], avgCycle: Int) -> Int? {
-        let cal = Calendar.current
-        let target = cal.startOfDay(for: date)
-
-        let logDates: [(date: Date, str: String)] = logs.compactMap { log in
-            guard let d = dateFormatter.date(from: log.periodStartDate) else { return nil }
-            return (cal.startOfDay(for: d), log.periodStartDate)
-        }
-        guard !logDates.isEmpty else { return nil }
-
-        for i in (0..<logDates.count).reversed() {
-            if target >= logDates[i].date {
-                let day = (cal.dateComponents([.day], from: logDates[i].date, to: target).day ?? 0) + 1
-                return day <= avgCycle ? day : ((day - 1) % avgCycle) + 1
-            }
-        }
-        return nil
-    }
-
-    // MARK: - Streaks
-
-    private var streaksSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("CONSISTENCY")
-                .namahLabel()
-
-            VStack(spacing: 0) {
-                streakRow("Meals", icon: "fork.knife", completionDates: Set(mealCompletions.map(\.date)))
-                    .padding(14)
-                Divider().padding(.leading, 48)
-                streakRow("Workouts", icon: "figure.run", completionDates: Set(workoutCompletions.map(\.date)))
-                    .padding(14)
-                Divider().padding(.leading, 48)
-                streakRow("Supplements", icon: "pill.fill", completionDates: Set(supplementLogs.filter(\.taken).map(\.date)))
-                    .padding(14)
-            }
+            .font(.nSubheadline)
+            .fontWeight(.medium)
+            .frame(maxWidth: .infinity)
+            .padding(14)
             .background(Color(uiColor: .secondarySystemGroupedBackground))
             .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-
-    private func streakRow(_ label: String, icon: String, completionDates: Set<String>) -> some View {
-        let cal = Calendar.current
-        let today = Date()
-
-        let last7: [String] = (0..<7).reversed().compactMap { offset in
-            guard let date = cal.date(byAdding: .day, value: -offset, to: today) else { return nil }
-            return dateFormatter.string(from: date)
-        }
-        let count = last7.filter { completionDates.contains($0) }.count
-
-        return HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.sans(14))
-                .foregroundStyle(.secondary)
-                .frame(width: 24)
-            Text(label)
-                .font(.nSubheadline)
-                .fontWeight(.medium)
-            Spacer()
-            HStack(spacing: 4) {
-                ForEach(last7, id: \.self) { day in
-                    Circle()
-                        .fill(completionDates.contains(day) ? phaseColor : Color(uiColor: .tertiarySystemFill))
-                        .frame(width: 8, height: 8)
-                }
-            }
-            Text("\(count)/7")
-                .font(.nCaption)
-                .foregroundStyle(.secondary)
-                .frame(width: 28, alignment: .trailing)
         }
     }
 

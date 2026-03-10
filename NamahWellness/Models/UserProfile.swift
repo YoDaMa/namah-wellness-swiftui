@@ -8,18 +8,24 @@ final class UserProfile {
     var dailyReminderEnabled: Bool
     var dailyReminderTime: Date
     var periodReminderEnabled: Bool
+    var cycleLengthOverride: Int?
+    var periodLengthOverride: Int?
 
     init(
         id: String = "default",
         name: String = "",
         dailyReminderEnabled: Bool = false,
         dailyReminderTime: Date = Calendar.current.date(from: DateComponents(hour: 20, minute: 0)) ?? Date(),
-        periodReminderEnabled: Bool = false
+        periodReminderEnabled: Bool = false,
+        cycleLengthOverride: Int? = nil,
+        periodLengthOverride: Int? = nil
     ) {
         self.id = id
         self.name = name
         self.dailyReminderEnabled = dailyReminderEnabled
         self.dailyReminderTime = dailyReminderTime
         self.periodReminderEnabled = periodReminderEnabled
+        self.cycleLengthOverride = cycleLengthOverride
+        self.periodLengthOverride = periodLengthOverride
     }
 }

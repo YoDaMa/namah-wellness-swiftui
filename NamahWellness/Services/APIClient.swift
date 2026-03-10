@@ -55,6 +55,34 @@ final class APIClient {
         return try await perform(request)
     }
 
+    func postRaw(path: String, body: Data) async throws {
+        var request = try makeRequest(path: path, method: "POST")
+        request.httpBody = body
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let data: Data
+        let response: URLResponse
+
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            throw APIError.networkError(error)
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.networkError(URLError(.badServerResponse))
+        }
+
+        if httpResponse.statusCode == 401 {
+            throw APIError.unauthorized
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let message = try? decoder.decode(ErrorBody.self, from: data).message
+            throw APIError.serverError(httpResponse.statusCode, message)
+        }
+    }
+
     func patch<T: Decodable>(path: String, body: some Encodable) async throws -> T {
         var request = try makeRequest(path: path, method: "PATCH")
         request.httpBody = try encoder.encode(body)
@@ -120,4 +148,5 @@ private extension APIClient {
     struct ErrorBody: Decodable {
         let message: String?
     }
+
 }

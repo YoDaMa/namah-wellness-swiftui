@@ -5,57 +5,37 @@ struct LearnView: View {
     let cycleService: CycleService
 
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
-    @Query private var phaseNutrients: [PhaseNutrient]
-    @Query private var reminders: [PhaseReminder]
 
     @State private var showProfile = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Hormones card
-                    NavigationLink {
-                        HormonesView(cycleService: cycleService)
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "flask")
-                                .font(.system(size: 20))
-                                .foregroundStyle(.phaseO)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Hormones")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.primary)
-                                Text("Reference curves scaled to your cycle")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundStyle(.tertiary)
-                        }
-                        .padding(14)
-                        .background(Color(uiColor: .secondarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    .buttonStyle(.plain)
-
-                    // Phase education
-                    Text("PHASE GUIDE")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .textCase(.uppercase)
-                        .tracking(2)
+                VStack(alignment: .leading, spacing: 24) {
+                    // Framing copy
+                    Text("Everything about your cycle, backed by science.")
+                        .font(.prose(15))
                         .foregroundStyle(.secondary)
 
-                    ForEach(phases, id: \.id) { phase in
-                        phaseEducationCard(phase)
+                    // Reference section
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("REFERENCE")
+                            .namahLabel()
+
+                        hormonesCard
+                    }
+
+                    // Phase grid
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("YOUR CYCLE")
+                            .namahLabel()
+
+                        phaseGrid
                     }
                 }
                 .padding()
             }
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Learn")
             .sheet(isPresented: $showProfile) {
                 NavigationStack {
@@ -64,10 +44,8 @@ struct LearnView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showProfile = true
-                    } label: {
-                        Image(systemName: "person.circle")
+                    Button { showProfile = true } label: {
+                        Image(systemName: "gearshape")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -75,117 +53,140 @@ struct LearnView: View {
         }
     }
 
-    private func phaseEducationCard(_ phase: Phase) -> some View {
-        let colors = PhaseColors.forSlug(phase.slug)
-        let nutrients = phaseNutrients.filter { $0.phaseId == phase.id }
-        let phaseReminders = reminders.filter { $0.phaseId == phase.id }
+    // MARK: - Hormones Card
 
-        return VStack(alignment: .leading, spacing: 12) {
-            // Header
-            HStack(spacing: 8) {
+    private var hormonesCard: some View {
+        NavigationLink {
+            HormonesView(cycleService: cycleService)
+        } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 10) {
+                    Image(systemName: "waveform.path.ecg")
+                        .font(.sans(22))
+                        .foregroundStyle(.phaseO)
+                        .frame(width: 40, height: 40)
+                        .background(Color.phaseOSoft)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Hormone Curves")
+                            .font(.nSubheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                        Text("Estrogen, progesterone, LH & FSH across your cycle")
+                            .font(.nCaption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.nCaption2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.tertiary)
+                }
+
+                // Mini preview bar
+                HStack(spacing: 2) {
+                    ForEach(0..<28, id: \.self) { day in
+                        let slug = phaseForDay(day + 1)
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(PhaseColors.forSlug(slug).color.opacity(0.6))
+                            .frame(height: 4)
+                    }
+                }
+                .clipShape(Capsule())
+            }
+            .padding(14)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.phaseO.opacity(0.15), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Phase Grid (2×2)
+
+    private var phaseGrid: some View {
+        let columns = [
+            GridItem(.flexible(), spacing: 10),
+            GridItem(.flexible(), spacing: 10),
+        ]
+
+        return LazyVGrid(columns: columns, spacing: 10) {
+            ForEach(phases, id: \.id) { phase in
+                NavigationLink {
+                    PhaseDetailView(phase: phase, cycleService: cycleService)
+                } label: {
+                    phaseGridCard(phase)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func phaseGridCard(_ phase: Phase) -> some View {
+        let colors = PhaseColors.forSlug(phase.slug)
+        let isCurrent = cycleService.currentPhase?.phaseSlug == phase.slug
+
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
                 Circle()
                     .fill(colors.color)
                     .frame(width: 10, height: 10)
-                Text(phase.name)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Spacer()
+                if isCurrent {
+                    Text("NOW")
+                        .font(.sans(8))
+                        .fontWeight(.bold)
+                        .tracking(1)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(colors.color)
+                        .clipShape(Capsule())
+                }
             }
 
-            // Title and subtitle
-            Text(phase.heroTitle)
-                .font(.headingMedium(20))
+            Text(phase.name)
+                .font(.nSubheadline)
+                .fontWeight(.semibold)
                 .foregroundStyle(.primary)
 
-            Text(phase.heroSubtitle)
-                .font(.footnote)
+            Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
+                .font(.nCaption)
                 .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
 
-            // Key nutrients
-            if !nutrients.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(nutrients, id: \.id) { nut in
-                            HStack(spacing: 4) {
-                                phaseIcon(nut.icon)
-                                Text(nut.label)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.primary)
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(colors.soft)
-                            .clipShape(Capsule())
-                        }
-                    }
-                }
-            }
+            Spacer(minLength: 0)
 
-            // Reminders
-            if !phaseReminders.isEmpty {
-                ForEach(phaseReminders, id: \.id) { reminder in
-                    HStack(alignment: .top, spacing: 8) {
-                        phaseIcon(reminder.icon)
-
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(reminder.text)
-                                .font(.caption)
-                                .foregroundStyle(.primary)
-                                .fixedSize(horizontal: false, vertical: true)
-
-                            if let level = reminder.evidenceLevel, !level.isEmpty {
-                                Text(evidenceLabel(level))
-                                    .font(.system(size: 8, weight: .medium))
-                                    .tracking(0.5)
-                                    .foregroundStyle(evidenceColor(level))
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(evidenceColor(level).opacity(0.1))
-                                    .clipShape(Capsule())
-                            }
-                        }
-                    }
-                }
+            HStack {
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.nCaption2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(colors.color.opacity(0.5))
             }
         }
-        .padding(16)
+        .padding(14)
+        .frame(maxWidth: .infinity, minHeight: 110, alignment: .leading)
         .background(colors.soft)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(isCurrent ? colors.color.opacity(0.3) : .clear, lineWidth: 1.5)
+        )
     }
 
-    @ViewBuilder
-    private func phaseIcon(_ name: String) -> some View {
-        if UIImage(systemName: name) != nil {
-            Image(systemName: name)
-                .font(.system(size: 14))
-                .foregroundStyle(.secondary)
-                .frame(width: 24, alignment: .center)
-        } else {
-            Text(name)
-                .frame(width: 24, alignment: .center)
-        }
-    }
+    // MARK: - Helpers
 
-    private func evidenceLabel(_ level: String) -> String {
-        switch level {
-        case "strong": return "STRONG EVIDENCE"
-        case "moderate": return "MODERATE EVIDENCE"
-        case "emerging": return "EMERGING RESEARCH"
-        case "expert_opinion": return "EXPERT OPINION"
-        default: return level.uppercased()
-        }
-    }
-
-    private func evidenceColor(_ level: String) -> Color {
-        switch level {
-        case "strong": return .phaseF
-        case "moderate": return .phaseO
-        case "emerging": return .phaseL
-        default: return .secondary
-        }
+    private func phaseForDay(_ day: Int) -> String {
+        let ranges = cycleService.phaseRanges
+        if day >= ranges.menstrual.start && day <= ranges.menstrual.end { return "menstrual" }
+        if day >= ranges.follicular.start && day <= ranges.follicular.end { return "follicular" }
+        if day >= ranges.ovulatory.start && day <= ranges.ovulatory.end { return "ovulatory" }
+        return "luteal"
     }
 }

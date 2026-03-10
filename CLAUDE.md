@@ -79,6 +79,10 @@ Namah is a **menstrual cycle phase-based wellness app** (nutrition, fitness, sym
 - `avgCycleLength` / `avgPeriodLength` — rolling average of last 3 cycles (defaults: 28/5)
 - `isPeak` — ovulatory days 2-3 (fertility window)
 
+## Related Repositories
+
+- **Backend & webapp**: Located at `../namah-nutrition-page/` (the `namah-nutrition-page` repository). Refer to this repo for backend API code, database schema, and web frontend when working on backend tasks or database-related work.
+
 ## Conventions
 
 - **Theme**: Use `NamahTheme` for all colors (phase-specific), typography, and label styles

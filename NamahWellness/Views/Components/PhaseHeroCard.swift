@@ -28,72 +28,59 @@ struct PhaseHeroCard: View {
         return title
     }
 
+    /// First sentence of the subtitle (split on ". " and take the first).
+    private var firstSentence: String? {
+        guard let subtitle = heroSubtitle, !subtitle.isEmpty else { return nil }
+        if let dotSpace = subtitle.range(of: ". ") {
+            return String(subtitle[..<dotSpace.upperBound]).trimmingCharacters(in: .whitespaces)
+        }
+        return subtitle
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Top row: phase label + chevron
+            // Phase dot + label
             HStack {
                 Circle()
                     .fill(phaseColors.color)
                     .frame(width: 10, height: 10)
                 Text(phase.phaseName.uppercased())
-                    .font(.caption2)
+                    .font(.nCaption2)
                     .fontWeight(.medium)
                     .tracking(2)
                     .foregroundStyle(.secondary)
             }
 
-            // Phase name + tagline
-            VStack(alignment: .leading, spacing: 2) {
-                Text(phase.phaseName + " Phase")
-                    .font(.heading(24))
+            // Tagline as large display title
+            if let tagline {
+                Text(tagline)
+                    .font(.display(26))
                     .foregroundStyle(.primary)
-                if let tagline {
-                    Text(tagline)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(phaseColors.color)
-                }
             }
 
-            // Call to action / motivational description
-            if let subtitle = heroSubtitle, !subtitle.isEmpty {
-                Text(subtitle)
-                    .font(.footnote)
+            // Description — first sentence only, never truncated
+            if let sentence = firstSentence {
+                Text(sentence)
+                    .font(.prose(13, relativeTo: .footnote))
                     .foregroundStyle(.secondary)
-                    .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            // Day info + exercise intensity
-            HStack(spacing: 12) {
-                Label("Day \(phase.dayInPhase)", systemImage: "calendar")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Label("Cycle day \(phase.cycleDay)/\(cycleStats.avgCycleLength)", systemImage: "arrow.trianglehead.2.counterclockwise.rotate.90")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                if let intensity = exerciseIntensity {
-                    Spacer()
-                    HStack(spacing: 4) {
-                        Image(systemName: "figure.run")
-                            .font(.system(size: 9))
-                        Text(intensity)
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                    }
-                    .foregroundStyle(.secondary)
-                }
-            }
+            // Day info — plain text, no icons
+            Text("Day \(phase.dayInPhase) · Cycle day \(phase.cycleDay)/\(cycleStats.avgCycleLength)")
+                .font(.nCaption)
+                .foregroundStyle(.secondary)
 
             if phase.isOverridden {
                 Text("Manual override active")
-                    .font(.caption2)
+                    .font(.nCaption2)
                     .fontWeight(.medium)
                     .foregroundStyle(.spice)
             }
         }
         .padding(16)
-        .background(phaseColors.soft)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(phaseColors.mid)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }

@@ -4,7 +4,7 @@ import SwiftData
 @Model
 final class SymptomLog {
     @Attribute(.unique) var id: String
-    var userId: String
+    var userId: String = ""
     var date: String          // "YYYY-MM-DD"
     var mood: Int?
     var energy: Int?
@@ -54,7 +54,7 @@ final class SymptomLog {
 @Model
 final class DailyNote {
     @Attribute(.unique) var id: String
-    var userId: String
+    var userId: String = ""
     var date: String
     var content: String
     var updatedAt: Date

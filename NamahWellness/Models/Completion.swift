@@ -4,7 +4,7 @@ import SwiftData
 @Model
 final class MealCompletion {
     @Attribute(.unique) var id: String
-    var userId: String
+    var userId: String = ""
     var mealId: String
     var date: String          // "YYYY-MM-DD"
     var completedAt: Date
@@ -21,7 +21,7 @@ final class MealCompletion {
 @Model
 final class WorkoutCompletion {
     @Attribute(.unique) var id: String
-    var userId: String
+    var userId: String = ""
     var workoutId: String
     var date: String
     var completedAt: Date
@@ -38,7 +38,7 @@ final class WorkoutCompletion {
 @Model
 final class GroceryCheck {
     @Attribute(.unique) var id: String
-    var userId: String
+    var userId: String = ""
     var groceryItemId: String
     var checked: Bool
     var updatedAt: Date

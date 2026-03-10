@@ -41,11 +41,11 @@ struct MacroSummaryBar: View {
     private func summaryItem(_ value: String, _ label: String) -> some View {
         VStack(spacing: 2) {
             Text(value)
-                .font(.footnote)
+                .font(.nFootnote)
                 .fontWeight(.medium)
                 .foregroundStyle(.primary)
             Text(label)
-                .font(.system(size: 8, weight: .medium))
+                .font(.sans(8)).fontWeight(.medium)
                 .textCase(.uppercase)
                 .tracking(1)
                 .foregroundStyle(.secondary)

@@ -21,7 +21,15 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>UIAppFonts</key>
-	<array/>
+	<array>
+		<string>DMSerifDisplay-Regular.ttf</string>
+		<string>DMSerifDisplay-Italic.ttf</string>
+		<string>PlusJakartaSans-Variable.ttf</string>
+		<string>PlusJakartaSans-Italic-Variable.ttf</string>
+		<string>ETBookOT-Roman.otf</string>
+		<string>ETBookOT-Bold.otf</string>
+		<string>ETBookOT-Italic.otf</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -4,7 +4,7 @@ import SwiftData
 @Model
 final class CycleLog {
     @Attribute(.unique) var id: String
-    var userId: String
+    var userId: String = ""
     var periodStartDate: String   // "YYYY-MM-DD"
     var periodEndDate: String?
     var phaseOverride: String?    // menstrual|follicular|ovulatory|luteal
