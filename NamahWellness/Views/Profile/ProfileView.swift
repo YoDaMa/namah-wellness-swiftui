@@ -8,15 +8,15 @@ struct ProfileView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AuthService.self) private var authService
     @Environment(SyncService.self) private var syncService
+    @Environment(CycleLogManager.self) private var cycleLogManager: CycleLogManager?
     @Query private var profiles: [UserProfile]
-    @Query(sort: \CycleLog.createdAt, order: .reverse) private var cycleLogs: [CycleLog]
+    @Query private var cycleLogs: [CycleLog]
     @Query private var symptomLogs: [SymptomLog]
     @Query private var mealCompletions: [MealCompletion]
     @Query private var workoutCompletions: [WorkoutCompletion]
     @Query private var supplementLogs: [SupplementLog]
 
     @State private var showLogSheet = false
-    @State private var newPeriodDate = Date()
 
     private var profile: UserProfile {
         if let p = profiles.first { return p }
@@ -28,8 +28,14 @@ struct ProfileView: View {
     private let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = .current
         return f
     }()
+
+    /// Cycle logs sorted by periodStartDate (newest first)
+    private var sortedLogs: [CycleLog] {
+        cycleLogs.sorted { $0.periodStartDate > $1.periodStartDate }
+    }
 
     var body: some View {
         ScrollView {
@@ -70,7 +76,12 @@ struct ProfileView: View {
             }
         }
         .sheet(isPresented: $showLogSheet) {
-            logPeriodSheet
+            if let manager = cycleLogManager {
+                LogPeriodSheet(
+                    cycleLogManager: manager,
+                    isPresented: $showLogSheet
+                )
+            }
         }
     }
 
@@ -84,23 +95,22 @@ struct ProfileView: View {
                 get: { profile.name },
                 set: { profile.name = $0 }
             ))
-            .font(.title3)
-            .fontDesign(.serif)
+            .font(.display(20, relativeTo: .title3))
             .multilineTextAlignment(.center)
 
             HStack(spacing: 24) {
                 VStack(spacing: 2) {
                     Text("\(cycleService.cycleStats.avgCycleLength)")
-                        .font(.title2).fontWeight(.light).fontDesign(.serif)
+                        .font(.display(22, relativeTo: .title2))
                     Text("DAY CYCLE")
-                        .font(.system(size: 8, weight: .medium))
+                        .font(.sans(8)).fontWeight(.medium)
                         .tracking(1.5).foregroundStyle(.secondary)
                 }
                 VStack(spacing: 2) {
                     Text("\(cycleService.cycleStats.avgPeriodLength)")
-                        .font(.title2).fontWeight(.light).fontDesign(.serif)
+                        .font(.display(22, relativeTo: .title2))
                     Text("DAY PERIOD")
-                        .font(.system(size: 8, weight: .medium))
+                        .font(.sans(8)).fontWeight(.medium)
                         .tracking(1.5).foregroundStyle(.secondary)
                 }
             }
@@ -109,7 +119,7 @@ struct ProfileView: View {
                 showLogSheet = true
             } label: {
                 Label("Log Period Start", systemImage: "plus.circle")
-                    .font(.subheadline)
+                    .font(.nSubheadline)
                     .fontWeight(.medium)
                     .frame(maxWidth: .infinity)
                     .padding(12)
@@ -133,7 +143,7 @@ struct ProfileView: View {
         let display = initials.isEmpty ? "?" : initials
 
         return Text(display)
-            .font(.title)
+            .font(.nTitle)
             .fontWeight(.medium)
             .foregroundStyle(.white)
             .frame(width: 80, height: 80)
@@ -155,10 +165,10 @@ struct ProfileView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Daily Digest")
-                            .font(.subheadline)
+                            .font(.nSubheadline)
                             .fontWeight(.medium)
                         Text("Reminder to log symptoms & meals")
-                            .font(.caption)
+                            .font(.nCaption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
@@ -203,10 +213,10 @@ struct ProfileView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Period Prediction")
-                            .font(.subheadline)
+                            .font(.nSubheadline)
                             .fontWeight(.medium)
                         Text("Notifies 3 days before predicted start")
-                            .font(.caption)
+                            .font(.nCaption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
@@ -217,7 +227,7 @@ struct ProfileView: View {
                             Task {
                                 if newValue {
                                     let granted = await NotificationService.requestPermissionIfNeeded()
-                                    if granted, let lastLog = cycleLogs.first {
+                                    if granted, let lastLog = sortedLogs.first {
                                         await NotificationService.schedulePeriodPrediction(
                                             lastPeriodStart: lastLog.periodStartDate,
                                             avgCycleLength: cycleService.cycleStats.avgCycleLength
@@ -249,14 +259,14 @@ struct ProfileView: View {
 
             if cycleLogs.isEmpty {
                 Text("Log your first period to start tracking.")
-                    .font(.caption)
+                    .font(.nCaption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
                     .padding(20)
                     .background(Color(uiColor: .secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             } else {
-                let sorted = cycleLogs.sorted { $0.periodStartDate > $1.periodStartDate }
+                let sorted = sortedLogs
                 VStack(spacing: 0) {
                     ForEach(Array(sorted.enumerated()), id: \.element.id) { index, log in
                         cycleLogRow(log, in: sorted)
@@ -299,18 +309,18 @@ struct ProfileView: View {
         return HStack {
             VStack(alignment: .leading, spacing: 3) {
                 Text(displayDate)
-                    .font(.subheadline)
+                    .font(.nSubheadline)
                     .fontWeight(.medium)
                 if let len = cycleLength {
                     Text("\(len) day cycle")
-                        .font(.caption)
+                        .font(.nCaption)
                         .foregroundStyle(.secondary)
                 }
             }
             Spacer()
             if let d = delta {
                 Text(d == 0 ? "avg" : (d > 0 ? "+\(d)" : "\(d)"))
-                    .font(.caption)
+                    .font(.nCaption)
                     .fontWeight(.medium)
                     .foregroundStyle(deltaColor(d))
                     .padding(.horizontal, 8)
@@ -337,7 +347,7 @@ struct ProfileView: View {
             let insights = computeSymptomInsights()
             if insights.isEmpty {
                 Text("Log symptoms daily to unlock patterns.")
-                    .font(.caption)
+                    .font(.nCaption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
                     .padding(20)
@@ -348,11 +358,11 @@ struct ProfileView: View {
                     ForEach(Array(insights.enumerated()), id: \.offset) { index, insight in
                         HStack(spacing: 10) {
                             Image(systemName: insight.icon)
-                                .font(.system(size: 14))
+                                .font(.sans(14))
                                 .foregroundStyle(.secondary)
                                 .frame(width: 24)
                             Text(insight.text)
-                                .font(.caption)
+                                .font(.nCaption)
                                 .foregroundStyle(.primary)
                                 .fixedSize(horizontal: false, vertical: true)
                             Spacer()
@@ -493,11 +503,11 @@ struct ProfileView: View {
 
         return HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(.sans(14))
                 .foregroundStyle(.secondary)
                 .frame(width: 24)
             Text(label)
-                .font(.subheadline)
+                .font(.nSubheadline)
                 .fontWeight(.medium)
             Spacer()
             HStack(spacing: 4) {
@@ -508,49 +518,10 @@ struct ProfileView: View {
                 }
             }
             Text("\(count)/7")
-                .font(.caption)
+                .font(.nCaption)
                 .foregroundStyle(.secondary)
                 .frame(width: 28, alignment: .trailing)
         }
     }
 
-    // MARK: - Log Period Sheet
-
-    private var logPeriodSheet: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                Text("When did your period start?")
-                    .font(.title3)
-                    .fontDesign(.serif)
-
-                DatePicker("", selection: $newPeriodDate, displayedComponents: .date)
-                    .datePickerStyle(.graphical)
-
-                Button {
-                    let dateStr = dateFormatter.string(from: newPeriodDate)
-                    let log = CycleLog(periodStartDate: dateStr)
-                    modelContext.insert(log)
-                    syncService.queueChange(table: "cycleLogs", action: "upsert",
-                                            data: ["id": log.id, "periodStartDate": dateStr],
-                                            modelContext: modelContext)
-                    showLogSheet = false
-                } label: {
-                    Text("Log Period")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.primary)
-
-                Spacer()
-            }
-            .padding()
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { showLogSheet = false }
-                }
-            }
-        }
-        .presentationDetents([.medium])
-    }
 }

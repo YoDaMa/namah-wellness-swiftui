@@ -17,17 +17,31 @@ struct TodayView: View {
     @Query private var userSupplements: [UserSupplement]
     @Query private var supplementLogs: [SupplementLog]
     @Query private var coreExercises: [CoreExercise]
+    @Query private var cycleLogs: [CycleLog]
 
     @Environment(SyncService.self) private var syncService
+    @Environment(AuthService.self) private var authService
+    @Environment(CycleLogManager.self) private var cycleLogManager: CycleLogManager?
 
     @State private var showProfile = false
     @State private var showCoreProtocol = false
     @State private var showLogSupplement = false
+    @State private var showLogPeriod = false
+    @State private var showSymptoms = false
 
-    private var today: String {
+    private let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: Date())
+        f.timeZone = .current
+        return f
+    }()
+
+    private var today: String {
+        dateFormatter.string(from: Date())
+    }
+
+    private var hasCycleData: Bool {
+        cycleService.currentPhase != nil
     }
 
     private var todayMealCompletionIds: Set<String> {
@@ -79,11 +93,15 @@ struct TodayView: View {
         ("as_needed", "As Needed"),
     ]
 
+    private var phaseColor: Color {
+        cycleService.currentPhase.flatMap { PhaseColors.forSlug($0.phaseSlug).color } ?? .spice
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Phase hero
+                    // 1. Phase context
                     if let phase = cycleService.currentPhase {
                         PhaseHeroCard(
                             phase: phase,
@@ -94,22 +112,17 @@ struct TodayView: View {
                         )
                     }
 
-                    // Meals
+                    // 2. Check-in — primary action, above the fold
+                    checkInSection
+
+                    // 3. Meals
                     mealsSection
 
-                    // Workout
+                    // 4. Workout
                     workoutSection
 
-                    // Supplements
+                    // 5. Supplements
                     supplementsSection
-
-                    // Symptoms
-                    SymptomsTabView(
-                        todaySymptomLog: todaySymptomLog,
-                        todayNote: todayNote,
-                        today: today,
-                        phaseColor: cycleService.currentPhase.flatMap { PhaseColors.forSlug($0.phaseSlug).color }
-                    )
                 }
                 .padding()
             }
@@ -118,6 +131,39 @@ struct TodayView: View {
                 NavigationStack {
                     ProfileView(cycleService: cycleService)
                 }
+            }
+            .sheet(isPresented: $showLogPeriod) {
+                if let manager = cycleLogManager {
+                    LogPeriodSheet(
+                        cycleLogManager: manager,
+                        isPresented: $showLogPeriod
+                    )
+                }
+            }
+            .sheet(isPresented: $showSymptoms) {
+                NavigationStack {
+                    ScrollView {
+                        SymptomsTabView(
+                            todaySymptomLog: todaySymptomLog,
+                            todayNote: todayNote,
+                            today: today,
+                            phaseColor: cycleService.currentPhase.flatMap { PhaseColors.forSlug($0.phaseSlug).color }
+                        )
+                        .padding()
+                    }
+                    .background(
+                        PhaseColors.forSlug(cycleService.currentPhase?.phaseSlug ?? "menstrual").soft
+                            .opacity(0.3)
+                    )
+                    .navigationTitle("Today's Check-in")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showSymptoms = false }
+                        }
+                    }
+                }
+                .presentationDragIndicator(.visible)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -138,22 +184,15 @@ struct TodayView: View {
     private var mealsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("MEALS")
-                .font(.caption2)
-                .fontWeight(.medium)
-                .textCase(.uppercase)
-                .tracking(2)
-                .foregroundStyle(.secondary)
+                .namahLabel()
 
             if todayMeals.isEmpty {
-                ContentUnavailableView(
-                    "No Meals",
-                    systemImage: "fork.knife",
-                    description: Text("Log your cycle to see phase-specific meals.")
-                )
+                logCycleCTA
             } else {
                 MacroSummaryBar(meals: todayMeals, completedIds: todayMealCompletionIds)
 
-                ForEach(todayMeals, id: \.id) { meal in
+                let sorted = todayMeals.sorted { $0.time.localizedStandardCompare($1.time) == .orderedAscending }
+                ForEach(sorted, id: \.id) { meal in
                     MealCardView(
                         meal: meal,
                         isCompleted: todayMealCompletionIds.contains(meal.id),
@@ -169,96 +208,87 @@ struct TodayView: View {
     @ViewBuilder
     private var workoutSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("WORKOUT")
-                .font(.caption2)
-                .fontWeight(.medium)
-                .textCase(.uppercase)
-                .tracking(2)
-                .foregroundStyle(.secondary)
-
             if let (workout, sessions) = todayWorkout {
                 if workout.isRestDay {
-                    ContentUnavailableView(
-                        "Rest Day",
-                        systemImage: "leaf",
-                        description: Text(workout.dayFocus)
-                    )
+                    HStack(spacing: 8) {
+                        Text("REST DAY")
+                            .namahLabel()
+                        Text("·")
+                            .foregroundStyle(.tertiary)
+                        Text(workout.dayFocus)
+                            .font(.nCaption)
+                            .foregroundStyle(.secondary)
+                    }
                 } else {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text(workout.dayLabel)
-                                .font(.caption2)
-                                .fontWeight(.medium)
-                                .textCase(.uppercase)
-                                .tracking(2)
-                                .foregroundStyle(.secondary)
-                            Spacer()
+                    // Merged header: "MONDAY · Lower Body + Incline Walk"
+                    HStack(spacing: 6) {
+                        Text(workout.dayLabel.uppercased())
+                            .namahLabel()
+                        if !workout.dayFocus.isEmpty {
+                            Text("·")
+                                .font(.nCaption)
+                                .foregroundStyle(.tertiary)
                             Text(workout.dayFocus)
-                                .font(.caption)
+                                .font(.nCaption)
                                 .foregroundStyle(.secondary)
                         }
+                    }
 
-                        ForEach(sessions, id: \.id) { session in
+                    let sorted = sessions.sorted { $0.timeSlot.localizedStandardCompare($1.timeSlot) == .orderedAscending }
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(sorted.enumerated()), id: \.element.id) { index, session in
                             HStack(alignment: .top, spacing: 12) {
                                 Text(session.timeSlot)
-                                    .font(.caption2)
+                                    .font(.nCaption2)
                                     .fontWeight(.medium)
                                     .foregroundStyle(.secondary)
                                     .frame(width: 56, alignment: .leading)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(session.title)
-                                        .font(.subheadline)
+                                    Text(session.title.replacingOccurrences(of: ".$", with: "", options: .regularExpression))
+                                        .font(.nSubheadline)
                                         .fontWeight(.medium)
                                         .foregroundStyle(.primary)
                                     Text(session.sessionDescription)
-                                        .font(.caption)
+                                        .font(.nCaption)
                                         .foregroundStyle(.secondary)
                                 }
                             }
-                            .padding(.vertical, 6)
+                            .padding(.vertical, 8)
+                            if index < sorted.count - 1 {
+                                Divider().padding(.leading, 68)
+                            }
                         }
-                    }
-                    .padding()
-                    .background(Color(uiColor: .secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-            } else {
-                ContentUnavailableView(
-                    "No Workout",
-                    systemImage: "figure.run",
-                    description: Text("No workout data available.")
-                )
-            }
 
-            if !coreExercises.isEmpty {
-                Button {
-                    showCoreProtocol = true
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "figure.core.training")
-                            .font(.system(size: 20))
-                            .foregroundStyle(.phaseF)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Daily Core Protocol")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.primary)
-                            Text("\(coreExercises.count) exercises")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        // Core protocol inline
+                        if !coreExercises.isEmpty {
+                            Divider().padding(.leading, 68)
+                            Button { showCoreProtocol = true } label: {
+                                HStack(spacing: 12) {
+                                    Text("Daily")
+                                        .font(.nCaption2)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 56, alignment: .leading)
+                                    Text("Core Protocol · \(coreExercises.count) exercises")
+                                        .font(.nSubheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.sans(11)).fontWeight(.medium)
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.plain)
+                            .sheet(isPresented: $showCoreProtocol) {
+                                coreProtocolSheet
+                            }
                         }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.tertiary)
                     }
-                    .padding(14)
+                    .padding(12)
                     .background(Color(uiColor: .secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .buttonStyle(.plain)
-                .sheet(isPresented: $showCoreProtocol) {
-                    coreProtocolSheet
                 }
             }
         }
@@ -272,15 +302,15 @@ struct TodayView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text(exercise.name)
-                                    .font(.subheadline)
+                                    .font(.nSubheadline)
                                     .fontWeight(.medium)
                                 Spacer()
                                 Text(exercise.sets)
-                                    .font(.caption)
+                                    .font(.nCaption)
                                     .foregroundStyle(.secondary)
                             }
                             Text(exercise.exerciseDescription)
-                                .font(.caption)
+                                .font(.nCaption)
                                 .foregroundStyle(.secondary)
                         }
                         .padding(14)
@@ -311,22 +341,16 @@ struct TodayView: View {
     private var supplementsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("SUPPLEMENTS")
-                .font(.caption2)
-                .fontWeight(.medium)
-                .textCase(.uppercase)
-                .tracking(2)
-                .foregroundStyle(.secondary)
+                .namahLabel()
 
             if activeRegimen.isEmpty {
-                ContentUnavailableView(
-                    "No Supplements",
-                    systemImage: "pill",
-                    description: Text("Add supplements in the Plan tab.")
-                )
+                Text("No supplements yet — add them in the Plan tab")
+                    .font(.nCaption)
+                    .foregroundStyle(.secondary)
             } else {
                 let takenCount = activeRegimen.filter { todaySupplementLogIds.contains($0.id) }.count
                 Text("\(takenCount) of \(activeRegimen.count) taken today")
-                    .font(.footnote)
+                    .font(.nFootnote)
                     .fontWeight(.medium)
 
                 ForEach(timeSlots, id: \.0) { slot, label in
@@ -334,11 +358,7 @@ struct TodayView: View {
                     if !slotItems.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(label.uppercased())
-                                .font(.caption2)
-                                .fontWeight(.medium)
-                                .textCase(.uppercase)
-                                .tracking(2)
-                                .foregroundStyle(.secondary)
+                                .namahLabel()
 
                             ForEach(slotItems, id: \.id) { userSup in
                                 supplementCard(userSup)
@@ -353,10 +373,10 @@ struct TodayView: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 16))
-                        .foregroundStyle(.phaseF)
+                        .font(.sans(16))
+                        .foregroundStyle(phaseColor)
                     Text("Log Extra Supplement")
-                        .font(.subheadline)
+                        .font(.nSubheadline)
                         .fontWeight(.medium)
                         .foregroundStyle(.primary)
                 }
@@ -393,18 +413,18 @@ struct TodayView: View {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(def.name)
-                                            .font(.subheadline)
+                                            .font(.nSubheadline)
                                             .fontWeight(.medium)
                                             .foregroundStyle(.primary)
                                         if let brand = def.brand, !brand.isEmpty {
                                             Text(brand)
-                                                .font(.caption)
+                                                .font(.nCaption)
                                                 .foregroundStyle(.secondary)
                                         }
                                     }
                                     Spacer()
                                     Image(systemName: isLogged ? "checkmark.circle.fill" : "circle")
-                                        .foregroundStyle(isLogged ? Color.phaseF : Color(uiColor: .tertiaryLabel))
+                                        .foregroundStyle(isLogged ? phaseColor : Color(uiColor: .tertiaryLabel))
                                 }
                             }
                         }
@@ -422,16 +442,16 @@ struct TodayView: View {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(def?.name ?? "Unknown")
-                                            .font(.subheadline)
+                                            .font(.nSubheadline)
                                             .fontWeight(.medium)
                                             .foregroundStyle(.primary)
                                         Text("\(Int(userSup.dosage)) \(def?.servingUnit ?? "dose")")
-                                            .font(.caption)
+                                            .font(.nCaption)
                                             .foregroundStyle(.secondary)
                                     }
                                     Spacer()
                                     Image(systemName: isTaken ? "checkmark.circle.fill" : "circle")
-                                        .foregroundStyle(isTaken ? Color.phaseF : Color(uiColor: .tertiaryLabel))
+                                        .foregroundStyle(isTaken ? phaseColor : Color(uiColor: .tertiaryLabel))
                                 }
                             }
                         }
@@ -457,13 +477,13 @@ struct TodayView: View {
         return Button { toggleSupplement(userSup) } label: {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: isTaken ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 18))
-                    .foregroundStyle(isTaken ? Color.phaseF : Color(uiColor: .tertiaryLabel))
+                    .font(.sans(18))
+                    .foregroundStyle(isTaken ? phaseColor : Color(uiColor: .tertiaryLabel))
                     .padding(.top, 2)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(def?.name ?? "Unknown")
-                        .font(.subheadline)
+                        .font(.nSubheadline)
                         .fontWeight(.medium)
                         .foregroundStyle(isTaken ? .secondary : .primary)
                         .strikethrough(isTaken)
@@ -471,11 +491,11 @@ struct TodayView: View {
                     HStack(spacing: 8) {
                         if let brand = def?.brand, !brand.isEmpty {
                             Text(brand)
-                                .font(.caption)
+                                .font(.nCaption)
                                 .foregroundStyle(.secondary)
                         }
                         Text("\(Int(userSup.dosage)) \(def?.servingUnit ?? "dose")")
-                            .font(.caption)
+                            .font(.nCaption)
                             .foregroundStyle(.secondary)
                     }
 
@@ -483,7 +503,7 @@ struct TodayView: View {
                         HStack(spacing: 6) {
                             ForEach(supNutrients.prefix(3), id: \.id) { n in
                                 Text("\(n.nutrientKey): \(formatAmount(n.amount))\(n.unit)")
-                                    .font(.caption2)
+                                    .font(.nCaption2)
                                     .fontWeight(.medium)
                                     .foregroundStyle(.primary)
                                     .padding(.horizontal, 6)
@@ -504,6 +524,101 @@ struct TodayView: View {
         }
         .buttonStyle(.plain)
     }
+
+    // MARK: - Log Cycle CTA
+
+    private var logCycleCTA: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "calendar.badge.plus")
+                .font(.sans(28))
+                .foregroundStyle(.secondary)
+
+            Text("Log your cycle to see phase-specific meals, workouts, and supplements.")
+                .font(.nSubheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            Button {
+                showLogPeriod = true
+            } label: {
+                Text("Log Period Start")
+                    .font(.nSubheadline)
+                    .fontWeight(.medium)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .foregroundStyle(.white)
+                    .background(Color.phaseM)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // MARK: - Check-In Section
+
+    private var checkInSection: some View {
+        Button { showSymptoms = true } label: {
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("How are you feeling today?")
+                        .font(.display(20, relativeTo: .title3))
+                        .foregroundStyle(.primary)
+
+                    if checkInSummaryParts.isEmpty {
+                        Text("Log your symptoms, flow, and notes — it takes less than a minute.")
+                            .font(.prose(13, relativeTo: .footnote))
+                            .foregroundStyle(.secondary)
+                    } else {
+                        HStack(spacing: 6) {
+                            ForEach(checkInSummaryParts, id: \.self) { part in
+                                Text(part)
+                                    .font(.nCaption)
+                                    .foregroundStyle(phaseColor)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(phaseColor.opacity(0.12))
+                                    .clipShape(Capsule())
+                            }
+                        }
+                    }
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.nCaption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(phaseColor.opacity(0.5))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .background(phaseColor.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(phaseColor.opacity(0.15), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var checkInSummaryParts: [String] {
+        let log = todaySymptomLog
+        let hasSymptoms = log != nil && [log?.mood, log?.energy, log?.cramps, log?.bloating, log?.fatigue].compactMap({ $0 }).count > 0
+        let hasFlow = log?.flowIntensity != nil && log?.flowIntensity != "none"
+        let hasNote = todayNote != nil && !(todayNote?.content.isEmpty ?? true)
+
+        var parts: [String] = []
+        if hasSymptoms { parts.append("Symptoms") }
+        if hasFlow { parts.append(log!.flowIntensity!.capitalized + " flow") }
+        if hasNote { parts.append("Note") }
+        return parts
+    }
+
+    // MARK: - Log Period Sheet
 
     // MARK: - Actions
 
@@ -610,11 +725,7 @@ struct SymptomsTabView: View {
             // Symptom grid
             VStack(alignment: .leading, spacing: 10) {
                 Text("SYMPTOMS")
-                    .font(.caption2)
-                    .fontWeight(.medium)
-                    .textCase(.uppercase)
-                    .tracking(2)
-                    .foregroundStyle(.secondary)
+                    .namahLabel()
 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
                     ForEach(symptoms) { symptom in
@@ -629,11 +740,7 @@ struct SymptomsTabView: View {
             // Flow intensity slider
             VStack(alignment: .leading, spacing: 10) {
                 Text("FLOW")
-                    .font(.caption2)
-                    .fontWeight(.medium)
-                    .textCase(.uppercase)
-                    .tracking(2)
-                    .foregroundStyle(.secondary)
+                    .namahLabel()
 
                 VStack(spacing: 4) {
                     Slider(value: $flowValue, in: 0...4, step: 1) {
@@ -650,7 +757,7 @@ struct SymptomsTabView: View {
                     HStack {
                         ForEach(flowOptions, id: \.self) { option in
                             Text(option.capitalized)
-                                .font(.system(size: 9, weight: .medium))
+                                .font(.sans(9)).fontWeight(.medium)
                                 .foregroundStyle(flowOptions[Int(flowValue)] == option ? accentColor : .secondary)
                                 .frame(maxWidth: .infinity)
                         }
@@ -664,14 +771,10 @@ struct SymptomsTabView: View {
             // Daily notes
             VStack(alignment: .leading, spacing: 10) {
                 Text("NOTES")
-                    .font(.caption2)
-                    .fontWeight(.medium)
-                    .textCase(.uppercase)
-                    .tracking(2)
-                    .foregroundStyle(.secondary)
+                    .namahLabel()
 
                 TextEditor(text: $noteText)
-                    .font(.subheadline)
+                    .font(.nSubheadline)
                     .foregroundStyle(.primary)
                     .frame(minHeight: 80)
                     .scrollContentBackground(.hidden)
@@ -783,12 +886,12 @@ private struct SymptomDragCell: View {
     var body: some View {
         VStack(spacing: 3) {
             Image(systemName: icon)
-                .font(.system(size: 18))
+                .font(.sans(18))
                 .foregroundStyle(value > 0 ? accentColor : .secondary)
                 .symbolEffect(.bounce, value: isDragging)
 
             Text(label)
-                .font(.caption2)
+                .font(.nCaption2)
                 .fontWeight(.medium)
                 .foregroundStyle(value > 0 ? .primary : .secondary)
                 .lineLimit(1)

@@ -7,10 +7,11 @@ struct ContentView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
-    @Query(sort: \CycleLog.createdAt, order: .reverse) private var cycleLogs: [CycleLog]
+    @Query private var cycleLogs: [CycleLog]
     @Query private var phases: [Phase]
 
     @State private var cycleService = CycleService()
+    @State private var cycleLogManager: CycleLogManager?
     @State private var selectedTab = 0
     @State private var hasInitialSync = false
 
@@ -48,17 +49,30 @@ struct ContentView: View {
                 }
                 .environment(syncService)
                 .environment(authService)
+                .environment(cycleLogManager)
                 .onAppear {
                     syncService.configure(modelContext: modelContext)
+                    if cycleLogManager == nil {
+                        let manager = CycleLogManager(
+                            modelContext: modelContext,
+                            syncService: syncService,
+                            authService: authService
+                        )
+                        manager.cleanupDuplicates()
+                        cycleLogManager = manager
+                    }
                     recalculate()
                     if !hasInitialSync {
                         hasInitialSync = true
                         Task { await syncService.sync(); recalculate() }
                     }
                 }
-                .onChange(of: cycleLogs.count) { recalculate() }
+                .onChange(of: cycleLogSnapshot) { recalculate() }
                 .onChange(of: scenePhase) {
                     if scenePhase == .active {
+                        cycleLogManager?.checkAndAutoLog(
+                            stats: cycleService.cycleStats
+                        )
                         Task { await syncService.sync(); recalculate() }
                     }
                 }
@@ -66,6 +80,10 @@ struct ContentView: View {
                 LoginView(authService: authService)
             }
         }
+    }
+
+    private var cycleLogSnapshot: [String] {
+        cycleLogs.map { "\($0.id)|\($0.periodStartDate)|\($0.periodEndDate ?? "")|\($0.phaseOverride ?? "")" }
     }
 
     private func recalculate() {
