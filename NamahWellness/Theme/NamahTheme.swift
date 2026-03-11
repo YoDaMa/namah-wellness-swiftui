@@ -5,28 +5,31 @@ import SwiftUI
 extension Color {
     // Phase colors
     static let phaseM = Color(hex: 0xB85252)
-    static let phaseMSoft = Color(hex: 0xF9EDED)
-    static let phaseMMid = Color(hex: 0xDFB0B0)
+    static let phaseMSoft = Color(adaptive: (light: 0xF9EDED, dark: 0x3A2222))
+    static let phaseMMid = Color(adaptive: (light: 0xDFB0B0, dark: 0x6B3838))
 
     static let phaseF = Color(hex: 0x4A8C6A)
-    static let phaseFSoft = Color(hex: 0xEAF3EE)
-    static let phaseFMid = Color(hex: 0xA8CFBA)
+    static let phaseFSoft = Color(adaptive: (light: 0xEAF3EE, dark: 0x1E2E24))
+    static let phaseFMid = Color(adaptive: (light: 0xA8CFBA, dark: 0x305540))
 
     static let phaseO = Color(hex: 0xC49A3C)
-    static let phaseOSoft = Color(hex: 0xFBF6E8)
-    static let phaseOMid = Color(hex: 0xE2CC8A)
+    static let phaseOSoft = Color(adaptive: (light: 0xFBF6E8, dark: 0x2E2618))
+    static let phaseOMid = Color(adaptive: (light: 0xE2CC8A, dark: 0x5C4A22))
 
     static let phaseL = Color(hex: 0x7A5C9C)
-    static let phaseLSoft = Color(hex: 0xF3EFF8)
-    static let phaseLMid = Color(hex: 0xC4AADC)
+    static let phaseLSoft = Color(adaptive: (light: 0xF3EFF8, dark: 0x2A2236))
+    static let phaseLMid = Color(adaptive: (light: 0xC4AADC, dark: 0x453660))
 
     // Macro colors
     static let macroProtein = Color(hex: 0xB85252)
-    static let macroCarbs = Color(hex: 0x8A6200)
+    static let macroCarbs = Color(adaptive: (light: 0x8A6200, dark: 0xC49A3C))
     static let macroFat = Color(hex: 0x4A8C6A)
 
     // Brand accent
     static let spice = Color(hex: 0xC4693A)
+
+    // Warm cream for callouts — adapts to dark mode
+    static let saCalloutBackground = Color(adaptive: (light: 0xFFF8F0, dark: 0x2D2520))
 
     init(hex: UInt, alpha: Double = 1.0) {
         self.init(
@@ -35,6 +38,19 @@ extension Color {
             blue: Double(hex & 0xFF) / 255.0,
             opacity: alpha
         )
+    }
+
+    /// Creates a color that adapts between light and dark mode.
+    init(adaptive pair: (light: UInt, dark: UInt)) {
+        self.init(UIColor { traits in
+            let hex = traits.userInterfaceStyle == .dark ? pair.dark : pair.light
+            return UIColor(
+                red: CGFloat((hex >> 16) & 0xFF) / 255.0,
+                green: CGFloat((hex >> 8) & 0xFF) / 255.0,
+                blue: CGFloat(hex & 0xFF) / 255.0,
+                alpha: 1.0
+            )
+        })
     }
 }
 

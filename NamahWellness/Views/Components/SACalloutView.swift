@@ -28,7 +28,7 @@ struct SACalloutView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(hex: 0xFFF8F0))
+        .background(Color.saCalloutBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
