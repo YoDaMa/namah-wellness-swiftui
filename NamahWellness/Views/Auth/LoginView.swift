@@ -81,7 +81,7 @@ struct LoginView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(uiColor: .systemBackground))
                 .background(canSubmit ? Color.primary : Color.secondary)
                 .clipShape(Capsule())
                 .disabled(!canSubmit)
@@ -90,7 +90,7 @@ struct LoginView: View {
             .padding(.horizontal, 24)
         }
         .scrollDismissesKeyboard(.interactively)
-        .background(.white)
+        .background(Color(uiColor: .systemBackground))
     }
 
     private func signIn() {
