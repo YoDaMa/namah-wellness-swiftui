@@ -1,13 +1,6 @@
 import SwiftUI
 import SwiftData
 
-enum TodayTab: String, CaseIterable, Identifiable {
-    case nourish = "NOURISH"
-    case move = "MOVE"
-
-    var id: String { rawValue }
-}
-
 struct TodayView: View {
     let cycleService: CycleService
 
@@ -26,12 +19,13 @@ struct TodayView: View {
     @Query private var coreExercises: [CoreExercise]
     @Query private var cycleLogs: [CycleLog]
     @Query private var profiles: [UserProfile]
+    @Query private var schedules: [DailySchedule]
 
     @Environment(SyncService.self) private var syncService
     @Environment(AuthService.self) private var authService
     @Environment(CycleLogManager.self) private var cycleLogManager: CycleLogManager?
+    @Environment(TimeBlockService.self) private var timeBlockService
 
-    @State private var selectedTab: TodayTab = .nourish
     @State private var showProfile = false
     @State private var showCoreProtocol = false
     @State private var showLogSupplement = false
@@ -53,6 +47,8 @@ struct TodayView: View {
     private var hasCycleData: Bool {
         cycleService.currentPhase != nil
     }
+
+    // MARK: - Computed Data
 
     private var todayMealCompletionIds: Set<String> {
         Set(mealCompletions.filter { $0.date == today }.map(\.mealId))
@@ -91,11 +87,12 @@ struct TodayView: View {
         return phases.first { $0.slug == slug }
     }
 
-    // Supplements
     private var activeRegimen: [UserSupplement] { userSupplements.filter { $0.isActive } }
+
     private var todaySupplementLogIds: Set<String> {
         Set(supplementLogs.filter { $0.date == today && $0.taken }.map(\.userSupplementId))
     }
+
     private var todayExtraSupplements: [(def: SupplementDefinition, log: SupplementLog)] {
         let activeIds = Set(activeRegimen.map(\.id))
         return supplementLogs
@@ -106,12 +103,6 @@ struct TodayView: View {
                 return (def: def, log: log)
             }
     }
-    private let timeSlots = [
-        ("morning", "Morning"),
-        ("with_meals", "With Meals"),
-        ("evening", "Evening"),
-        ("as_needed", "As Needed"),
-    ]
 
     private var firstName: String {
         let name = profiles.first?.name ?? ""
@@ -122,16 +113,113 @@ struct TodayView: View {
         cycleService.currentPhase.flatMap { PhaseColors.forSlug($0.phaseSlug).color } ?? .spice
     }
 
+    // MARK: - Streak
+
+    private var currentStreak: Int {
+        let cal = Calendar.current
+        let todayStart = cal.startOfDay(for: Date())
+        var streak = 0
+
+        // Check if today has any completions (meals or supplements)
+        let todayHasActivity = !todayMealCompletionIds.isEmpty || !todaySupplementLogIds.isEmpty
+
+        // Start checking from today (if active) or yesterday
+        var checkDate = todayStart
+        if !todayHasActivity {
+            guard let yesterday = cal.date(byAdding: .day, value: -1, to: todayStart) else { return 0 }
+            checkDate = yesterday
+        }
+
+        for dayOffset in 0..<365 {
+            guard let date = cal.date(byAdding: .day, value: -dayOffset, to: checkDate) else { break }
+            let dateStr = dateFormatter.string(from: date)
+
+            let hasMeal = mealCompletions.contains { $0.date == dateStr }
+            let hasSupp = supplementLogs.contains { $0.date == dateStr && $0.taken }
+
+            if hasMeal || hasSupp {
+                streak += 1
+            } else {
+                break
+            }
+        }
+
+        return streak
+    }
+
+    // MARK: - Progress
+
+    private var totalActionableItems: Int {
+        todayMeals.count + activeRegimen.count
+    }
+
+    private var completedActionableItems: Int {
+        let completedMeals = todayMeals.filter { todayMealCompletionIds.contains($0.id) }.count
+        let completedSupps = activeRegimen.filter { todaySupplementLogIds.contains($0.id) }.count
+        return completedMeals + completedSupps
+    }
+
+    // MARK: - Check-In State
+
+    private var hasFlow: Bool {
+        todaySymptomLog?.flowIntensity != nil && todaySymptomLog?.flowIntensity != "none"
+    }
+
+    private var hasSymptoms: Bool {
+        guard let log = todaySymptomLog else { return false }
+        return [log.mood, log.energy, log.cramps, log.bloating, log.fatigue].compactMap({ $0 }).count > 0
+    }
+
+    private var hasNote: Bool {
+        todayNote != nil && !(todayNote?.content.isEmpty ?? true)
+    }
+
+    private var hasAnyCheckIn: Bool {
+        hasFlow || hasSymptoms || hasNote
+    }
+
+    // MARK: - Time-of-Day Greeting
+
+    private var timeGreeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 0..<12:  return "Good morning"
+        case 12..<17: return "Good afternoon"
+        default:      return "Good evening"
+        }
+    }
+
+    private var phaseOneLiner: String? {
+        guard let phase = cycleService.currentPhase else { return nil }
+        switch phase.phaseSlug {
+        case "menstrual":  return "Rest is productive today — honor your body's need to slow down."
+        case "follicular": return "Your energy is building — great day for trying something new."
+        case "ovulatory":  return "Peak energy and confidence — make the most of it."
+        case "luteal":     return "Winding down — focus on comfort foods and gentle movement."
+        default:           return nil
+        }
+    }
+
+    // MARK: - Body
+
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    // 1. Greeting + Phase context + Check-in (above tabs)
-                    VStack(alignment: .leading, spacing: 20) {
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    // 1. Greeting + Phase Hero
+                    VStack(alignment: .leading, spacing: 16) {
                         if !firstName.isEmpty {
-                            Text("Hi, \(firstName).")
-                                .font(.prose(72))
-                                .foregroundStyle(.primary)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("\(timeGreeting), \(firstName).")
+                                    .font(.prose(72))
+                                    .foregroundStyle(.primary)
+
+                                if let oneLiner = phaseOneLiner {
+                                    Text(oneLiner)
+                                        .font(.prose(13, relativeTo: .footnote))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
                         }
 
                         if let phase = cycleService.currentPhase {
@@ -147,31 +235,31 @@ struct TodayView: View {
                             .buttonStyle(.plain)
                         }
 
-                        checkInSection
+                        // Progress bar
+                        if totalActionableItems > 0 {
+                            TimeBlockProgressBar(
+                                completed: completedActionableItems,
+                                total: totalActionableItems,
+                                streak: currentStreak,
+                                phaseColor: phaseColor
+                            )
+                        }
                     }
                     .padding(.horizontal)
                     .padding(.top, 4)
-                    .padding(.bottom, 4)
 
-                    // 2. Tabbed content
-                    Section {
-                        Group {
-                            switch selectedTab {
-                            case .nourish:
-                                VStack(alignment: .leading, spacing: 20) {
-                                    mealsSection
-                                    supplementsSection
-                                }
-                            case .move:
-                                workoutSection
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 16)
-                        .padding(.bottom, 32)
-                    } header: {
-                        todayStickyHeader
+                    // 2. Time Block Sections
+                    if hasCycleData {
+                        timeBlockSections
+                    } else {
+                        logCycleCTA
+                            .padding(.horizontal)
                     }
+
+                    // 3. Extra supplements + Log button
+                    extrasSection
+                        .padding(.horizontal)
+                        .padding(.bottom, 32)
                 }
             }
             .navigationTitle("Today")
@@ -240,264 +328,178 @@ struct TodayView: View {
             .sheet(isPresented: $showLogSupplement) {
                 LogSupplementSheet(phaseColor: phaseColor)
             }
-        }
-    }
-
-    // MARK: - Sticky Tab Header
-
-    private var todayStickyHeader: some View {
-        Picker("Section", selection: $selectedTab) {
-            ForEach(TodayTab.allCases) { tab in
-                Text(tab.rawValue).tag(tab)
+            .sheet(isPresented: $showCoreProtocol) {
+                coreProtocolSheet
+            }
+            .onChange(of: timeBlockService.currentDate) {
+                // Day rollover — force refresh of date-dependent computed properties
             }
         }
-        .pickerStyle(.segmented)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(Color(uiColor: .systemBackground))
     }
 
-    // MARK: - Meals Section
+    // MARK: - Time Block Sections
 
     @ViewBuilder
-    private var mealsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Meals")
-                .font(.display(36))
-                .foregroundStyle(.primary)
+    private var timeBlockSections: some View {
+        let blocks = timeBlockService.blocks
+        let currentKind = timeBlockService.currentBlock?.kind
 
-            if todayMeals.isEmpty {
-                logCycleCTA
-            } else {
-                MacroSummaryBar(meals: todayMeals, completedIds: todayMealCompletionIds)
+        ForEach(blocks) { block in
+            let meals = mealsForBlock(block.kind)
+            let supps = supplementsForBlock(block.kind)
+            let sessions = workoutSessionsForBlock(block.kind)
+            let isCheckIn = block.kind == .evening
+            let isCurrentBlock = block.kind == currentKind
 
-                let sorted = todayMeals.sorted { $0.time.localizedStandardCompare($1.time) == .orderedAscending }
-                ForEach(sorted, id: \.id) { meal in
-                    MealCardView(
-                        meal: meal,
-                        isCompleted: todayMealCompletionIds.contains(meal.id),
-                        onToggle: { toggleMeal(meal) }
-                    )
+            let nextBlock: TimeBlock? = {
+                guard let idx = blocks.firstIndex(where: { $0.kind == block.kind }),
+                      idx + 1 < blocks.count else { return nil }
+                return blocks[idx + 1]
+            }()
+
+            TimeBlockSectionView(
+                block: block,
+                isCurrent: isCurrentBlock,
+                meals: meals,
+                supplements: supps,
+                workoutSessions: sessions,
+                isCheckInBlock: isCheckIn,
+                hasCheckedIn: hasAnyCheckIn,
+                nextBlockName: nextBlock?.displayName,
+                nextBlockTime: nextBlock?.startTimeLabel,
+                phaseColor: phaseColor,
+                onToggleMeal: { mealId in
+                    toggleMeal(mealId)
+                    Haptics.completion()
+                },
+                onToggleSupplement: { suppId in
+                    toggleSupplement(suppId)
+                    Haptics.completion()
+                },
+                onCheckIn: {
+                    showSymptoms = true
                 }
-            }
+            )
+            .padding(.horizontal)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCurrentBlock)
+        }
+
+        // Core Protocol (shown once, after time blocks, if workout exists and not rest day)
+        if let (workout, _) = todayWorkout, !workout.isRestDay, !coreExercises.isEmpty {
+            coreProtocolCard
+                .padding(.horizontal)
+        }
+
+        // Rest day indicator
+        if let (workout, _) = todayWorkout, workout.isRestDay {
+            restDayCard
+                .padding(.horizontal)
         }
     }
 
-    // MARK: - Workout Section
+    // MARK: - Block Item Grouping
 
-    /// Parses a time string like "9:00am" or "4:00pm" into minutes since midnight for sorting.
-    private func parseTimeSlotMinutes(_ slot: String) -> Int {
-        let lower = slot.lowercased().trimmingCharacters(in: .whitespaces)
-        let isPM = lower.contains("pm")
-        let cleaned = lower.replacingOccurrences(of: "am", with: "").replacingOccurrences(of: "pm", with: "")
-        let parts = cleaned.split(separator: ":").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
-        guard let hour = parts.first else { return isPM ? 1440 : 0 }
-        let minute = parts.count > 1 ? parts[1] : 0
-        var h = hour
-        if isPM && h != 12 { h += 12 }
-        if !isPM && h == 12 { h = 0 }
-        return h * 60 + minute
+    private func mealsForBlock(_ kind: TimeBlockKind) -> [TimeBlockSectionView.MealItem] {
+        todayMeals
+            .filter { timeBlockService.blockForMeal(time: $0.time, mealType: $0.mealType) == kind }
+            .sorted { ($0.time).localizedStandardCompare($1.time) == .orderedAscending }
+            .map { meal in
+                TimeBlockSectionView.MealItem(
+                    id: meal.id,
+                    meal: meal,
+                    isCompleted: todayMealCompletionIds.contains(meal.id)
+                )
+            }
     }
 
-    @ViewBuilder
-    private var workoutSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let (workout, sessions) = todayWorkout {
-                if workout.isRestDay {
-                    HStack(spacing: 8) {
-                        Text("REST DAY")
-                            .namahLabel()
-                        Text("·")
-                            .foregroundStyle(.tertiary)
-                        Text(workout.dayFocus)
-                            .font(.nCaption)
-                            .foregroundStyle(.secondary)
-                    }
-                } else {
-                    // Day header
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(workout.dayLabel)
-                            .font(.display(36))
-                            .foregroundStyle(.primary)
-                        if !workout.dayFocus.isEmpty {
-                            Text("·")
-                                .font(.nCaption)
-                                .foregroundStyle(.tertiary)
-                            Text(workout.dayFocus)
-                                .font(.nCaption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    // Core Protocol card (separate pill below header)
-                    if !coreExercises.isEmpty {
-                        Button { showCoreProtocol = true } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: "figure.core.training")
-                                    .font(.sans(14))
-                                    .foregroundStyle(phaseColor)
-                                Text("Core Protocol")
-                                    .font(.nSubheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.primary)
-                                Text("·")
-                                    .foregroundStyle(.tertiary)
-                                Text("\(coreExercises.count) exercises")
-                                    .font(.nCaption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.sans(11)).fontWeight(.medium)
-                                    .foregroundStyle(.tertiary)
-                            }
-                            .padding(12)
-                            .background(Color(uiColor: .secondarySystemGroupedBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
-                        .buttonStyle(.plain)
-                        .sheet(isPresented: $showCoreProtocol) {
-                            coreProtocolSheet
-                        }
-                    }
-
-                    // Sessions sorted chronologically — timeline layout
-                    let sorted = sessions.sorted { parseTimeSlotMinutes($0.timeSlot) < parseTimeSlotMinutes($1.timeSlot) }
-                    VStack(alignment: .leading, spacing: 0) {
-                        ForEach(Array(sorted.enumerated()), id: \.element.id) { index, session in
-                            HStack(alignment: .top, spacing: 0) {
-                                // Timeline rail
-                                VStack(spacing: 0) {
-                                    // Line above dot (invisible for first item)
-                                    Rectangle()
-                                        .fill(index == 0 ? Color.clear : phaseColor.opacity(0.25))
-                                        .frame(width: 2, height: 12)
-
-                                    // Dot
-                                    Circle()
-                                        .fill(phaseColor)
-                                        .frame(width: 10, height: 10)
-                                        .overlay(
-                                            Circle()
-                                                .fill(.white)
-                                                .frame(width: 4, height: 4)
-                                        )
-
-                                    // Line below dot (invisible for last item)
-                                    Rectangle()
-                                        .fill(index == sorted.count - 1 ? Color.clear : phaseColor.opacity(0.25))
-                                        .frame(width: 2)
-                                        .frame(maxHeight: .infinity)
-                                }
-                                .frame(width: 10)
-                                .padding(.trailing, 12)
-
-                                // Time label
-                                Text(session.timeSlot)
-                                    .font(.nCaption2)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(phaseColor)
-                                    .frame(width: 52, alignment: .leading)
-                                    .padding(.top, 1)
-
-                                // Session details
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(session.title.replacingOccurrences(of: ".$", with: "", options: .regularExpression))
-                                        .font(.nSubheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(.primary)
-                                    Text(session.sessionDescription)
-                                        .font(.nCaption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .padding(.vertical, 10)
-                        }
-                    }
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 12)
-                    .background(Color(uiColor: .secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
+    private func supplementsForBlock(_ kind: TimeBlockKind) -> [TimeBlockSectionView.SupplementItem] {
+        activeRegimen
+            .filter { timeBlockService.blockForSupplement(timeOfDay: $0.timeOfDay) == kind }
+            .map { userSup in
+                TimeBlockSectionView.SupplementItem(
+                    id: userSup.id,
+                    userSupplement: userSup,
+                    definition: definitions.first { $0.id == userSup.supplementId },
+                    nutrients: supplementNutrients.filter { $0.supplementId == userSup.supplementId },
+                    isTaken: todaySupplementLogIds.contains(userSup.id)
+                )
             }
-        }
     }
 
-    private var coreProtocolSheet: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(Array(coreExercises.enumerated()), id: \.element.id) { index, exercise in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(exercise.name)
-                                    .font(.nSubheadline)
-                                    .fontWeight(.medium)
-                                Spacer()
-                                Text(exercise.sets)
-                                    .font(.nCaption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Text(exercise.exerciseDescription)
-                                .font(.nCaption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(14)
-                        if index < coreExercises.count - 1 {
-                            Divider().padding(.leading, 14)
-                        }
-                    }
-                }
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .padding()
+    private func workoutSessionsForBlock(_ kind: TimeBlockKind) -> [TimeBlockSectionView.WorkoutSessionItem] {
+        guard let (workout, sessions) = todayWorkout, !workout.isRestDay else { return [] }
+        return sessions
+            .filter { timeBlockService.blockForWorkoutSession(timeSlot: $0.timeSlot) == kind }
+            .sorted { (TimeParser.minutesSinceMidnight(from: $0.timeSlot) ?? 0) < (TimeParser.minutesSinceMidnight(from: $1.timeSlot) ?? 0) }
+            .map { session in
+                TimeBlockSectionView.WorkoutSessionItem(
+                    id: session.id,
+                    session: session,
+                    isRestDay: false,
+                    dayFocus: workout.dayFocus
+                )
             }
-            .background(Color(uiColor: .systemGroupedBackground))
-            .navigationTitle("Daily Core Protocol")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { showCoreProtocol = false }
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
     }
 
-    // MARK: - Supplements Section
+    // MARK: - Core Protocol Card
 
-    @ViewBuilder
-    private var supplementsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Supplements")
-                .font(.display(36))
-                .foregroundStyle(.primary)
-
-            if activeRegimen.isEmpty {
-                Text("No supplements yet — add them in the Plan tab")
+    private var coreProtocolCard: some View {
+        Button { showCoreProtocol = true } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "figure.core.training")
+                    .font(.sans(14))
+                    .foregroundStyle(phaseColor)
+                Text("Core Protocol")
+                    .font(.nSubheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+                Text("·")
+                    .foregroundStyle(.tertiary)
+                Text("\(coreExercises.count) exercises")
                     .font(.nCaption)
                     .foregroundStyle(.secondary)
-            } else {
-                let takenCount = activeRegimen.filter { todaySupplementLogIds.contains($0.id) }.count
-                Text("\(takenCount) of \(activeRegimen.count) taken today")
-                    .font(.nFootnote)
-                    .fontWeight(.medium)
-
-                ForEach(timeSlots, id: \.0) { slot, label in
-                    let slotItems = activeRegimen.filter { $0.timeOfDay == slot }
-                    if !slotItems.isEmpty {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(label.uppercased())
-                                .namahLabel()
-
-                            ForEach(slotItems, id: \.id) { userSup in
-                                supplementCard(userSup)
-                            }
-                        }
-                    }
-                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.sans(11)).fontWeight(.medium)
+                    .foregroundStyle(.tertiary)
             }
+            .padding(12)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+    }
 
-            // Extra supplements logged today (not in active regimen)
+    private var restDayCard: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "leaf.fill")
+                .font(.sans(14))
+                .foregroundStyle(phaseColor)
+            Text("REST DAY")
+                .font(.nCaption2)
+                .fontWeight(.semibold)
+                .tracking(2)
+                .foregroundStyle(.secondary)
+            if let (workout, _) = todayWorkout {
+                Text("·")
+                    .foregroundStyle(.tertiary)
+                Text(workout.dayFocus)
+                    .font(.nCaption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+        }
+        .padding(12)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // MARK: - Extras Section
+
+    @ViewBuilder
+    private var extrasSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Extra supplements logged today
             if !todayExtraSupplements.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("EXTRAS")
@@ -556,60 +558,47 @@ struct TodayView: View {
         }
     }
 
-    private func supplementCard(_ userSup: UserSupplement) -> some View {
-        let def = definitions.first { $0.id == userSup.supplementId }
-        let isTaken = todaySupplementLogIds.contains(userSup.id)
-        let supNutrients = supplementNutrients.filter { $0.supplementId == userSup.supplementId }
+    // MARK: - Core Protocol Sheet
 
-        return Button { toggleSupplement(userSup) } label: {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: isTaken ? "checkmark.circle.fill" : "circle")
-                    .font(.sans(18))
-                    .foregroundStyle(isTaken ? phaseColor : Color(uiColor: .tertiaryLabel))
-                    .padding(.top, 2)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(def?.name ?? "Unknown")
-                        .font(.nSubheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(isTaken ? .secondary : .primary)
-                        .strikethrough(isTaken)
-
-                    HStack(spacing: 8) {
-                        if let brand = def?.brand, !brand.isEmpty {
-                            Text(brand)
+    private var coreProtocolSheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(Array(coreExercises.enumerated()), id: \.element.id) { index, exercise in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(exercise.name)
+                                    .font(.nSubheadline)
+                                    .fontWeight(.medium)
+                                Spacer()
+                                Text(exercise.sets)
+                                    .font(.nCaption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Text(exercise.exerciseDescription)
                                 .font(.nCaption)
                                 .foregroundStyle(.secondary)
                         }
-                        Text("\(Int(userSup.dosage)) \(def?.servingUnit ?? "dose")")
-                            .font(.nCaption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    if !supNutrients.isEmpty {
-                        HStack(spacing: 6) {
-                            ForEach(supNutrients.prefix(3), id: \.id) { n in
-                                Text("\(n.nutrientKey): \(formatAmount(n.amount))\(n.unit)")
-                                    .font(.nCaption2)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.primary)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color(uiColor: .tertiarySystemFill))
-                                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                            }
+                        .padding(14)
+                        if index < coreExercises.count - 1 {
+                            Divider().padding(.leading, 14)
                         }
-                        .padding(.top, 2)
                     }
                 }
-
-                Spacer()
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding()
             }
-            .padding(12)
-            .background(Color(uiColor: .secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .background(Color(uiColor: .systemGroupedBackground))
+            .navigationTitle("Daily Core Protocol")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { showCoreProtocol = false }
+                }
+            }
         }
-        .buttonStyle(.plain)
+        .presentationDetents([.medium, .large])
     }
 
     // MARK: - Log Cycle CTA
@@ -644,79 +633,10 @@ struct TodayView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    // MARK: - Check-In Section
-
-    private var checkInSection: some View {
-        Button { showSymptoms = true } label: {
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(hasAnyCheckIn ? "Adjust today's notes" : "How are you feeling today?")
-                        .font(.display(20, relativeTo: .title3))
-                        .foregroundStyle(.primary)
-
-                    if !hasAnyCheckIn {
-                        Text("Log your symptoms, flow, and notes — it takes less than a minute.")
-                            .font(.prose(13, relativeTo: .footnote))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                Spacer()
-
-                HStack(spacing: 5) {
-                    // Flow dot
-                    Circle()
-                        .fill(hasFlow ? phaseColor : phaseColor.opacity(0.2))
-                        .frame(width: 7, height: 7)
-                    // Symptoms dot
-                    Circle()
-                        .fill(hasSymptoms ? phaseColor : phaseColor.opacity(0.2))
-                        .frame(width: 7, height: 7)
-                    // Notes dot
-                    Circle()
-                        .fill(hasNote ? phaseColor : phaseColor.opacity(0.2))
-                        .frame(width: 7, height: 7)
-                }
-
-                Image(systemName: "chevron.right")
-                    .font(.nCaption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(phaseColor.opacity(0.5))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-            .background(phaseColor.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(phaseColor.opacity(0.15), lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var hasFlow: Bool {
-        todaySymptomLog?.flowIntensity != nil && todaySymptomLog?.flowIntensity != "none"
-    }
-
-    private var hasSymptoms: Bool {
-        guard let log = todaySymptomLog else { return false }
-        return [log.mood, log.energy, log.cramps, log.bloating, log.fatigue].compactMap({ $0 }).count > 0
-    }
-
-    private var hasNote: Bool {
-        todayNote != nil && !(todayNote?.content.isEmpty ?? true)
-    }
-
-    private var hasAnyCheckIn: Bool {
-        hasFlow || hasSymptoms || hasNote
-    }
-
-    // MARK: - Log Period Sheet
-
     // MARK: - Actions
 
-    private func toggleMeal(_ meal: Meal) {
+    private func toggleMeal(_ mealId: String) {
+        guard let meal = todayMeals.first(where: { $0.id == mealId }) else { return }
         if let existing = mealCompletions.first(where: { $0.mealId == meal.id && $0.date == today }) {
             syncService.queueChange(table: "mealCompletions", action: "delete",
                                     data: ["id": existing.id], modelContext: modelContext)
@@ -727,6 +647,28 @@ struct TodayView: View {
             syncService.queueChange(table: "mealCompletions", action: "upsert",
                                     data: ["id": completion.id, "mealId": meal.id, "date": today],
                                     modelContext: modelContext)
+            checkAllDoneHaptic()
+        }
+    }
+
+    private func toggleSupplement(_ suppId: String) {
+        guard let userSup = activeRegimen.first(where: { $0.id == suppId }) else { return }
+        if let existing = supplementLogs.first(where: { $0.userSupplementId == userSup.id && $0.date == today }) {
+            existing.taken.toggle()
+            existing.loggedAt = Date()
+            syncService.queueChange(table: "supplementLogs", action: "upsert",
+                                    data: ["id": existing.id, "userSupplementId": userSup.id,
+                                           "date": today, "taken": existing.taken],
+                                    modelContext: modelContext)
+            if existing.taken { checkAllDoneHaptic() }
+        } else {
+            let log = SupplementLog(userSupplementId: userSup.id, date: today, taken: true)
+            modelContext.insert(log)
+            syncService.queueChange(table: "supplementLogs", action: "upsert",
+                                    data: ["id": log.id, "userSupplementId": userSup.id,
+                                           "date": today, "taken": true],
+                                    modelContext: modelContext)
+            checkAllDoneHaptic()
         }
     }
 
@@ -742,30 +684,39 @@ struct TodayView: View {
         }
     }
 
-    private func toggleSupplement(_ userSup: UserSupplement) {
-        if let existing = supplementLogs.first(where: { $0.userSupplementId == userSup.id && $0.date == today }) {
-            existing.taken.toggle()
-            existing.loggedAt = Date()
-            syncService.queueChange(table: "supplementLogs", action: "upsert",
-                                    data: ["id": existing.id, "userSupplementId": userSup.id,
-                                           "date": today, "taken": existing.taken],
-                                    modelContext: modelContext)
-        } else {
-            let log = SupplementLog(userSupplementId: userSup.id, date: today, taken: true)
-            modelContext.insert(log)
-            syncService.queueChange(table: "supplementLogs", action: "upsert",
-                                    data: ["id": log.id, "userSupplementId": userSup.id,
-                                           "date": today, "taken": true],
-                                    modelContext: modelContext)
+    private func checkAllDoneHaptic() {
+        // +1 because this fires before SwiftData updates the query
+        let willBeCompleted = completedActionableItems + 1
+        if willBeCompleted >= totalActionableItems && totalActionableItems > 0 {
+            Haptics.celebration()
         }
-    }
-
-    private func formatAmount(_ amount: Double) -> String {
-        amount == amount.rounded() ? "\(Int(amount))" : String(format: "%.1f", amount)
     }
 }
 
-// MARK: - Symptoms Tab
+// MARK: - Haptics
+
+enum Haptics {
+    static func completion() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
+
+    static func blockComplete() {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
+    static func celebration() {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+        }
+    }
+}
+
+// MARK: - Symptoms Tab (unchanged — kept in same file for cohesion)
 
 struct SymptomsTabView: View {
     @Environment(\.modelContext) private var modelContext
@@ -789,7 +740,6 @@ struct SymptomsTabView: View {
         let set: (SymptomLog, Int?) -> Void
     }
 
-    // All symptoms with contextual low/high descriptions
     private static let allSymptoms: [SymptomItem] = [
         SymptomItem(id: "cramps", icon: "waveform.path", label: "Cramps", lowLabel: "None", highLabel: "Severe", get: { $0.cramps }, set: { $0.cramps = $1 }),
         SymptomItem(id: "mood", icon: "face.smiling", label: "Mood", lowLabel: "Great", highLabel: "Awful", get: { $0.mood }, set: { $0.mood = $1 }),
@@ -829,13 +779,8 @@ struct SymptomsTabView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // 1. Flow — most important data point, comes first
             flowSection
-
-            // 2. Symptoms — 3-column grid, phase-relevant first
             symptomsSection
-
-            // 3. Notes — warm placeholder
             notesSection
         }
         .onAppear {
@@ -850,8 +795,6 @@ struct SymptomsTabView: View {
             }
         }
     }
-
-    // MARK: - Flow Section (segmented control)
 
     private var flowSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -904,8 +847,6 @@ struct SymptomsTabView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    // MARK: - Symptoms Section (slider list)
-
     private var symptomsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("SYMPTOMS")
@@ -921,8 +862,6 @@ struct SymptomsTabView: View {
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
-
-    // MARK: - Notes Section
 
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -957,8 +896,6 @@ struct SymptomsTabView: View {
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
-
-    // MARK: - Symptom Slider Row
 
     private func symptomSliderRow(_ symptom: SymptomItem) -> some View {
         let currentValue = Double(todaySymptomLog.flatMap { symptom.get($0) } ?? 0)
@@ -1081,4 +1018,3 @@ struct SymptomsTabView: View {
         }
     }
 }
-

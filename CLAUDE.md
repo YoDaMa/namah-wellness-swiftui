@@ -20,7 +20,7 @@ open NamahWellness.xcodeproj
 - **Deployment target**: iOS 17.0
 - **Swift version**: 5.0
 - **No external dependencies** — pure SwiftUI + SwiftData
-- **No test targets** currently exist
+- **Test target**: `NamahWellnessTests` (unit tests for TimeParser, TimeBlockService)
 
 ## Architecture
 
@@ -29,7 +29,7 @@ open NamahWellness.xcodeproj
 ### Data Flow
 
 ```
-NamahWellnessApp (ModelContainer with 18 model types)
+NamahWellnessApp (ModelContainer with 21 model types, AppDelegate for notifications)
   └── ContentView (4-tab TabView, default: Today)
         ├── @State CycleService — recalculated on appear/change
         ├── @Query CycleLogs, Phases, etc. — SwiftData auto-refresh
@@ -49,13 +49,18 @@ NamahWellnessApp (ModelContainer with 18 model types)
 | `CalendarService` | Stateless enum | Calendar grid generation with phase overlays |
 | `SeedService` | Enum | First-launch database seeding (~509 lines) |
 | `HormoneData` | Static enum | Hardcoded 28-point hormone curves (E2, P4, LH, FSH) |
+| `TimeBlockService` | @Observable class | Computes time blocks (Morning/Midday/Afternoon/Evening) from DailySchedule |
+| `TimeParser` | Stateless enum | Shared time string parsing ("7:00am" → minutes since midnight) |
 
 ### Navigation Structure
 
 ```
 ContentView (TabView, default: Today)
-├── TodayView — daily command center (all sections inline, no push destinations)
-│   └── PhaseHeroCard, MacroSummaryBar, Meals, Workout, Supplements checklist, Symptoms
+├── TodayView — time-block daily coach (Morning / Midday / Afternoon / Evening)
+│   └── PhaseHeroCard, TimeBlockProgressBar (streak + completion)
+│   └── TimeBlockSectionView × 4 — each block groups meals, supplements, workout sessions
+│   └── Current block highlighted with "NOW" badge, completed blocks show checkmarks
+│   └── Sheets: PhaseDetail, Symptoms check-in, LogPeriod, LogSupplement, CoreProtocol
 ├── MyCycleView → HormonesView, AccountSettingsView
 │   └── Calendar grid, cycle logging, period history, stats
 ├── PlanView — phase-specific reference content

@@ -46,3 +46,15 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.namah.wellness
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: 9
+
+  NamahWellnessTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - NamahWellnessTests
+    dependencies:
+      - target: NamahWellness
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.namah.wellness.tests
+        GENERATE_INFOPLIST_FILE: YES

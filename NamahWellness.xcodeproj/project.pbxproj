@@ -14,18 +14,22 @@
 		1998C9D3CDF5081A78BDDC34 /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139601881931CFC6FF7B74E1 /* PlanView.swift */; };
 		1D4AEE89AE3C7364EE642085 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7245C7AA1D424F2BBA5DC4AE /* AuthService.swift */; };
 		1E0B17C6A67D7A6EACB403EB /* APITypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B233D18437DE7FE9143139FA /* APITypes.swift */; };
+		1EEACB6E8B1B6B40689CB31F /* TimeBlockProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C46161AE72FE60368EE4CC1 /* TimeBlockProgressBar.swift */; };
 		1FCEB15251A81E567BCDA861 /* MealCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74614E34083D59F3BD2F06CD /* MealCardView.swift */; };
 		2100DEA3D0375304808B57D3 /* LearnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B892F182887563667F5B94 /* LearnView.swift */; };
+		217C430C64F2127E3BC45973 /* TimeParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE9C894AE304C8DB2994167E /* TimeParserTests.swift */; };
 		241D91888B767F744E89CAC4 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55559112F1FA8F997EDBD43C /* CalendarService.swift */; };
 		24CFECC7E05A555F29097687 /* MacroSummaryBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199440C62E1016C84A8ADDB6 /* MacroSummaryBar.swift */; };
 		30EE9D79EFF77417CE090737 /* PlusJakartaSans-Italic-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1285963692ECE549381BD855 /* PlusJakartaSans-Italic-Variable.ttf */; };
 		34F0E16AE5A180131D4E929E /* MoveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF90EF9AB5D621D4DEA96727 /* MoveView.swift */; };
 		391B30BEF2F89463F895D21A /* MyCycleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE2279ADDF428CBE8E2C7CC /* MyCycleView.swift */; };
 		42811FDE29A80C9297D6BCF0 /* ETBookOT-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = AEE6E78E3C834863E28CB867 /* ETBookOT-Roman.otf */; };
+		437E65AEA8BF08A7D9EB8ACB /* DailySchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00B382B007CE7D900F6D6295 /* DailySchedule.swift */; };
 		48444D91397879B8B917C1A2 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E7E01954CF02077FD85B1D /* UserProfile.swift */; };
 		49860F69A231FAA08E77FD3C /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9CCEC4BE85D32ECADC442DF /* KeychainHelper.swift */; };
 		4BD51021E9A7DC635BACA0FF /* CycleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E5AE582DF244E341C951 /* CycleService.swift */; };
 		4D188D4E73C2D392A1E96BA0 /* SymptomLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC809F47B0D06CD2891BC0E3 /* SymptomLog.swift */; };
+		504C4AB356F2785DF61CB565 /* TimeBlockService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8A6B06B0A8FFC7F16DE4E6 /* TimeBlockService.swift */; };
 		51622F48F5553D812757DE1A /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE970A9A8FCC967A88730894 /* FlowLayout.swift */; };
 		5677803EBD6ABF08732CBDCD /* PlanSupplementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D113899BC720CFB56EE6666C /* PlanSupplementsView.swift */; };
 		5B212908DEB491DDE37D2745 /* LogPeriodSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2923570EC72BD28B4A99C9 /* LogPeriodSheet.swift */; };
@@ -36,6 +40,7 @@
 		687FFA677A70FC9A07C6194C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1C5125977D07DE7E35DCE9 /* ContentView.swift */; };
 		6AF99D677B0EAB761D23F3BC /* Phase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EC3D42C8A5F785258C6136 /* Phase.swift */; };
 		72B3B9EDA98808F827C928D8 /* EvidenceBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB82FB36EC36F79E61AED6E9 /* EvidenceBadge.swift */; };
+		75D28AEAB79BB2B5DC353ECA /* TimeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF0DC66C421BE29309B9DD3 /* TimeParser.swift */; };
 		7D1FB4CEABC2501DB2557982 /* PlusJakartaSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7F63DDFE165B5700E134096C /* PlusJakartaSans-Variable.ttf */; };
 		8ABC08B6124A9C5884082B41 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84D838A60B19FC4A03859BF /* SyncService.swift */; };
 		8E5574AA47293414B50271D5 /* Workout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F45B46DC6CFDA59430B339 /* Workout.swift */; };
@@ -63,14 +68,27 @@
 		E433CE378E806BF970D798F5 /* DMSerifDisplay-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 94A537778367021851D9FB35 /* DMSerifDisplay-Italic.ttf */; };
 		E7C07329818DD50382ECEEE5 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE3CE1738447313D7A3C38C2 /* LoginView.swift */; };
 		EE2E0A4EC043873B85602A9D /* Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024E36BD82293C99A5D5521F /* Meal.swift */; };
+		EF249BB1AA9B14DE1017F1B2 /* TimeBlockSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2E8B0A6BB95CD0F269C551 /* TimeBlockSectionView.swift */; };
 		EF6F50A03227B53BCFDC8B5D /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A93EB61FC0DD0B17E78D69A /* NotificationService.swift */; };
 		F236CCF3E6EDDCAE9D06376C /* MealPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78456B0314BF404BED05D0EA /* MealPlanView.swift */; };
+		F4A199749635B750596064B2 /* TimeBlockServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69D7EBB442896C4ACE42FC67 /* TimeBlockServiceTests.swift */; };
 		F50EFC46E176783032A5E28D /* NamahWellnessApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F449FF1BC04FAF0C6662EA /* NamahWellnessApp.swift */; };
 		F5AFCA007D8AF722786F48B2 /* NutrientSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EFD4D79BBC498CE6682160 /* NutrientSheetView.swift */; };
 		FA06C900193CB20E0E208F41 /* GroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAE8910B36D5AB05B641B60 /* GroceryListView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		9599269524084714CC572978 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 26A4E7B0AA8AFC2972B547AA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AD68A0F7B0C883EF402CA4C6;
+			remoteInfo = NamahWellness;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		00B382B007CE7D900F6D6295 /* DailySchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySchedule.swift; sourceTree = "<group>"; };
 		024E36BD82293C99A5D5521F /* Meal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meal.swift; sourceTree = "<group>"; };
 		088E5B747F884FC19A781A1F /* DMSerifDisplay-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMSerifDisplay-Regular.ttf"; sourceTree = "<group>"; };
 		095186FF8376AA32A7216280 /* GroceryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryItem.swift; sourceTree = "<group>"; };
@@ -83,6 +101,7 @@
 		1A93916862654D91E30A89DF /* BrowseSupplementsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseSupplementsSheet.swift; sourceTree = "<group>"; };
 		1DAAFFB2FDB7137CD4420838 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		25F04F944466E14D5100AA8E /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		2C46161AE72FE60368EE4CC1 /* TimeBlockProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlockProgressBar.swift; sourceTree = "<group>"; };
 		3700E999B3E7421E7A63B688 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		3887E5AE582DF244E341C951 /* CycleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleService.swift; sourceTree = "<group>"; };
 		3AC3702C70D1E407D0001AFE /* NamahTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamahTheme.swift; sourceTree = "<group>"; };
@@ -97,7 +116,9 @@
 		62EC3D42C8A5F785258C6136 /* Phase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase.swift; sourceTree = "<group>"; };
 		6468211DDF034E468B78C474 /* ProfileCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCardView.swift; sourceTree = "<group>"; };
 		67F449FF1BC04FAF0C6662EA /* NamahWellnessApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamahWellnessApp.swift; sourceTree = "<group>"; };
+		69D7EBB442896C4ACE42FC67 /* TimeBlockServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlockServiceTests.swift; sourceTree = "<group>"; };
 		6BF3C67B2A132ED0E032E4A8 /* NourishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NourishView.swift; sourceTree = "<group>"; };
+		6CF0DC66C421BE29309B9DD3 /* TimeParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeParser.swift; sourceTree = "<group>"; };
 		6D8E2A2E24BC04686A649874 /* InsightsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsSheetView.swift; sourceTree = "<group>"; };
 		7245C7AA1D424F2BBA5DC4AE /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		74614E34083D59F3BD2F06CD /* MealCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCardView.swift; sourceTree = "<group>"; };
@@ -107,6 +128,7 @@
 		83ECE59DABD9991A8BBB57D6 /* SyncChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncChange.swift; sourceTree = "<group>"; };
 		86932D331AAA25CB182FCB41 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8927E550B02C19E21D612E12 /* ETBookOT-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ETBookOT-Bold.otf"; sourceTree = "<group>"; };
+		8941E67CD7A072776F528BDF /* NamahWellnessTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NamahWellnessTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AADCEB2987B645FB01DF395 /* LogSupplementSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogSupplementSheet.swift; sourceTree = "<group>"; };
 		8E1C5125977D07DE7E35DCE9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		8E6B34A58A694FA421F11C00 /* HormoneChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneChartView.swift; sourceTree = "<group>"; };
@@ -115,6 +137,7 @@
 		96AF006E3DAEE24FB6B6C291 /* CycleLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleLog.swift; sourceTree = "<group>"; };
 		9BA1BC08BE8C23DF4CF5E6BE /* InsightRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightRowView.swift; sourceTree = "<group>"; };
 		A179EE9B4D61732EBEBB66FE /* NamahWellness.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NamahWellness.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB2E8B0A6BB95CD0F269C551 /* TimeBlockSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlockSectionView.swift; sourceTree = "<group>"; };
 		ACA0D889653229CA26878820 /* PhaseHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseHeaderView.swift; sourceTree = "<group>"; };
 		ACE2279ADDF428CBE8E2C7CC /* MyCycleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCycleView.swift; sourceTree = "<group>"; };
 		AEE6E78E3C834863E28CB867 /* ETBookOT-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ETBookOT-Roman.otf"; sourceTree = "<group>"; };
@@ -129,11 +152,13 @@
 		DF90EF9AB5D621D4DEA96727 /* MoveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveView.swift; sourceTree = "<group>"; };
 		EE3CE1738447313D7A3C38C2 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		EE970A9A8FCC967A88730894 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		EE9C894AE304C8DB2994167E /* TimeParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeParserTests.swift; sourceTree = "<group>"; };
 		EFAE8910B36D5AB05B641B60 /* GroceryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryListView.swift; sourceTree = "<group>"; };
 		F6CAEF9024E04895D625C873 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		F84D838A60B19FC4A03859BF /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
 		FB82FB36EC36F79E61AED6E9 /* EvidenceBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceBadge.swift; sourceTree = "<group>"; };
 		FC809F47B0D06CD2891BC0E3 /* SymptomLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymptomLog.swift; sourceTree = "<group>"; };
+		FD8A6B06B0A8FFC7F16DE4E6 /* TimeBlockService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlockService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -148,6 +173,7 @@
 			isa = PBXGroup;
 			children = (
 				1B8712C70B919D22CDD2283C /* NamahWellness */,
+				83044CD4AD2D79B2FA7BE320 /* NamahWellnessTests */,
 				AF2AF15A14AFAEE5948EB8D3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -166,6 +192,8 @@
 				413AFFB88F25D9A99E826CB8 /* PhaseHeroCard.swift */,
 				6468211DDF034E468B78C474 /* ProfileCardView.swift */,
 				5EE5877B9EDDD4CE4CD13E4E /* SACalloutView.swift */,
+				2C46161AE72FE60368EE4CC1 /* TimeBlockProgressBar.swift */,
+				AB2E8B0A6BB95CD0F269C551 /* TimeBlockSectionView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -258,6 +286,7 @@
 			children = (
 				4E4EB1437564D16C45AF4C2C /* Completion.swift */,
 				96AF006E3DAEE24FB6B6C291 /* CycleLog.swift */,
+				00B382B007CE7D900F6D6295 /* DailySchedule.swift */,
 				095186FF8376AA32A7216280 /* GroceryItem.swift */,
 				024E36BD82293C99A5D5521F /* Meal.swift */,
 				62EC3D42C8A5F785258C6136 /* Phase.swift */,
@@ -268,6 +297,15 @@
 				79F45B46DC6CFDA59430B339 /* Workout.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		83044CD4AD2D79B2FA7BE320 /* NamahWellnessTests */ = {
+			isa = PBXGroup;
+			children = (
+				69D7EBB442896C4ACE42FC67 /* TimeBlockServiceTests.swift */,
+				EE9C894AE304C8DB2994167E /* TimeParserTests.swift */,
+			);
+			path = NamahWellnessTests;
 			sourceTree = "<group>";
 		};
 		8AC2CEE012D10282E5990537 /* Services */ = {
@@ -283,6 +321,8 @@
 				B9CCEC4BE85D32ECADC442DF /* KeychainHelper.swift */,
 				5A93EB61FC0DD0B17E78D69A /* NotificationService.swift */,
 				F84D838A60B19FC4A03859BF /* SyncService.swift */,
+				FD8A6B06B0A8FFC7F16DE4E6 /* TimeBlockService.swift */,
+				6CF0DC66C421BE29309B9DD3 /* TimeParser.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -298,6 +338,7 @@
 			isa = PBXGroup;
 			children = (
 				A179EE9B4D61732EBEBB66FE /* NamahWellness.app */,
+				8941E67CD7A072776F528BDF /* NamahWellnessTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -377,6 +418,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		67C036D8AF65DF00D25F95E4 /* NamahWellnessTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F8AFDA3B854F6416E665339E /* Build configuration list for PBXNativeTarget "NamahWellnessTests" */;
+			buildPhases = (
+				9FC58978E1510D79B576F184 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B4B02095ACFFC0AE450231C9 /* PBXTargetDependency */,
+			);
+			name = NamahWellnessTests;
+			packageProductDependencies = (
+			);
+			productName = NamahWellnessTests;
+			productReference = 8941E67CD7A072776F528BDF /* NamahWellnessTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		AD68A0F7B0C883EF402CA4C6 /* NamahWellness */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C1C54E941744D4FA216B9F7B /* Build configuration list for PBXNativeTarget "NamahWellness" */;
@@ -404,6 +463,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
+					67C036D8AF65DF00D25F95E4 = {
+						DevelopmentTeam = V78DYGQTSW;
+					};
 					AD68A0F7B0C883EF402CA4C6 = {
 						DevelopmentTeam = V78DYGQTSW;
 					};
@@ -424,6 +486,7 @@
 			projectRoot = "";
 			targets = (
 				AD68A0F7B0C883EF402CA4C6 /* NamahWellness */,
+				67C036D8AF65DF00D25F95E4 /* NamahWellnessTests */,
 			);
 		};
 /* End PBXProject section */
@@ -447,6 +510,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		9FC58978E1510D79B576F184 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F4A199749635B750596064B2 /* TimeBlockServiceTests.swift in Sources */,
+				217C430C64F2127E3BC45973 /* TimeParserTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		ADECBDA16617BAEB7494A126 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -462,6 +534,7 @@
 				CF12D9A71DC5F69035FF5F6B /* CycleLog.swift in Sources */,
 				001A33020576B3AF24341159 /* CycleLogManager.swift in Sources */,
 				4BD51021E9A7DC635BACA0FF /* CycleService.swift in Sources */,
+				437E65AEA8BF08A7D9EB8ACB /* DailySchedule.swift in Sources */,
 				AA45A91D2C4939EDA0C59B56 /* EditProfileView.swift in Sources */,
 				72B3B9EDA98808F827C928D8 /* EvidenceBadge.swift in Sources */,
 				51622F48F5553D812757DE1A /* FlowLayout.swift in Sources */,
@@ -501,6 +574,10 @@
 				4D188D4E73C2D392A1E96BA0 /* SymptomLog.swift in Sources */,
 				E01236801FB6406CDBC563D6 /* SyncChange.swift in Sources */,
 				8ABC08B6124A9C5884082B41 /* SyncService.swift in Sources */,
+				1EEACB6E8B1B6B40689CB31F /* TimeBlockProgressBar.swift in Sources */,
+				EF249BB1AA9B14DE1017F1B2 /* TimeBlockSectionView.swift in Sources */,
+				504C4AB356F2785DF61CB565 /* TimeBlockService.swift in Sources */,
+				75D28AEAB79BB2B5DC353ECA /* TimeParser.swift in Sources */,
 				5E63BD1CFA35BF71A4FA39F3 /* TodayView.swift in Sources */,
 				48444D91397879B8B917C1A2 /* UserProfile.swift in Sources */,
 				8E5574AA47293414B50271D5 /* Workout.swift in Sources */,
@@ -508,6 +585,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B4B02095ACFFC0AE450231C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AD68A0F7B0C883EF402CA4C6 /* NamahWellness */;
+			targetProxy = 9599269524084714CC572978 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		192751A91BA76AFBA432EDC8 /* Release */ = {
@@ -525,6 +610,23 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.namah.wellness;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		318FFB6259A6997529BA8B33 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.namah.wellness.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NamahWellness.app/NamahWellness";
 			};
 			name = Release;
 		};
@@ -590,6 +692,23 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		86889A8CF4C4E773CFC767FE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.namah.wellness.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NamahWellness.app/NamahWellness";
 			};
 			name = Debug;
 		};
@@ -686,6 +805,15 @@
 			buildConfigurations = (
 				B9EEEE1C01C50B084DBF09ED /* Debug */,
 				192751A91BA76AFBA432EDC8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F8AFDA3B854F6416E665339E /* Build configuration list for PBXNativeTarget "NamahWellnessTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				86889A8CF4C4E773CFC767FE /* Debug */,
+				318FFB6259A6997529BA8B33 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

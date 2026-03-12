@@ -9,8 +9,10 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Query private var cycleLogs: [CycleLog]
     @Query private var phases: [Phase]
+    @Query private var schedules: [DailySchedule]
 
     @State private var cycleService = CycleService()
+    @State private var timeBlockService = TimeBlockService()
     @State private var cycleLogManager: CycleLogManager?
     @State private var selectedTab = 0
     @State private var hasInitialSync = false
@@ -50,6 +52,7 @@ struct ContentView: View {
                 .environment(syncService)
                 .environment(authService)
                 .environment(cycleLogManager)
+                .environment(timeBlockService)
                 .onAppear {
                     syncService.configure(modelContext: modelContext, authService: authService)
                     if cycleLogManager == nil {
@@ -62,6 +65,8 @@ struct ContentView: View {
                         cycleLogManager = manager
                     }
                     recalculate()
+                    updateTimeBlocks()
+                    ensureDefaultSchedule()
                     if !hasInitialSync {
                         hasInitialSync = true
                         Task { await syncService.sync(); recalculate() }
@@ -73,6 +78,8 @@ struct ContentView: View {
                         cycleLogManager?.checkAndAutoLog(
                             stats: cycleService.cycleStats
                         )
+                        timeBlockService.refresh()
+                        updateTimeBlocks()
                         Task { await syncService.sync(); recalculate() }
                     }
                 }
@@ -88,5 +95,18 @@ struct ContentView: View {
 
     private func recalculate() {
         cycleService.recalculate(logs: cycleLogs, phases: phases)
+    }
+
+    private func updateTimeBlocks() {
+        if let schedule = schedules.first {
+            timeBlockService.updateSchedule(wakeTime: schedule.wakeTime, sleepTime: schedule.sleepTime)
+        }
+    }
+
+    private func ensureDefaultSchedule() {
+        if schedules.isEmpty {
+            let schedule = DailySchedule()
+            modelContext.insert(schedule)
+        }
     }
 }
