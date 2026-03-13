@@ -14,6 +14,7 @@ final class Meal {
     var title: String
     var mealDescription: String
     var saNote: String?
+    var templateId: String?
     var proteinG: Int?
     var carbsG: Int?
     var fatG: Int?
@@ -23,6 +24,7 @@ final class Meal {
         phaseId: String, dayNumber: Int, dayLabel: String, dayCalories: String? = nil,
         mealType: String, time: String, calories: String,
         title: String, mealDescription: String, saNote: String? = nil,
+        templateId: String? = nil,
         proteinG: Int? = nil, carbsG: Int? = nil, fatG: Int? = nil
     ) {
         self.id = id
@@ -36,6 +38,7 @@ final class Meal {
         self.title = title
         self.mealDescription = mealDescription
         self.saNote = saNote
+        self.templateId = templateId
         self.proteinG = proteinG
         self.carbsG = carbsG
         self.fatG = fatG

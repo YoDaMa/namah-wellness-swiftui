@@ -13,6 +13,7 @@ struct ContentResponse: Decodable {
     let phaseNutrients: [PhaseNutrientDTO]
     let supplementDefinitions: [SupplementDefinitionDTO]
     let supplementNutrients: [SupplementNutrientDTO]
+    let planTemplates: [PlanTemplateDTO]
 }
 
 struct UserDataResponse: Decodable {
@@ -24,6 +25,10 @@ struct UserDataResponse: Decodable {
     let groceryChecks: [GroceryCheckDTO]
     let userSupplements: [UserSupplementDTO]
     let supplementLogs: [SupplementLogDTO]
+    let userPlanSelections: [UserPlanSelectionDTO]
+    let userPlanItems: [UserPlanItemDTO]
+    let userItemsHidden: [UserItemHiddenDTO]
+    let planItemLogs: [PlanItemLogDTO]
 }
 
 struct CycleBundleResponse: Decodable {
@@ -78,6 +83,7 @@ struct MealDTO: Decodable {
     let title: String
     let description: String
     let saNote: String?
+    let templateId: String?
     let proteinG: Int?
     let carbsG: Int?
     let fatG: Int?
@@ -87,6 +93,7 @@ struct MealDTO: Decodable {
             id: id, phaseId: phaseId, dayNumber: dayNumber, dayLabel: dayLabel,
             dayCalories: dayCalories, mealType: mealType, time: time, calories: calories,
             title: title, mealDescription: description, saNote: saNote,
+            templateId: templateId,
             proteinG: proteinG, carbsG: carbsG, fatG: fatG
         )
     }
@@ -98,9 +105,10 @@ struct GroceryItemDTO: Decodable {
     let category: String
     let name: String
     let saFlag: String?
+    let templateId: String?
 
     func toModel() -> GroceryItem {
-        GroceryItem(id: id, phaseId: phaseId, category: category, name: name, saFlag: saFlag)
+        GroceryItem(id: id, phaseId: phaseId, category: category, name: name, saFlag: saFlag, templateId: templateId)
     }
 }
 
@@ -109,10 +117,11 @@ struct WorkoutDTO: Decodable {
     let dayOfWeek: Int
     let dayLabel: String
     let dayFocus: String
+    let templateId: String?
     let isRestDay: Bool
 
     func toModel() -> Workout {
-        Workout(id: id, dayOfWeek: dayOfWeek, dayLabel: dayLabel, dayFocus: dayFocus, isRestDay: isRestDay)
+        Workout(id: id, dayOfWeek: dayOfWeek, dayLabel: dayLabel, dayFocus: dayFocus, templateId: templateId, isRestDay: isRestDay)
     }
 }
 
@@ -313,6 +322,104 @@ struct SupplementLogDTO: Decodable {
 
     func toModel() -> SupplementLog {
         SupplementLog(id: id, userId: userId, userSupplementId: userSupplementId, date: date, taken: taken)
+    }
+}
+
+// MARK: - Plan Template DTOs
+
+struct PlanTemplateDTO: Decodable {
+    let id: String
+    let name: String
+    let description: String
+    let category: String
+    let isDefault: Bool
+
+    func toModel() -> PlanTemplate {
+        PlanTemplate(
+            id: id, name: name, templateDescription: description,
+            category: PlanItemCategory(rawValue: category) ?? .meal,
+            isDefault: isDefault
+        )
+    }
+}
+
+struct UserPlanSelectionDTO: Decodable {
+    let id: String
+    let userId: String
+    let templateId: String
+    let category: String
+    let isActive: Bool
+
+    func toModel() -> UserPlanSelection {
+        UserPlanSelection(
+            id: id, userId: userId, templateId: templateId,
+            category: PlanItemCategory(rawValue: category) ?? .meal,
+            isActive: isActive
+        )
+    }
+}
+
+struct UserPlanItemDTO: Decodable {
+    let id: String
+    let userId: String
+    let category: String
+    let title: String
+    let subtitle: String?
+    let time: String?
+    let phaseSlug: String?
+    let recurrence: String
+    let recurrenceDays: String?
+    let specificDate: String?
+    let isActive: Bool
+    let mealType: String?
+    let calories: String?
+    let proteinG: Int?
+    let carbsG: Int?
+    let fatG: Int?
+    let workoutFocus: String?
+    let duration: String?
+    let groceryCategory: String?
+
+    func toModel() -> UserPlanItem {
+        UserPlanItem(
+            id: id, userId: userId,
+            category: PlanItemCategory(rawValue: category) ?? .meal,
+            title: title, subtitle: subtitle, time: time,
+            phaseSlug: phaseSlug,
+            recurrence: PlanItemRecurrence(rawValue: recurrence) ?? .specificDays,
+            recurrenceDays: recurrenceDays, specificDate: specificDate,
+            isActive: isActive,
+            mealType: mealType, calories: calories,
+            proteinG: proteinG, carbsG: carbsG, fatG: fatG,
+            workoutFocus: workoutFocus, duration: duration,
+            groceryCategory: groceryCategory
+        )
+    }
+}
+
+struct UserItemHiddenDTO: Decodable {
+    let id: String
+    let userId: String
+    let itemId: String
+    let itemType: String
+
+    func toModel() -> UserItemHidden {
+        UserItemHidden(
+            id: id, userId: userId, itemId: itemId,
+            itemType: PlanItemCategory(rawValue: itemType) ?? .meal
+        )
+    }
+}
+
+struct PlanItemLogDTO: Decodable {
+    let id: String
+    let userId: String
+    let planItemId: String
+    let date: String
+    let completed: Bool
+
+    func toModel() -> PlanItemLog {
+        PlanItemLog(id: id, userId: userId, planItemId: planItemId, date: date, completed: completed)
     }
 }
 

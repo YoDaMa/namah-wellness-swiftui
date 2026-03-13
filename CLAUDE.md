@@ -11,7 +11,7 @@ This is a SwiftUI iOS app using **XCGen** to generate the Xcode project from `pr
 xcodegen generate
 
 # Build from command line
-xcodebuild -project NamahWellness.xcodeproj -scheme NamahWellness -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16' build
+xcodebuild -project NamahWellness.xcodeproj -scheme NamahWellness -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 
 # Run in Xcode
 open NamahWellness.xcodeproj
@@ -29,7 +29,7 @@ open NamahWellness.xcodeproj
 ### Data Flow
 
 ```
-NamahWellnessApp (ModelContainer with 23 model types, AppDelegate for notifications)
+NamahWellnessApp (ModelContainer with 28 model types, AppDelegate for notifications)
   └── ContentView (4-tab TabView, default: Today)
         ├── @State CycleService — recalculated on appear/change
         ├── @Query CycleLogs, Phases, etc. — SwiftData auto-refresh
@@ -66,9 +66,11 @@ ContentView (TabView, default: Today)
 │   └── Tap day → DayDetailSheet (phase info, BBT, symptoms, sexual activity, notes)
 │   └── DayDetailSheet → DailyTrackingView for any date (historical editing)
 │   └── Cycle logging, period history, symptom patterns, consistency stats
-├── PlanView — phase-specific reference content
-│   └── Phase picker, hero, meal plan, grocery, workout schedule, supplements regimen
-│   └── Sheets: browse supplements, add custom supplement
+├── PlanView — phase-specific reference content with plan customization
+│   └── Sub-tabs: NOURISH (meals, nutrients, grocery, insights), MOVE (workouts, core protocol), SUPPLEMENTS
+│   └── Context menus on template items: Hide / Replace with my own
+│   └── Custom items (UserPlanItem) with recurrence: daily, weekdays, specific days, once
+│   └── Sheets: AddPlanItemSheet, browse supplements, phase detail
 └── LearnView → HormonesView
     └── Hormones card, phase education cards
 ```

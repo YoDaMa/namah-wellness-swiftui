@@ -25,8 +25,26 @@ struct TimeBlockSectionView: View {
 
     struct MealItem: Identifiable {
         let id: String
-        let meal: Meal
+        let meal: Meal?
+        let customItem: UserPlanItem?
         let isCompleted: Bool
+        let isCustom: Bool
+
+        init(id: String, meal: Meal, isCompleted: Bool) {
+            self.id = id
+            self.meal = meal
+            self.customItem = nil
+            self.isCompleted = isCompleted
+            self.isCustom = false
+        }
+
+        init(id: String, customItem: UserPlanItem, isCompleted: Bool) {
+            self.id = id
+            self.meal = nil
+            self.customItem = customItem
+            self.isCompleted = isCompleted
+            self.isCustom = true
+        }
     }
 
     struct SupplementItem: Identifiable {
@@ -39,9 +57,29 @@ struct TimeBlockSectionView: View {
 
     struct WorkoutSessionItem: Identifiable {
         let id: String
-        let session: WorkoutSession
+        let session: WorkoutSession?
+        let customItem: UserPlanItem?
         let isRestDay: Bool
         let dayFocus: String
+        let isCustom: Bool
+
+        init(id: String, session: WorkoutSession, isRestDay: Bool, dayFocus: String) {
+            self.id = id
+            self.session = session
+            self.customItem = nil
+            self.isRestDay = isRestDay
+            self.dayFocus = dayFocus
+            self.isCustom = false
+        }
+
+        init(id: String, customItem: UserPlanItem) {
+            self.id = id
+            self.session = nil
+            self.customItem = customItem
+            self.isRestDay = false
+            self.dayFocus = customItem.workoutFocus ?? ""
+            self.isCustom = true
+        }
     }
 
     private var totalItems: Int {
@@ -69,11 +107,17 @@ struct TimeBlockSectionView: View {
                 // Items
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(meals) { item in
-                        MealCardView(
-                            meal: item.meal,
-                            isCompleted: item.isCompleted,
-                            onToggle: { onToggleMeal(item.id) }
-                        )
+                        if let meal = item.meal {
+                            MealCardView(
+                                meal: meal,
+                                isCompleted: item.isCompleted,
+                                onToggle: { onToggleMeal(item.id) }
+                            )
+                        } else if let custom = item.customItem {
+                            customMealRow(custom, isCompleted: item.isCompleted) {
+                                onToggleMeal(item.id)
+                            }
+                        }
                     }
 
                     ForEach(supplements) { item in
@@ -81,7 +125,11 @@ struct TimeBlockSectionView: View {
                     }
 
                     ForEach(workoutSessions) { item in
-                        workoutRow(item)
+                        if item.session != nil {
+                            workoutRow(item)
+                        } else if item.customItem != nil {
+                            customWorkoutRow(item)
+                        }
                     }
 
                     if isCheckInBlock {
@@ -195,7 +243,9 @@ struct TimeBlockSectionView: View {
     // MARK: - Workout Row
 
     private func workoutRow(_ item: WorkoutSessionItem) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+        let session = item.session!
+
+        return HStack(alignment: .top, spacing: 12) {
             Image(systemName: "figure.run")
                 .font(.sans(16))
                 .foregroundStyle(phaseColor)
@@ -203,7 +253,7 @@ struct TimeBlockSectionView: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(item.session.timeSlot)
+                    Text(session.timeSlot)
                         .font(.nCaption2)
                         .fontWeight(.medium)
                         .foregroundStyle(phaseColor)
@@ -216,12 +266,12 @@ struct TimeBlockSectionView: View {
                     }
                 }
 
-                Text(item.session.title.replacingOccurrences(of: ".$", with: "", options: .regularExpression))
+                Text(session.title.replacingOccurrences(of: ".$", with: "", options: .regularExpression))
                     .font(.nSubheadline)
                     .fontWeight(.medium)
                     .foregroundStyle(.primary)
 
-                Text(item.session.sessionDescription)
+                Text(session.sessionDescription)
                     .font(.nCaption)
                     .foregroundStyle(.secondary)
             }
@@ -231,6 +281,136 @@ struct TimeBlockSectionView: View {
         .padding(12)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // MARK: - Custom Workout Row
+
+    private func customWorkoutRow(_ item: WorkoutSessionItem) -> some View {
+        let custom = item.customItem!
+
+        return HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "figure.run")
+                .font(.sans(16))
+                .foregroundStyle(phaseColor)
+                .padding(.top, 2)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    if let time = custom.time {
+                        Text(time)
+                            .font(.nCaption2)
+                            .fontWeight(.medium)
+                            .foregroundStyle(phaseColor)
+                    }
+                    Text("CUSTOM")
+                        .font(.sans(7))
+                        .fontWeight(.bold)
+                        .tracking(0.5)
+                        .foregroundStyle(phaseColor)
+                    if let focus = custom.workoutFocus {
+                        Text("·")
+                            .foregroundStyle(.tertiary)
+                        Text(focus)
+                            .font(.nCaption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Text(custom.title)
+                    .font(.nSubheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+
+                if let sub = custom.subtitle, !sub.isEmpty {
+                    Text(sub)
+                        .font(.nCaption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if let dur = custom.duration {
+                    Text(dur)
+                        .font(.nCaption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+
+            Spacer()
+        }
+        .padding(12)
+        .background(phaseColor.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(phaseColor.opacity(0.2), lineWidth: 1)
+        )
+    }
+
+    // MARK: - Custom Meal Row
+
+    private func customMealRow(_ item: UserPlanItem, isCompleted: Bool, onToggle: @escaping () -> Void) -> some View {
+        Button(action: onToggle) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.sans(18))
+                    .foregroundStyle(isCompleted ? phaseColor : Color(uiColor: .tertiaryLabel))
+                    .padding(.top, 2)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        if let time = item.time {
+                            Text(time)
+                                .font(.nCaption2)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                        }
+                        if let mt = item.mealType {
+                            Text("·")
+                                .foregroundStyle(.tertiary)
+                            Text(mt.uppercased())
+                                .font(.sans(8))
+                                .fontWeight(.medium)
+                                .tracking(1)
+                                .foregroundStyle(.secondary)
+                        }
+                        Text("CUSTOM")
+                            .font(.sans(7))
+                            .fontWeight(.bold)
+                            .tracking(0.5)
+                            .foregroundStyle(phaseColor)
+                    }
+
+                    Text(item.title)
+                        .font(.nSubheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(isCompleted ? .secondary : .primary)
+                        .strikethrough(isCompleted)
+
+                    if let sub = item.subtitle, !sub.isEmpty {
+                        Text(sub)
+                            .font(.nCaption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+
+                    if let p = item.proteinG, let c = item.carbsG, let f = item.fatG {
+                        Text("\(p)P · \(c)C · \(f)F")
+                            .font(.nCaption2)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(12)
+            .background(phaseColor.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(phaseColor.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Check-In Row

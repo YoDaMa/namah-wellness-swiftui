@@ -8,13 +8,15 @@ final class GroceryItem {
     var category: String     // Protein, Produce, Pantry / Grains
     var name: String
     var saFlag: String?
+    var templateId: String?
 
-    init(id: String = UUID().uuidString, phaseId: String, category: String, name: String, saFlag: String? = nil) {
+    init(id: String = UUID().uuidString, phaseId: String, category: String, name: String, saFlag: String? = nil, templateId: String? = nil) {
         self.id = id
         self.phaseId = phaseId
         self.category = category
         self.name = name
         self.saFlag = saFlag
+        self.templateId = templateId
     }
 }
 

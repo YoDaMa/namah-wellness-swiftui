@@ -35,3 +35,33 @@ Generate shareable PDF/CSV report with cycle stats, BBT chart, symptom patterns,
 - **Why**: Users need to share cycle data with doctors; manual transcription is error-prone
 - **Depends on**: All tracking features established
 - **Effort**: M
+
+## P2 — Template Versioning
+Version-stamp PlanTemplate records so API can push updated meal/workout templates without losing user customizations. Schema: add `version` column to plan_templates, track which version the user's selections reference.
+- **Why**: Without versioning, content updates wipe user customizations. Needed before pushing any template updates.
+- **Depends on**: Plan customization system (completed)
+- **Effort**: M
+
+## P3 — AI-Suggested Plan Items
+Use cycle phase + symptom history + completion patterns to suggest meals and workouts. E.g., "You tend to feel fatigued in luteal — try this gentle yoga routine?"
+- **Why**: Transforms static plans into a proactive wellness coach
+- **Depends on**: Plan customization system + symptom/completion history
+- **Effort**: XL
+
+## P2 — Template Comparison View
+Side-by-side comparison when multiple templates exist for a category. Show diff: which meals/workouts differ, macro differences, focus areas.
+- **Why**: Users need to make informed template choices; blind selection leads to churn
+- **Depends on**: Multiple templates available per category
+- **Effort**: M
+
+## P2 — Customization Stats Badge
+Show a subtle indicator on the Plan tab reflecting how much the user has personalized: "3 custom meals, 1 hidden workout." Encourages engagement with customization.
+- **Why**: Makes customization progress visible and encourages deeper personalization
+- **Depends on**: Plan customization system (completed)
+- **Effort**: S
+
+## P2 — Phase-Smart Defaults
+Pre-fill AddPlanItemSheet fields based on current cycle phase. E.g., luteal phase → suggest anti-inflammatory foods, gentle workouts; follicular → higher intensity options.
+- **Why**: Reduces friction and teaches users about phase-appropriate choices
+- **Depends on**: Plan customization system (completed)
+- **Effort**: M

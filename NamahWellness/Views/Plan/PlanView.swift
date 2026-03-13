@@ -17,10 +17,13 @@ struct PlanView: View {
     let cycleService: CycleService
 
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
+    @Query private var userPlanItems: [UserPlanItem]
+    @Query private var userItemsHidden: [UserItemHidden]
 
     @State private var selectedTab: PlanTab = .nourish
     @State private var showProfile = false
     @State private var showPhaseDetail = false
+    @State private var showAddItem = false
 
     private var currentSlug: String {
         cycleService.currentPhase?.phaseSlug ?? "menstrual"
@@ -31,6 +34,22 @@ struct PlanView: View {
     }
 
     private var phaseColors: PhaseColors { PhaseColors.forSlug(currentSlug) }
+
+    private var hiddenIds: Set<String> {
+        Set(userItemsHidden.map(\.itemId))
+    }
+
+    private var customMeals: [UserPlanItem] {
+        userPlanItems.filter { $0.category == .meal && $0.isActive }
+    }
+
+    private var customWorkouts: [UserPlanItem] {
+        userPlanItems.filter { $0.category == .workout && $0.isActive }
+    }
+
+    private var customGrocery: [UserPlanItem] {
+        userPlanItems.filter { $0.category == .grocery && $0.isActive }
+    }
 
     var body: some View {
         NavigationStack {
@@ -47,10 +66,17 @@ struct PlanView: View {
                             case .nourish:
                                 NourishView(
                                     phaseSlug: currentSlug,
-                                    cycleService: cycleService
+                                    cycleService: cycleService,
+                                    customItems: customMeals,
+                                    customGrocery: customGrocery,
+                                    hiddenIds: hiddenIds
                                 )
                             case .move:
-                                MoveView(phaseSlug: currentSlug)
+                                MoveView(
+                                    phaseSlug: currentSlug,
+                                    customWorkouts: customWorkouts,
+                                    hiddenIds: hiddenIds
+                                )
                             case .supplements:
                                 PlanSupplementsView()
                             }
@@ -68,9 +94,15 @@ struct PlanView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showProfile = true } label: {
-                        Image(systemName: "gearshape")
-                            .foregroundStyle(.secondary)
+                    HStack(spacing: 12) {
+                        Button { showAddItem = true } label: {
+                            Image(systemName: "plus")
+                                .foregroundStyle(phaseColors.color)
+                        }
+                        Button { showProfile = true } label: {
+                            Image(systemName: "gearshape")
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
@@ -78,6 +110,12 @@ struct PlanView: View {
                 NavigationStack {
                     ProfileView(cycleService: cycleService)
                 }
+            }
+            .sheet(isPresented: $showAddItem) {
+                AddPlanItemSheet(
+                    defaultCategory: selectedTab == .move ? .workout : selectedTab == .nourish ? .meal : .meal,
+                    phaseSlug: currentSlug
+                )
             }
             .sheet(isPresented: $showPhaseDetail) {
                 NavigationStack {

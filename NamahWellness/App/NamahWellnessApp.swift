@@ -35,6 +35,11 @@ struct NamahWellnessApp: App {
                 DailySchedule.self,
                 BBTLog.self,
                 SexualActivityLog.self,
+                PlanTemplate.self,
+                UserPlanSelection.self,
+                UserPlanItem.self,
+                UserItemHidden.self,
+                PlanItemLog.self,
             ])
             modelContainer = try ModelContainer(for: schema)
         } catch {

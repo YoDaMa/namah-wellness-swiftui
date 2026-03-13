@@ -22,6 +22,8 @@ struct TodayView: View {
     @Query private var schedules: [DailySchedule]
     @Query private var bbtLogs: [BBTLog]
     @Query private var sexualActivityLogs: [SexualActivityLog]
+    @Query private var userPlanItems: [UserPlanItem]
+    @Query private var userItemsHidden: [UserItemHidden]
 
     @Environment(SyncService.self) private var syncService
     @Environment(AuthService.self) private var authService
@@ -52,6 +54,18 @@ struct TodayView: View {
 
     // MARK: - Computed Data
 
+    private var hiddenIds: Set<String> {
+        Set(userItemsHidden.map(\.itemId))
+    }
+
+    private var customMeals: [UserPlanItem] {
+        userPlanItems.filter { $0.category == .meal && $0.isActive && $0.appliesOnDate(today) }
+    }
+
+    private var customWorkouts: [UserPlanItem] {
+        userPlanItems.filter { $0.category == .workout && $0.isActive && $0.appliesOnDate(today) }
+    }
+
     private var todayMealCompletionIds: Set<String> {
         Set(mealCompletions.filter { $0.date == today }.map(\.mealId))
     }
@@ -61,7 +75,7 @@ struct TodayView: View {
               let phaseRecord = phases.first(where: { $0.slug == phase.phaseSlug })
         else { return [] }
 
-        let phaseMeals = allMeals.filter { $0.phaseId == phaseRecord.id && $0.proteinG != nil }
+        let phaseMeals = allMeals.filter { $0.phaseId == phaseRecord.id && $0.proteinG != nil && !hiddenIds.contains($0.id) }
         let dayNumbers = Array(Set(phaseMeals.map(\.dayNumber))).sorted()
         guard !dayNumbers.isEmpty else { return [] }
         let todayDay = dayNumbers[(phase.dayInPhase - 1) % dayNumbers.count]
@@ -72,7 +86,7 @@ struct TodayView: View {
         let jsDay = Calendar.current.component(.weekday, from: Date())
         let dayOfWeek = jsDay == 1 ? 6 : jsDay - 2
         guard let w = workouts.first(where: { $0.dayOfWeek == dayOfWeek }) else { return nil }
-        let sessions = workoutSessions.filter { $0.workoutId == w.id }
+        let sessions = workoutSessions.filter { $0.workoutId == w.id && !hiddenIds.contains($0.id) }
         return (w, sessions)
     }
 
@@ -160,13 +174,14 @@ struct TodayView: View {
     // MARK: - Progress
 
     private var totalActionableItems: Int {
-        todayMeals.count + activeRegimen.count
+        todayMeals.count + customMeals.count + activeRegimen.count
     }
 
     private var completedActionableItems: Int {
         let completedMeals = todayMeals.filter { todayMealCompletionIds.contains($0.id) }.count
+        let completedCustomMeals = customMeals.filter { todayMealCompletionIds.contains($0.id) }.count
         let completedSupps = activeRegimen.filter { todaySupplementLogIds.contains($0.id) }.count
-        return completedMeals + completedSupps
+        return completedMeals + completedCustomMeals + completedSupps
     }
 
     // MARK: - Check-In State
@@ -412,7 +427,7 @@ struct TodayView: View {
     // MARK: - Block Item Grouping
 
     private func mealsForBlock(_ kind: TimeBlockKind) -> [TimeBlockSectionView.MealItem] {
-        todayMeals
+        let templateItems = todayMeals
             .filter { timeBlockService.blockForMeal(time: $0.time, mealType: $0.mealType) == kind }
             .sorted { ($0.time).localizedStandardCompare($1.time) == .orderedAscending }
             .map { meal in
@@ -422,6 +437,19 @@ struct TodayView: View {
                     isCompleted: todayMealCompletionIds.contains(meal.id)
                 )
             }
+
+        let customItems = customMeals
+            .filter { timeBlockService.blockForMeal(time: $0.time ?? "12:00pm", mealType: $0.mealType ?? "Meal") == kind }
+            .sorted { (TimeParser.minutesSinceMidnight(from: $0.time ?? "12:00pm") ?? 720) < (TimeParser.minutesSinceMidnight(from: $1.time ?? "12:00pm") ?? 720) }
+            .map { item in
+                TimeBlockSectionView.MealItem(
+                    id: item.id,
+                    customItem: item,
+                    isCompleted: todayMealCompletionIds.contains(item.id)
+                )
+            }
+
+        return templateItems + customItems
     }
 
     private func supplementsForBlock(_ kind: TimeBlockKind) -> [TimeBlockSectionView.SupplementItem] {
@@ -439,18 +467,33 @@ struct TodayView: View {
     }
 
     private func workoutSessionsForBlock(_ kind: TimeBlockKind) -> [TimeBlockSectionView.WorkoutSessionItem] {
-        guard let (workout, sessions) = todayWorkout, !workout.isRestDay else { return [] }
-        return sessions
-            .filter { timeBlockService.blockForWorkoutSession(timeSlot: $0.timeSlot) == kind }
-            .sorted { (TimeParser.minutesSinceMidnight(from: $0.timeSlot) ?? 0) < (TimeParser.minutesSinceMidnight(from: $1.timeSlot) ?? 0) }
-            .map { session in
+        var items: [TimeBlockSectionView.WorkoutSessionItem] = []
+
+        if let (workout, sessions) = todayWorkout, !workout.isRestDay {
+            items += sessions
+                .filter { timeBlockService.blockForWorkoutSession(timeSlot: $0.timeSlot) == kind }
+                .sorted { (TimeParser.minutesSinceMidnight(from: $0.timeSlot) ?? 0) < (TimeParser.minutesSinceMidnight(from: $1.timeSlot) ?? 0) }
+                .map { session in
+                    TimeBlockSectionView.WorkoutSessionItem(
+                        id: session.id,
+                        session: session,
+                        isRestDay: false,
+                        dayFocus: workout.dayFocus
+                    )
+                }
+        }
+
+        items += customWorkouts
+            .filter { timeBlockService.blockForWorkoutSession(timeSlot: $0.time ?? "9:00am") == kind }
+            .sorted { (TimeParser.minutesSinceMidnight(from: $0.time ?? "9:00am") ?? 540) < (TimeParser.minutesSinceMidnight(from: $1.time ?? "9:00am") ?? 540) }
+            .map { item in
                 TimeBlockSectionView.WorkoutSessionItem(
-                    id: session.id,
-                    session: session,
-                    isRestDay: false,
-                    dayFocus: workout.dayFocus
+                    id: item.id,
+                    customItem: item
                 )
             }
+
+        return items
     }
 
     // MARK: - Core Protocol Card
@@ -648,16 +691,19 @@ struct TodayView: View {
     // MARK: - Actions
 
     private func toggleMeal(_ mealId: String) {
-        guard let meal = todayMeals.first(where: { $0.id == mealId }) else { return }
-        if let existing = mealCompletions.first(where: { $0.mealId == meal.id && $0.date == today }) {
+        // Check template meals first, then custom meals
+        let isValidMeal = todayMeals.contains { $0.id == mealId } || customMeals.contains { $0.id == mealId }
+        guard isValidMeal else { return }
+
+        if let existing = mealCompletions.first(where: { $0.mealId == mealId && $0.date == today }) {
             syncService.queueChange(table: "mealCompletions", action: "delete",
                                     data: ["id": existing.id], modelContext: modelContext)
             modelContext.delete(existing)
         } else {
-            let completion = MealCompletion(mealId: meal.id, date: today)
+            let completion = MealCompletion(mealId: mealId, date: today)
             modelContext.insert(completion)
             syncService.queueChange(table: "mealCompletions", action: "upsert",
-                                    data: ["id": completion.id, "mealId": meal.id, "date": today],
+                                    data: ["id": completion.id, "mealId": mealId, "date": today],
                                     modelContext: modelContext)
             checkAllDoneHaptic()
         }

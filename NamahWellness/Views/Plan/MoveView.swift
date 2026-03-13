@@ -3,6 +3,11 @@ import SwiftData
 
 struct MoveView: View {
     let phaseSlug: String
+    let customWorkouts: [UserPlanItem]
+    let hiddenIds: Set<String>
+
+    @Environment(\.modelContext) private var modelContext
+    @Environment(SyncService.self) private var syncService
 
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
     @Query(sort: \Workout.dayOfWeek) private var workouts: [Workout]
@@ -10,6 +15,7 @@ struct MoveView: View {
     @Query private var exercises: [CoreExercise]
 
     @State private var selectedDayOfWeek: Int?
+    @State private var showAddWorkout = false
 
     private var phase: Phase? { phases.first { $0.slug == phaseSlug } }
     private var phaseColor: Color { PhaseColors.forSlug(phaseSlug).color }
@@ -28,7 +34,22 @@ struct MoveView: View {
 
     private var currentSessions: [WorkoutSession] {
         guard let workout = currentWorkout else { return [] }
-        return workoutSessions.filter { $0.workoutId == workout.id }
+        return workoutSessions.filter { $0.workoutId == workout.id && !hiddenIds.contains($0.id) }
+    }
+
+    private var dateFormatter: DateFormatter {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = .current
+        return f
+    }
+
+    private var todayStr: String {
+        dateFormatter.string(from: Date())
+    }
+
+    private var customWorkoutsForDay: [UserPlanItem] {
+        customWorkouts.filter { $0.appliesOnDate(todayStr) }
     }
 
     var body: some View {
@@ -172,6 +193,18 @@ struct MoveView: View {
             } else {
                 ForEach(currentSessions, id: \.id) { session in
                     sessionCard(session)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                hideItem(session.id, type: .workout)
+                            } label: {
+                                Label("Hide This Workout", systemImage: "eye.slash")
+                            }
+                        }
+                }
+
+                // Custom workouts for this day
+                ForEach(customWorkoutsForDay, id: \.id) { item in
+                    customWorkoutCard(item)
                 }
             }
         }
@@ -199,6 +232,80 @@ struct MoveView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // MARK: - Custom Workout Card
+
+    private func customWorkoutCard(_ item: UserPlanItem) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                if let time = item.time {
+                    Text(time)
+                        .font(.nCaption2)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                }
+                Text("CUSTOM")
+                    .font(.sans(8))
+                    .fontWeight(.bold)
+                    .tracking(1)
+                    .foregroundStyle(phaseColor)
+            }
+
+            Text(item.title)
+                .font(.nSubheadline)
+                .fontWeight(.semibold)
+
+            if let sub = item.subtitle, !sub.isEmpty {
+                Text(sub)
+                    .font(.nCaption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+            }
+
+            HStack(spacing: 8) {
+                if let focus = item.workoutFocus {
+                    Text(focus)
+                        .font(.nCaption2)
+                        .foregroundStyle(.tertiary)
+                }
+                if let dur = item.duration {
+                    Text(dur)
+                        .font(.nCaption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(phaseColors.soft)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(phaseColor.opacity(0.3), lineWidth: 1)
+        )
+        .contextMenu {
+            Button(role: .destructive) {
+                item.isActive = false
+                syncService.queueChange(
+                    table: "userPlanItems", action: "upsert",
+                    data: ["id": item.id, "isActive": false], modelContext: modelContext
+                )
+            } label: {
+                Label("Remove", systemImage: "trash")
+            }
+        }
+    }
+
+    // MARK: - Hide Item
+
+    private func hideItem(_ itemId: String, type: PlanItemCategory) {
+        let hidden = UserItemHidden(itemId: itemId, itemType: type)
+        modelContext.insert(hidden)
+        syncService.queueChange(
+            table: "userItemsHidden", action: "upsert",
+            data: ["id": hidden.id, "itemId": itemId], modelContext: modelContext
+        )
     }
 
     // MARK: - Core Protocol

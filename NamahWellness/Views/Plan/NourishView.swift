@@ -6,6 +6,9 @@ import SwiftData
 struct NourishView: View {
     let phaseSlug: String
     let cycleService: CycleService
+    let customItems: [UserPlanItem]
+    let customGrocery: [UserPlanItem]
+    let hiddenIds: Set<String>
 
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
     @Query private var phaseNutrients: [PhaseNutrient]
@@ -31,8 +34,9 @@ struct NourishView: View {
     }
 
     private var groceryCount: Int {
-        guard let p = phase else { return 0 }
-        return groceryItems.filter { $0.phaseId == p.id }.count
+        guard let p = phase else { return customGrocery.count }
+        let templateCount = groceryItems.filter { $0.phaseId == p.id && !hiddenIds.contains($0.id) }.count
+        return templateCount + customGrocery.count
     }
 
     private var hasMeals: Bool {

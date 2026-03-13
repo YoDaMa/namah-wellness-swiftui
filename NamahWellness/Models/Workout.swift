@@ -7,16 +7,18 @@ final class Workout {
     var dayOfWeek: Int       // 0=Monday, 6=Sunday
     var dayLabel: String     // "Monday"
     var dayFocus: String     // "Strength", "Cardio", "Rest"
+    var templateId: String?
     var isRestDay: Bool
 
     init(
         id: String = UUID().uuidString,
-        dayOfWeek: Int, dayLabel: String, dayFocus: String, isRestDay: Bool
+        dayOfWeek: Int, dayLabel: String, dayFocus: String, templateId: String? = nil, isRestDay: Bool
     ) {
         self.id = id
         self.dayOfWeek = dayOfWeek
         self.dayLabel = dayLabel
         self.dayFocus = dayFocus
+        self.templateId = templateId
         self.isRestDay = isRestDay
     }
 }

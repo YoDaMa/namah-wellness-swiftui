@@ -128,6 +128,7 @@ final class SyncService {
         try context.delete(model: PhaseNutrient.self)
         try context.delete(model: SupplementDefinition.self)
         try context.delete(model: SupplementNutrient.self)
+        try context.delete(model: PlanTemplate.self)
 
         // Insert new content
         for dto in response.phases { context.insert(dto.toModel()) }
@@ -140,6 +141,7 @@ final class SyncService {
         for dto in response.phaseNutrients { context.insert(dto.toModel()) }
         for dto in response.supplementDefinitions { context.insert(dto.toModel()) }
         for dto in response.supplementNutrients { context.insert(dto.toModel()) }
+        for dto in response.planTemplates { context.insert(dto.toModel()) }
     }
 
     // MARK: - Pull User Data
@@ -157,6 +159,10 @@ final class SyncService {
         try context.delete(model: GroceryCheck.self)
         try context.delete(model: UserSupplement.self)
         try context.delete(model: SupplementLog.self)
+        try context.delete(model: UserPlanSelection.self)
+        try context.delete(model: UserPlanItem.self)
+        try context.delete(model: UserItemHidden.self)
+        try context.delete(model: PlanItemLog.self)
 
         // Insert new user data
         for dto in response.cycleLogs { context.insert(dto.toModel()) }
@@ -167,5 +173,9 @@ final class SyncService {
         for dto in response.groceryChecks { context.insert(dto.toModel()) }
         for dto in response.userSupplements { context.insert(dto.toModel()) }
         for dto in response.supplementLogs { context.insert(dto.toModel()) }
+        for dto in response.userPlanSelections { context.insert(dto.toModel()) }
+        for dto in response.userPlanItems { context.insert(dto.toModel()) }
+        for dto in response.userItemsHidden { context.insert(dto.toModel()) }
+        for dto in response.planItemLogs { context.insert(dto.toModel()) }
     }
 }

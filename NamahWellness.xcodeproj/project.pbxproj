@@ -19,6 +19,7 @@
 		1FCEB15251A81E567BCDA861 /* MealCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74614E34083D59F3BD2F06CD /* MealCardView.swift */; };
 		2100DEA3D0375304808B57D3 /* LearnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B892F182887563667F5B94 /* LearnView.swift */; };
 		217C430C64F2127E3BC45973 /* TimeParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE9C894AE304C8DB2994167E /* TimeParserTests.swift */; };
+		23C40DBF4493E863CB1948DC /* PlanItemLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E993A1D3841D81A84CE42EA0 /* PlanItemLog.swift */; };
 		241D91888B767F744E89CAC4 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55559112F1FA8F997EDBD43C /* CalendarService.swift */; };
 		24CFECC7E05A555F29097687 /* MacroSummaryBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199440C62E1016C84A8ADDB6 /* MacroSummaryBar.swift */; };
 		2DB693226B556C4869CE4843 /* SexualActivityLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71FBF2EF588DEFD729D49296 /* SexualActivityLogTests.swift */; };
@@ -26,14 +27,17 @@
 		34F0E16AE5A180131D4E929E /* MoveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF90EF9AB5D621D4DEA96727 /* MoveView.swift */; };
 		391B30BEF2F89463F895D21A /* MyCycleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE2279ADDF428CBE8E2C7CC /* MyCycleView.swift */; };
 		396A76BA5E7CA677D456F13D /* BBTLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3031E31DC0C2CCA190E266F /* BBTLogTests.swift */; };
+		3FB6627C99F80D39D278AC23 /* PlanResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E78C4B608FA7C85FF07BBBD0 /* PlanResolver.swift */; };
 		42811FDE29A80C9297D6BCF0 /* ETBookOT-Roman.otf in Resources */ = {isa = PBXBuildFile; fileRef = AEE6E78E3C834863E28CB867 /* ETBookOT-Roman.otf */; };
 		437E65AEA8BF08A7D9EB8ACB /* DailySchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00B382B007CE7D900F6D6295 /* DailySchedule.swift */; };
 		48444D91397879B8B917C1A2 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E7E01954CF02077FD85B1D /* UserProfile.swift */; };
 		49860F69A231FAA08E77FD3C /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9CCEC4BE85D32ECADC442DF /* KeychainHelper.swift */; };
+		49B2612CFE20FA051B0220A3 /* PlanTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F86A21EEB0120BF2449333 /* PlanTemplate.swift */; };
 		4BD51021E9A7DC635BACA0FF /* CycleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3887E5AE582DF244E341C951 /* CycleService.swift */; };
 		4D188D4E73C2D392A1E96BA0 /* SymptomLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC809F47B0D06CD2891BC0E3 /* SymptomLog.swift */; };
 		504C4AB356F2785DF61CB565 /* TimeBlockService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8A6B06B0A8FFC7F16DE4E6 /* TimeBlockService.swift */; };
 		51622F48F5553D812757DE1A /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE970A9A8FCC967A88730894 /* FlowLayout.swift */; };
+		52034D02C4571AB13AC0BD01 /* AddPlanItemSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59244F900B473FF2696C7013 /* AddPlanItemSheet.swift */; };
 		5677803EBD6ABF08732CBDCD /* PlanSupplementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D113899BC720CFB56EE6666C /* PlanSupplementsView.swift */; };
 		5B212908DEB491DDE37D2745 /* LogPeriodSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2923570EC72BD28B4A99C9 /* LogPeriodSheet.swift */; };
 		5CFD94FA4BBE173A07B270EC /* NourishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF3C67B2A132ED0E032E4A8 /* NourishView.swift */; };
@@ -60,6 +64,8 @@
 		AC6F2DF69BB78E1AEF682D31 /* PhaseHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 413AFFB88F25D9A99E826CB8 /* PhaseHeroCard.swift */; };
 		B2F48E498FA4918102E7E8E0 /* BBTLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6DA2A80493D12F4EEF44B6D /* BBTLog.swift */; };
 		B821DC990A74D351A4106E40 /* NamahTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC3702C70D1E407D0001AFE /* NamahTheme.swift */; };
+		BEF3AF9CCB48E2C5CB8AD985 /* UserItemHidden.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93376BA4A9A4AD8B38E62408 /* UserItemHidden.swift */; };
+		BF28381CA44968E92C6B8D4C /* UserPlanSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967B581E5FFA4396DCA99461 /* UserPlanSelection.swift */; };
 		C3171CC81FF9CD2A155951C2 /* Completion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4EB1437564D16C45AF4C2C /* Completion.swift */; };
 		C44A7517967587186959585B /* GroceryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 095186FF8376AA32A7216280 /* GroceryItem.swift */; };
 		C4BDF05079E35A23C0034C27 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6CAEF9024E04895D625C873 /* APIClient.swift */; };
@@ -80,6 +86,7 @@
 		F4A199749635B750596064B2 /* TimeBlockServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69D7EBB442896C4ACE42FC67 /* TimeBlockServiceTests.swift */; };
 		F50EFC46E176783032A5E28D /* NamahWellnessApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F449FF1BC04FAF0C6662EA /* NamahWellnessApp.swift */; };
 		F5AFCA007D8AF722786F48B2 /* NutrientSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EFD4D79BBC498CE6682160 /* NutrientSheetView.swift */; };
+		F772722EDD21D966F7EE58CE /* UserPlanItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6889915F677D9CEB8DCA115D /* UserPlanItem.swift */; };
 		FA06C900193CB20E0E208F41 /* GroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAE8910B36D5AB05B641B60 /* GroceryListView.swift */; };
 /* End PBXBuildFile section */
 
@@ -117,11 +124,13 @@
 		4E4EB1437564D16C45AF4C2C /* Completion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Completion.swift; sourceTree = "<group>"; };
 		55559112F1FA8F997EDBD43C /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
 		55B6100F523885E7AA5478CE /* ETBookOT-Italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ETBookOT-Italic.otf"; sourceTree = "<group>"; };
+		59244F900B473FF2696C7013 /* AddPlanItemSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPlanItemSheet.swift; sourceTree = "<group>"; };
 		5A93EB61FC0DD0B17E78D69A /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		5EE5877B9EDDD4CE4CD13E4E /* SACalloutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SACalloutView.swift; sourceTree = "<group>"; };
 		62EC3D42C8A5F785258C6136 /* Phase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase.swift; sourceTree = "<group>"; };
 		6468211DDF034E468B78C474 /* ProfileCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCardView.swift; sourceTree = "<group>"; };
 		67F449FF1BC04FAF0C6662EA /* NamahWellnessApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamahWellnessApp.swift; sourceTree = "<group>"; };
+		6889915F677D9CEB8DCA115D /* UserPlanItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPlanItem.swift; sourceTree = "<group>"; };
 		69D7EBB442896C4ACE42FC67 /* TimeBlockServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlockServiceTests.swift; sourceTree = "<group>"; };
 		6BF3C67B2A132ED0E032E4A8 /* NourishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NourishView.swift; sourceTree = "<group>"; };
 		6CF0DC66C421BE29309B9DD3 /* TimeParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeParser.swift; sourceTree = "<group>"; };
@@ -141,10 +150,13 @@
 		8E1C5125977D07DE7E35DCE9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		8E6B34A58A694FA421F11C00 /* HormoneChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneChartView.swift; sourceTree = "<group>"; };
 		9035829E579722DBE6A5FF07 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		93376BA4A9A4AD8B38E62408 /* UserItemHidden.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserItemHidden.swift; sourceTree = "<group>"; };
 		94A537778367021851D9FB35 /* DMSerifDisplay-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMSerifDisplay-Italic.ttf"; sourceTree = "<group>"; };
+		967B581E5FFA4396DCA99461 /* UserPlanSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPlanSelection.swift; sourceTree = "<group>"; };
 		96AF006E3DAEE24FB6B6C291 /* CycleLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleLog.swift; sourceTree = "<group>"; };
 		9BA1BC08BE8C23DF4CF5E6BE /* InsightRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightRowView.swift; sourceTree = "<group>"; };
 		A179EE9B4D61732EBEBB66FE /* NamahWellness.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NamahWellness.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A8F86A21EEB0120BF2449333 /* PlanTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanTemplate.swift; sourceTree = "<group>"; };
 		AB2E8B0A6BB95CD0F269C551 /* TimeBlockSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlockSectionView.swift; sourceTree = "<group>"; };
 		ACA0D889653229CA26878820 /* PhaseHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseHeaderView.swift; sourceTree = "<group>"; };
 		ACE2279ADDF428CBE8E2C7CC /* MyCycleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCycleView.swift; sourceTree = "<group>"; };
@@ -160,6 +172,8 @@
 		D3B892F182887563667F5B94 /* LearnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnView.swift; sourceTree = "<group>"; };
 		D7529A3B3DADEE6EF5026B0E /* CycleLogManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleLogManager.swift; sourceTree = "<group>"; };
 		DF90EF9AB5D621D4DEA96727 /* MoveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveView.swift; sourceTree = "<group>"; };
+		E78C4B608FA7C85FF07BBBD0 /* PlanResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanResolver.swift; sourceTree = "<group>"; };
+		E993A1D3841D81A84CE42EA0 /* PlanItemLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanItemLog.swift; sourceTree = "<group>"; };
 		EE3CE1738447313D7A3C38C2 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		EE970A9A8FCC967A88730894 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		EE9C894AE304C8DB2994167E /* TimeParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeParserTests.swift; sourceTree = "<group>"; };
@@ -305,10 +319,15 @@
 				095186FF8376AA32A7216280 /* GroceryItem.swift */,
 				024E36BD82293C99A5D5521F /* Meal.swift */,
 				62EC3D42C8A5F785258C6136 /* Phase.swift */,
+				E993A1D3841D81A84CE42EA0 /* PlanItemLog.swift */,
+				A8F86A21EEB0120BF2449333 /* PlanTemplate.swift */,
 				F7E3E192BA8ED1E5E91103B7 /* SexualActivityLog.swift */,
 				B01AE3BCBFBEF573AC5FFC88 /* Supplement.swift */,
 				FC809F47B0D06CD2891BC0E3 /* SymptomLog.swift */,
 				83ECE59DABD9991A8BBB57D6 /* SyncChange.swift */,
+				93376BA4A9A4AD8B38E62408 /* UserItemHidden.swift */,
+				6889915F677D9CEB8DCA115D /* UserPlanItem.swift */,
+				967B581E5FFA4396DCA99461 /* UserPlanSelection.swift */,
 				17E7E01954CF02077FD85B1D /* UserProfile.swift */,
 				79F45B46DC6CFDA59430B339 /* Workout.swift */,
 			);
@@ -338,6 +357,7 @@
 				42E06523D5B2AF57425FCB58 /* HormoneData.swift */,
 				B9CCEC4BE85D32ECADC442DF /* KeychainHelper.swift */,
 				5A93EB61FC0DD0B17E78D69A /* NotificationService.swift */,
+				E78C4B608FA7C85FF07BBBD0 /* PlanResolver.swift */,
 				F84D838A60B19FC4A03859BF /* SyncService.swift */,
 				FD8A6B06B0A8FFC7F16DE4E6 /* TimeBlockService.swift */,
 				6CF0DC66C421BE29309B9DD3 /* TimeParser.swift */,
@@ -404,6 +424,7 @@
 		DDD1B985CF9E827C89B14DA4 /* Plan */ = {
 			isa = PBXGroup;
 			children = (
+				59244F900B473FF2696C7013 /* AddPlanItemSheet.swift */,
 				1A93916862654D91E30A89DF /* BrowseSupplementsSheet.swift */,
 				6D8E2A2E24BC04686A649874 /* InsightsSheetView.swift */,
 				78456B0314BF404BED05D0EA /* MealPlanView.swift */,
@@ -546,6 +567,7 @@
 				C4BDF05079E35A23C0034C27 /* APIClient.swift in Sources */,
 				1E0B17C6A67D7A6EACB403EB /* APITypes.swift in Sources */,
 				5F08CE76016ECA6456771BFB /* AddCustomSupplementView.swift in Sources */,
+				52034D02C4571AB13AC0BD01 /* AddPlanItemSheet.swift in Sources */,
 				1D4AEE89AE3C7364EE642085 /* AuthService.swift in Sources */,
 				030E1F23D0A89A99B0E78FA7 /* BBTChartView.swift in Sources */,
 				B2F48E498FA4918102E7E8E0 /* BBTLog.swift in Sources */,
@@ -588,7 +610,10 @@
 				D193423B046A79DEE0FD2282 /* PhaseDetailView.swift in Sources */,
 				A4B1DEDBD4EEBC650EE03979 /* PhaseHeaderView.swift in Sources */,
 				AC6F2DF69BB78E1AEF682D31 /* PhaseHeroCard.swift in Sources */,
+				23C40DBF4493E863CB1948DC /* PlanItemLog.swift in Sources */,
+				3FB6627C99F80D39D278AC23 /* PlanResolver.swift in Sources */,
 				5677803EBD6ABF08732CBDCD /* PlanSupplementsView.swift in Sources */,
+				49B2612CFE20FA051B0220A3 /* PlanTemplate.swift in Sources */,
 				1998C9D3CDF5081A78BDDC34 /* PlanView.swift in Sources */,
 				18562E4C88CA4207B48D8E64 /* ProfileCardView.swift in Sources */,
 				99BB9690759978216DA7CB6A /* ProfileView.swift in Sources */,
@@ -603,6 +628,9 @@
 				504C4AB356F2785DF61CB565 /* TimeBlockService.swift in Sources */,
 				75D28AEAB79BB2B5DC353ECA /* TimeParser.swift in Sources */,
 				5E63BD1CFA35BF71A4FA39F3 /* TodayView.swift in Sources */,
+				BEF3AF9CCB48E2C5CB8AD985 /* UserItemHidden.swift in Sources */,
+				F772722EDD21D966F7EE58CE /* UserPlanItem.swift in Sources */,
+				BF28381CA44968E92C6B8D4C /* UserPlanSelection.swift in Sources */,
 				48444D91397879B8B917C1A2 /* UserProfile.swift in Sources */,
 				8E5574AA47293414B50271D5 /* Workout.swift in Sources */,
 			);
