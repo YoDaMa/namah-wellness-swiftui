@@ -29,7 +29,7 @@ open NamahWellness.xcodeproj
 ### Data Flow
 
 ```
-NamahWellnessApp (ModelContainer with 21 model types, AppDelegate for notifications)
+NamahWellnessApp (ModelContainer with 23 model types, AppDelegate for notifications)
   └── ContentView (4-tab TabView, default: Today)
         ├── @State CycleService — recalculated on appear/change
         ├── @Query CycleLogs, Phases, etc. — SwiftData auto-refresh
@@ -60,9 +60,12 @@ ContentView (TabView, default: Today)
 │   └── PhaseHeroCard, TimeBlockProgressBar (streak + completion)
 │   └── TimeBlockSectionView × 4 — each block groups meals, supplements, workout sessions
 │   └── Current block highlighted with "NOW" badge, completed blocks show checkmarks
-│   └── Sheets: PhaseDetail, Symptoms check-in, LogPeriod, LogSupplement, CoreProtocol
+│   └── Sheets: PhaseDetail, DailyTrackingView (BBT + symptoms + sexual activity + flow + notes), LogPeriod, LogSupplement, CoreProtocol
 ├── MyCycleView → HormonesView, AccountSettingsView
-│   └── Calendar grid, cycle logging, period history, stats
+│   └── Calendar grid with data density dots, BBT sparkline chart
+│   └── Tap day → DayDetailSheet (phase info, BBT, symptoms, sexual activity, notes)
+│   └── DayDetailSheet → DailyTrackingView for any date (historical editing)
+│   └── Cycle logging, period history, symptom patterns, consistency stats
 ├── PlanView — phase-specific reference content
 │   └── Phase picker, hero, meal plan, grocery, workout schedule, supplements regimen
 │   └── Sheets: browse supplements, add custom supplement

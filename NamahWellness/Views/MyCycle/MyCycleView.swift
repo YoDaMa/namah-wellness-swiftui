@@ -15,6 +15,9 @@ struct MyCycleView: View {
     @Query private var mealCompletions: [MealCompletion]
     @Query private var workoutCompletions: [WorkoutCompletion]
     @Query private var supplementLogs: [SupplementLog]
+    @Query private var bbtLogs: [BBTLog]
+    @Query private var sexualActivityLogs: [SexualActivityLog]
+    @Query private var dailyNotes: [DailyNote]
 
     // Calendar state
     @State private var anchor: Date = {
@@ -33,6 +36,8 @@ struct MyCycleView: View {
     // Cycle management state
     @State private var showDeleteConfirm = false
     @State private var logToDelete: CycleLog?
+    @State private var showDayDetail = false
+    @State private var todayPulse = false
 
     private let weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -66,6 +71,65 @@ struct MyCycleView: View {
         return f.string(from: anchor)
     }
 
+    // Data lookups for selected day
+    private func symptomLog(for dateId: String) -> SymptomLog? {
+        symptomLogs.first { $0.date == dateId }
+    }
+
+    private func dailyNote(for dateId: String) -> DailyNote? {
+        dailyNotes.first { $0.date == dateId }
+    }
+
+    private func bbtLog(for dateId: String) -> BBTLog? {
+        bbtLogs.first { $0.date == dateId }
+    }
+
+    private func sexualActivityEntries(for dateId: String) -> [SexualActivityLog] {
+        sexualActivityLogs.filter { $0.date == dateId }
+    }
+
+    // Data density: sets of dates that have each data type
+    private var datesWithSymptoms: Set<String> {
+        Set(symptomLogs.filter { log in
+            [log.cramps, log.mood, log.energy, log.bloating, log.fatigue,
+             log.headache, log.anxiety, log.irritability, log.sleepQuality,
+             log.breastTenderness, log.acne, log.libido, log.appetite]
+                .contains { $0 != nil }
+        }.map(\.date))
+    }
+
+    private var datesWithFlow: Set<String> {
+        Set(symptomLogs.filter { $0.flowIntensity != nil && $0.flowIntensity != "none" }.map(\.date))
+    }
+
+    private var datesWithBBT: Set<String> {
+        Set(bbtLogs.map(\.date))
+    }
+
+    private var datesWithSexualActivity: Set<String> {
+        Set(sexualActivityLogs.map(\.date))
+    }
+
+    /// Logging streak: consecutive days (up to today) with any tracked data
+    private var loggingStreak: Int {
+        let cal = Calendar.current
+        let today = Date()
+        let allDates = datesWithSymptoms.union(datesWithFlow).union(datesWithBBT).union(datesWithSexualActivity)
+        var streak = 0
+        var date = today
+        while true {
+            let dateStr = dateFormatter.string(from: date)
+            if allDates.contains(dateStr) {
+                streak += 1
+                guard let prev = cal.date(byAdding: .day, value: -1, to: date) else { break }
+                date = prev
+            } else {
+                break
+            }
+        }
+        return streak
+    }
+
     var body: some View {
         NavigationStack {
         ScrollView {
@@ -93,11 +157,23 @@ struct MyCycleView: View {
                     .clipShape(Capsule())
                 }
 
-                // 1. Calendar header
+                // 1. Calendar header + logging streak
                 HStack {
-                    Text(monthTitle)
-                        .font(.display(22, relativeTo: .title2))
-                        .contentTransition(.numericText())
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(monthTitle)
+                            .font(.display(22, relativeTo: .title2))
+                            .contentTransition(.numericText())
+                        if loggingStreak > 0 {
+                            HStack(spacing: 4) {
+                                Image(systemName: "flame.fill")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.orange)
+                                Text("\(loggingStreak)-day streak")
+                                    .font(.nCaption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                     Spacer()
                     navigationButtons
                 }
@@ -118,11 +194,21 @@ struct MyCycleView: View {
                         .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
 
-                // 5. Divider
+                // 5. BBT Chart
+                if !bbtLogs.isEmpty {
+                    BBTChartView(
+                        bbtLogs: bbtLogs,
+                        cycleLogs: cycleLogs,
+                        cycleStats: cycleService.cycleStats,
+                        phaseRanges: cycleService.phaseRanges
+                    )
+                }
+
+                // 6. Divider
                 Divider()
                     .padding(.vertical, 4)
 
-                // 6. Cycle stats
+                // 7. Cycle stats
                 HStack(spacing: 0) {
                     statCard(value: "\(cycleService.cycleStats.avgCycleLength)", unit: "days", label: "AVG CYCLE")
                     statCard(value: "\(cycleService.cycleStats.avgPeriodLength)", unit: "days", label: "AVG PERIOD")
@@ -173,6 +259,23 @@ struct MyCycleView: View {
                     Image(systemName: "gearshape")
                         .foregroundStyle(.secondary)
                 }
+            }
+        }
+        .sheet(isPresented: $showDayDetail) {
+            if let day = selectedDay {
+                DayDetailSheet(
+                    day: day,
+                    phaseRecord: phases.first { $0.slug == day.phase?.phaseSlug },
+                    symptomLog: symptomLog(for: day.id),
+                    dailyNote: dailyNote(for: day.id),
+                    bbtLog: bbtLog(for: day.id),
+                    sexualActivityLogs: sexualActivityEntries(for: day.id)
+                )
+            }
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                todayPulse = true
             }
         }
         .alert("Delete Period Log?", isPresented: $showDeleteConfirm) {
@@ -313,31 +416,60 @@ struct MyCycleView: View {
 
     private func dayCell(_ day: CalendarDay, index: Int, in days: [CalendarDay]) -> some View {
         let isSelected = selectedDayId == day.id
+        let hasFlow = datesWithFlow.contains(day.id)
+        let hasSymptoms = datesWithSymptoms.contains(day.id)
+        let hasBBT = datesWithBBT.contains(day.id)
+        let hasActivity = datesWithSexualActivity.contains(day.id)
+        let hasDots = hasFlow || hasSymptoms || hasBBT || hasActivity
 
         return Button {
             withAnimation(.easeOut(duration: 0.2)) {
                 selectedDayId = day.id
             }
+            showDayDetail = true
         } label: {
-            ZStack {
-                if day.phase != nil {
-                    phaseBackground(day, index: index, in: days)
-                }
+            VStack(spacing: 1) {
+                ZStack {
+                    if day.phase != nil {
+                        phaseBackground(day, index: index, in: days)
+                    }
 
-                if day.isToday {
-                    Text("\(day.dayOfMonth)")
-                        .font(.nCaption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.white)
-                        .frame(width: 26, height: 26)
-                        .background(Circle().fill(Color.primary))
+                    if day.isToday {
+                        Text("\(day.dayOfMonth)")
+                            .font(.nCaption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.white)
+                            .frame(width: 26, height: 26)
+                            .background(
+                                Circle().fill(Color.primary)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.primary.opacity(todayPulse ? 0.4 : 0), lineWidth: 2)
+                                            .scaleEffect(todayPulse ? 1.4 : 1.0)
+                                    )
+                            )
+                    } else {
+                        Text("\(day.dayOfMonth)")
+                            .font(.nCaption)
+                            .foregroundStyle(day.isCurrentMonth ? .primary : .secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 36)
+
+                // Data density dots
+                if hasDots && day.isCurrentMonth {
+                    HStack(spacing: 2) {
+                        if hasFlow { Circle().fill(Color.phaseM).frame(width: 4, height: 4) }
+                        if hasSymptoms { Circle().fill(Color.blue).frame(width: 4, height: 4) }
+                        if hasBBT { Circle().fill(Color.green).frame(width: 4, height: 4) }
+                        if hasActivity { Circle().fill(Color.purple).frame(width: 4, height: 4) }
+                    }
+                    .frame(height: 4)
                 } else {
-                    Text("\(day.dayOfMonth)")
-                        .font(.nCaption)
-                        .foregroundStyle(day.isCurrentMonth ? .primary : .secondary)
+                    Spacer().frame(height: 4)
                 }
             }
-            .frame(maxWidth: .infinity)
             .frame(height: 44)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)

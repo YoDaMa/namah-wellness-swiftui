@@ -20,6 +20,8 @@ struct TodayView: View {
     @Query private var cycleLogs: [CycleLog]
     @Query private var profiles: [UserProfile]
     @Query private var schedules: [DailySchedule]
+    @Query private var bbtLogs: [BBTLog]
+    @Query private var sexualActivityLogs: [SexualActivityLog]
 
     @Environment(SyncService.self) private var syncService
     @Environment(AuthService.self) private var authService
@@ -80,6 +82,14 @@ struct TodayView: View {
 
     private var todayNote: DailyNote? {
         dailyNotes.first { $0.date == today }
+    }
+
+    private var todayBBTLog: BBTLog? {
+        bbtLogs.first { $0.date == today }
+    }
+
+    private var todaySexualActivityLogs: [SexualActivityLog] {
+        sexualActivityLogs.filter { $0.date == today }
     }
 
     private var currentPhaseRecord: Phase? {
@@ -304,10 +314,12 @@ struct TodayView: View {
                 let slug = cycleService.currentPhase?.phaseSlug ?? "menstrual"
                 NavigationStack {
                     ScrollView {
-                        SymptomsTabView(
-                            todaySymptomLog: todaySymptomLog,
-                            todayNote: todayNote,
-                            today: today,
+                        DailyTrackingView(
+                            symptomLog: todaySymptomLog,
+                            dailyNote: todayNote,
+                            bbtLog: todayBBTLog,
+                            sexualActivityLogs: todaySexualActivityLogs,
+                            date: today,
                             phaseSlug: slug
                         )
                         .padding()
@@ -718,13 +730,15 @@ enum Haptics {
 
 // MARK: - Symptoms Tab (unchanged — kept in same file for cohesion)
 
-struct SymptomsTabView: View {
+struct DailyTrackingView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(SyncService.self) private var syncService
 
-    let todaySymptomLog: SymptomLog?
-    let todayNote: DailyNote?
-    let today: String
+    let symptomLog: SymptomLog?
+    let dailyNote: DailyNote?
+    let bbtLog: BBTLog?
+    let sexualActivityLogs: [SexualActivityLog]
+    let date: String
     let phaseSlug: String
 
     private var phaseColors: PhaseColors { PhaseColors.forSlug(phaseSlug) }
@@ -742,14 +756,14 @@ struct SymptomsTabView: View {
 
     private static let allSymptoms: [SymptomItem] = [
         SymptomItem(id: "cramps", icon: "waveform.path", label: "Cramps", lowLabel: "None", highLabel: "Severe", get: { $0.cramps }, set: { $0.cramps = $1 }),
-        SymptomItem(id: "mood", icon: "face.smiling", label: "Mood", lowLabel: "Great", highLabel: "Awful", get: { $0.mood }, set: { $0.mood = $1 }),
-        SymptomItem(id: "energy", icon: "bolt.fill", label: "Energy", lowLabel: "Drained", highLabel: "Energized", get: { $0.energy }, set: { $0.energy = $1 }),
+        SymptomItem(id: "mood", icon: "face.smiling", label: "Mood", lowLabel: "Low", highLabel: "Great", get: { $0.mood }, set: { $0.mood = $1 }),
+        SymptomItem(id: "energy", icon: "bolt.fill", label: "Energy", lowLabel: "Low", highLabel: "High", get: { $0.energy }, set: { $0.energy = $1 }),
         SymptomItem(id: "bloating", icon: "wind", label: "Bloating", lowLabel: "None", highLabel: "A lot", get: { $0.bloating }, set: { $0.bloating = $1 }),
         SymptomItem(id: "fatigue", icon: "moon.zzz.fill", label: "Fatigue", lowLabel: "Alert", highLabel: "Exhausted", get: { $0.fatigue }, set: { $0.fatigue = $1 }),
         SymptomItem(id: "headache", icon: "brain.head.profile", label: "Headache", lowLabel: "None", highLabel: "Splitting", get: { $0.headache }, set: { $0.headache = $1 }),
         SymptomItem(id: "anxiety", icon: "heart.text.clipboard", label: "Anxiety", lowLabel: "Calm", highLabel: "Very anxious", get: { $0.anxiety }, set: { $0.anxiety = $1 }),
         SymptomItem(id: "irritability", icon: "flame.fill", label: "Irritability", lowLabel: "Patient", highLabel: "Very irritable", get: { $0.irritability }, set: { $0.irritability = $1 }),
-        SymptomItem(id: "sleepQuality", icon: "moon.fill", label: "Sleep", lowLabel: "Restless", highLabel: "Slept great", get: { $0.sleepQuality }, set: { $0.sleepQuality = $1 }),
+        SymptomItem(id: "sleepQuality", icon: "moon.fill", label: "Sleep", lowLabel: "Poor", highLabel: "Great", get: { $0.sleepQuality }, set: { $0.sleepQuality = $1 }),
         SymptomItem(id: "breastTenderness", icon: "heart.fill", label: "Tenderness", lowLabel: "None", highLabel: "Very sore", get: { $0.breastTenderness }, set: { $0.breastTenderness = $1 }),
         SymptomItem(id: "acne", icon: "circle.dotted", label: "Acne", lowLabel: "Clear", highLabel: "Breaking out", get: { $0.acne }, set: { $0.acne = $1 }),
         SymptomItem(id: "libido", icon: "flame", label: "Libido", lowLabel: "Low", highLabel: "High", get: { $0.libido }, set: { $0.libido = $1 }),
@@ -777,17 +791,31 @@ struct SymptomsTabView: View {
     @State private var selectedFlow: Int = 0
     @State private var noteSaveTask: Task<Void, Never>?
 
+    // BBT state
+    @State private var bbtTemperature: Double = 97.6
+    @State private var bbtUnit: TemperatureUnit = .fahrenheit
+    @State private var bbtTimeOfMeasurement: Date = {
+        Calendar.current.date(from: DateComponents(hour: 6, minute: 30)) ?? Date()
+    }()
+    @State private var bbtHasEntry: Bool = false
+
+    // Sexual activity state
+    @State private var showAddActivity: Bool = false
+    @State private var newActivityProtection: ProtectionType = .protected
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            bbtSection
             flowSection
+            sexualActivitySection
             symptomsSection
             notesSection
         }
         .onAppear {
             syncLocalState()
         }
-        .onChange(of: todaySymptomLog?.flowIntensity) {
-            if let flow = todaySymptomLog?.flowIntensity,
+        .onChange(of: symptomLog?.flowIntensity) {
+            if let flow = symptomLog?.flowIntensity,
                let idx = flowOptions.firstIndex(of: flow) {
                 selectedFlow = idx
             } else {
@@ -795,6 +823,235 @@ struct SymptomsTabView: View {
             }
         }
     }
+
+    // MARK: - BBT Section
+
+    private var bbtSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("BASAL BODY TEMPERATURE")
+                    .namahLabel()
+                Spacer()
+                if bbtHasEntry {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.sans(14))
+                }
+            }
+
+            if bbtHasEntry {
+                // Show current entry with edit capability
+                HStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(String(format: "%.1f%@", bbtTemperature, bbtUnit.symbol))
+                            .font(.display(28, relativeTo: .title))
+                            .foregroundStyle(.primary)
+                        if let time = bbtLog?.timeOfMeasurement {
+                            Text("Measured at \(time.formatted(date: .omitted, time: .shortened))")
+                                .font(.nCaption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Spacer()
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            bbtHasEntry = false
+                        }
+                    } label: {
+                        Text("Edit")
+                            .font(.nCaption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(accentColor)
+                    }
+                }
+            } else {
+                // Entry form
+                VStack(spacing: 12) {
+                    HStack {
+                        Text("Temperature")
+                            .font(.nCaption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Picker("Unit", selection: $bbtUnit) {
+                            Text("°F").tag(TemperatureUnit.fahrenheit)
+                            Text("°C").tag(TemperatureUnit.celsius)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 100)
+                    }
+
+                    HStack(spacing: 12) {
+                        let range: ClosedRange<Double> = bbtUnit == .fahrenheit ? 95.0...105.0 : 35.0...40.5
+                        let step: Double = 0.1
+
+                        Button {
+                            if bbtTemperature > range.lowerBound {
+                                bbtTemperature = max(range.lowerBound, bbtTemperature - step)
+                            }
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(accentColor)
+                        }
+
+                        Text(String(format: "%.1f%@", bbtTemperature, bbtUnit.symbol))
+                            .font(.display(32, relativeTo: .title))
+                            .monospacedDigit()
+                            .frame(minWidth: 120)
+
+                        Button {
+                            if bbtTemperature < range.upperBound {
+                                bbtTemperature = min(range.upperBound, bbtTemperature + step)
+                            }
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(accentColor)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    DatePicker("Time measured", selection: $bbtTimeOfMeasurement, displayedComponents: .hourAndMinute)
+                        .font(.nCaption)
+
+                    Button {
+                        saveBBT()
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            bbtHasEntry = true
+                        }
+                        Haptics.completion()
+                    } label: {
+                        Text("Save Temperature")
+                            .font(.nCaption)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(accentColor)
+                }
+            }
+        }
+        .padding(14)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    // MARK: - Sexual Activity Section
+
+    private var sexualActivitySection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("SEXUAL ACTIVITY")
+                    .namahLabel()
+                Spacer()
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        showAddActivity.toggle()
+                    }
+                } label: {
+                    Image(systemName: showAddActivity ? "xmark.circle.fill" : "plus.circle.fill")
+                        .font(.sans(18))
+                        .foregroundStyle(accentColor)
+                }
+            }
+
+            // Existing entries
+            if !sexualActivityLogs.isEmpty {
+                ForEach(sexualActivityLogs, id: \.id) { entry in
+                    HStack(spacing: 10) {
+                        Image(systemName: entry.protectionType.icon)
+                            .font(.sans(14))
+                            .foregroundStyle(accentColor)
+                            .frame(width: 24)
+
+                        Text(entry.protectionType.displayName)
+                            .font(.nCaption)
+                            .fontWeight(.medium)
+
+                        if let time = entry.time {
+                            Text(time.formatted(date: .omitted, time: .shortened))
+                                .font(.nCaption2)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        Button {
+                            deleteActivityEntry(entry)
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.nCaption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 6)
+                }
+            }
+
+            // Add new entry
+            if showAddActivity {
+                VStack(spacing: 10) {
+                    Divider()
+
+                    HStack(spacing: 6) {
+                        ForEach(ProtectionType.allCases, id: \.rawValue) { type in
+                            let isSelected = newActivityProtection == type
+                            Button {
+                                newActivityProtection = type
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Image(systemName: type.icon)
+                                        .font(.sans(16))
+                                    Text(type.displayName)
+                                        .font(.system(size: 10, weight: .medium))
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                                .background {
+                                    if isSelected {
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(accentColor.opacity(0.2))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .strokeBorder(accentColor.opacity(0.4), lineWidth: 1)
+                                            )
+                                    }
+                                }
+                                .foregroundStyle(isSelected ? accentColor : .secondary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    Button {
+                        saveActivityEntry()
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            showAddActivity = false
+                        }
+                        Haptics.completion()
+                    } label: {
+                        Text("Log Activity")
+                            .font(.nCaption)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(accentColor)
+                }
+            } else if sexualActivityLogs.isEmpty {
+                Text("Tap + to log sexual activity")
+                    .font(.nCaption2)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(14)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    // MARK: - Flow Section
 
     private var flowSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -809,7 +1066,7 @@ struct SymptomsTabView: View {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                             selectedFlow = idx
                         }
-                        let log = getOrCreateLog()
+                        let log = getOrCreateSymptomLog()
                         log.flowIntensity = flowOptions[idx]
                         queueSymptomSync(log)
                     } label: {
@@ -847,6 +1104,8 @@ struct SymptomsTabView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
+    // MARK: - Symptoms Section
+
     private var symptomsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("SYMPTOMS")
@@ -862,6 +1121,8 @@ struct SymptomsTabView: View {
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
+
+    // MARK: - Notes Section
 
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -897,8 +1158,10 @@ struct SymptomsTabView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
+    // MARK: - Symptom Slider
+
     private func symptomSliderRow(_ symptom: SymptomItem) -> some View {
-        let currentValue = Double(todaySymptomLog.flatMap { symptom.get($0) } ?? 0)
+        let currentValue = Double(symptomLog.flatMap { symptom.get($0) } ?? 0)
 
         return VStack(spacing: 4) {
             HStack(spacing: 8) {
@@ -928,7 +1191,7 @@ struct SymptomsTabView: View {
                     get: { currentValue },
                     set: { newValue in
                         let rounded = Int(newValue.rounded())
-                        let log = getOrCreateLog()
+                        let log = getOrCreateSymptomLog()
                         symptom.set(log, rounded == 0 ? nil : rounded)
                         queueSymptomSync(log)
                     }
@@ -953,9 +1216,9 @@ struct SymptomsTabView: View {
 
     // MARK: - Helpers
 
-    private func getOrCreateLog() -> SymptomLog {
-        if let existing = todaySymptomLog { return existing }
-        let log = SymptomLog(date: today)
+    private func getOrCreateSymptomLog() -> SymptomLog {
+        if let existing = symptomLog { return existing }
+        let log = SymptomLog(date: date)
         modelContext.insert(log)
         return log
     }
@@ -983,13 +1246,68 @@ struct SymptomsTabView: View {
                                 data: data, modelContext: modelContext)
     }
 
+    private func saveBBT() {
+        if let existing = bbtLog {
+            existing.temperature = bbtTemperature
+            existing.unit = bbtUnit
+            existing.timeOfMeasurement = bbtTimeOfMeasurement
+        } else {
+            let log = BBTLog(
+                date: date,
+                temperature: bbtTemperature,
+                unit: bbtUnit,
+                timeOfMeasurement: bbtTimeOfMeasurement
+            )
+            modelContext.insert(log)
+        }
+        syncService.queueChange(table: "bbtLogs", action: "upsert",
+                                data: [
+                                    "id": bbtLog?.id ?? UUID().uuidString,
+                                    "date": date,
+                                    "temperature": bbtTemperature,
+                                    "unit": bbtUnit.rawValue,
+                                ],
+                                modelContext: modelContext)
+    }
+
+    private func saveActivityEntry() {
+        let entry = SexualActivityLog(
+            date: date,
+            time: Date(),
+            protectionType: newActivityProtection
+        )
+        modelContext.insert(entry)
+        syncService.queueChange(table: "sexualActivityLogs", action: "upsert",
+                                data: [
+                                    "id": entry.id,
+                                    "date": date,
+                                    "protectionType": newActivityProtection.rawValue,
+                                ],
+                                modelContext: modelContext)
+    }
+
+    private func deleteActivityEntry(_ entry: SexualActivityLog) {
+        syncService.queueChange(table: "sexualActivityLogs", action: "delete",
+                                data: ["id": entry.id],
+                                modelContext: modelContext)
+        modelContext.delete(entry)
+    }
+
     private func syncLocalState() {
-        noteText = todayNote?.content ?? ""
-        if let flow = todaySymptomLog?.flowIntensity,
+        noteText = dailyNote?.content ?? ""
+        if let flow = symptomLog?.flowIntensity,
            let idx = flowOptions.firstIndex(of: flow) {
             selectedFlow = idx
         } else {
             selectedFlow = 0
+        }
+        if let existing = bbtLog {
+            bbtTemperature = existing.temperature
+            bbtUnit = existing.unit
+            if let time = existing.timeOfMeasurement {
+                bbtTimeOfMeasurement = time
+            }
+            bbtHasEntry = true
         }
     }
 
@@ -1003,17 +1321,17 @@ struct SymptomsTabView: View {
     }
 
     private func saveNote() {
-        if let existing = todayNote {
+        if let existing = dailyNote {
             existing.content = noteText
             existing.updatedAt = Date()
             syncService.queueChange(table: "dailyNotes", action: "upsert",
                                     data: ["id": existing.id, "date": existing.date, "content": noteText],
                                     modelContext: modelContext)
         } else if !noteText.isEmpty {
-            let note = DailyNote(date: today, content: noteText)
+            let note = DailyNote(date: date, content: noteText)
             modelContext.insert(note)
             syncService.queueChange(table: "dailyNotes", action: "upsert",
-                                    data: ["id": note.id, "date": today, "content": noteText],
+                                    data: ["id": note.id, "date": date, "content": noteText],
                                     modelContext: modelContext)
         }
     }
