@@ -12,6 +12,7 @@ struct DayDetailSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(SyncService.self) private var syncService
 
+    @Environment(\.dismiss) private var dismiss
     @State private var showEditTracking = false
 
     private var phaseSlug: String { day.phase?.phaseSlug ?? "menstrual" }
@@ -117,7 +118,7 @@ struct DayDetailSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
-                        // Dismissed by parent via binding
+                        dismiss()
                     }
                 }
             }

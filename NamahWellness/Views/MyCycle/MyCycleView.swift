@@ -188,10 +188,15 @@ struct MyCycleView: View {
                     .clipped()
                     .simultaneousGesture(monthSwipeGesture)
 
-                // 4. Selected day phase info
+                // 4. Selected day phase info + tap to view details
                 if let day = selectedDay {
-                    dayPhaseInfo(day)
-                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    Button {
+                        showDayDetail = true
+                    } label: {
+                        dayPhaseInfo(day)
+                    }
+                    .buttonStyle(.plain)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
 
                 // 5. BBT Chart
@@ -426,7 +431,6 @@ struct MyCycleView: View {
             withAnimation(.easeOut(duration: 0.2)) {
                 selectedDayId = day.id
             }
-            showDayDetail = true
         } label: {
             VStack(spacing: 1) {
                 ZStack {
@@ -437,14 +441,14 @@ struct MyCycleView: View {
                     if day.isToday {
                         Text("\(day.dayOfMonth)")
                             .font(.nCaption)
-                            .fontWeight(.medium)
+                            .fontWeight(.bold)
                             .foregroundStyle(.white)
                             .frame(width: 26, height: 26)
                             .background(
-                                Circle().fill(Color.primary)
+                                Circle().fill(Color.accentColor)
                                     .overlay(
                                         Circle()
-                                            .stroke(Color.primary.opacity(todayPulse ? 0.4 : 0), lineWidth: 2)
+                                            .stroke(Color.accentColor.opacity(todayPulse ? 0.4 : 0), lineWidth: 2)
                                             .scaleEffect(todayPulse ? 1.4 : 1.0)
                                     )
                             )
