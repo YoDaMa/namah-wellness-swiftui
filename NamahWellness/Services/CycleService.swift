@@ -15,9 +15,19 @@ struct PhaseInfo {
 }
 
 struct CycleStats {
-    let avgCycleLength: Int
-    let avgPeriodLength: Int
+    let observedAvgCycleLength: Int
+    let observedAvgPeriodLength: Int
+    let effectiveCycleLength: Int
+    let effectivePeriodLength: Int
+    let userDefaultCycleLength: Int?
+    let userDefaultPeriodLength: Int?
     let cycleCount: Int
+    let daysOverdue: Int
+    let isOverdue: Bool
+
+    // Backward-compatible aliases
+    var avgCycleLength: Int { effectiveCycleLength }
+    var avgPeriodLength: Int { effectivePeriodLength }
 }
 
 struct PhaseRange {
@@ -43,7 +53,12 @@ struct CycleBundle {
 @Observable
 final class CycleService {
     private(set) var currentPhase: PhaseInfo?
-    private(set) var cycleStats: CycleStats = CycleStats(avgCycleLength: 28, avgPeriodLength: 5, cycleCount: 0)
+    private(set) var cycleStats: CycleStats = CycleStats(
+        observedAvgCycleLength: 28, observedAvgPeriodLength: 5,
+        effectiveCycleLength: 28, effectivePeriodLength: 5,
+        userDefaultCycleLength: nil, userDefaultPeriodLength: nil,
+        cycleCount: 0, daysOverdue: 0, isOverdue: false
+    )
     private(set) var phaseRanges: PhaseRanges = CycleService.computePhaseRanges(cycleLength: 28, periodLength: 5)
 
     private static let defaultCycleLength = 28
@@ -51,9 +66,16 @@ final class CycleService {
     private static let follicularRatio = 8.0 / 23.0
     private static let ovulatoryRatio = 4.0 / 23.0
 
-    func recalculate(logs: [CycleLog], phases: [Phase]) {
-        let stats = Self.computeCycleStats(logs: logs)
-        let ranges = Self.computePhaseRanges(cycleLength: stats.avgCycleLength, periodLength: stats.avgPeriodLength)
+    func recalculate(logs: [CycleLog], phases: [Phase], profile: UserProfile? = nil) {
+        let stats = Self.computeCycleStats(
+            logs: logs,
+            cycleLengthOverride: profile?.cycleLengthOverride,
+            periodLengthOverride: profile?.periodLengthOverride
+        )
+        let ranges = Self.computePhaseRanges(
+            cycleLength: stats.effectiveCycleLength,
+            periodLength: stats.effectivePeriodLength
+        )
         let phase = Self.computeCurrentPhase(logs: logs, phases: phases, stats: stats)
 
         self.cycleStats = stats
@@ -63,43 +85,79 @@ final class CycleService {
 
     // MARK: - Pure computation
 
-    static func computeCycleStats(logs: [CycleLog]) -> CycleStats {
-        // Sort by periodStartDate (chronological), newest first
+    static func computeCycleStats(
+        logs: [CycleLog],
+        cycleLengthOverride: Int? = nil,
+        periodLengthOverride: Int? = nil
+    ) -> CycleStats {
         let sorted = logs.sorted { $0.periodStartDate > $1.periodStartDate }
 
-        guard !sorted.isEmpty else {
-            return CycleStats(avgCycleLength: defaultCycleLength, avgPeriodLength: defaultPeriodLength, cycleCount: 0)
-        }
+        let observedCycle: Int
+        let observedPeriod: Int
+        let count: Int
 
-        var periodLengths: [Int] = []
-        for log in sorted {
-            if let endDate = log.periodEndDate {
-                let days = daysBetween(log.periodStartDate, endDate)
-                if days > 0 && days <= 15 { periodLengths.append(days) }
+        if sorted.isEmpty {
+            observedCycle = defaultCycleLength
+            observedPeriod = defaultPeriodLength
+            count = 0
+        } else {
+            var periodLengths: [Int] = []
+            for log in sorted {
+                if let endDate = log.periodEndDate {
+                    let days = daysBetween(log.periodStartDate, endDate)
+                    if days > 0 && days <= 15 { periodLengths.append(days) }
+                }
             }
+
+            var cycleLengths: [Int] = []
+            for i in 0..<(sorted.count - 1) {
+                let days = daysBetween(sorted[i + 1].periodStartDate, sorted[i].periodStartDate)
+                if days > 15 && days <= 60 { cycleLengths.append(days) }
+            }
+
+            let recentCycles = Array(cycleLengths.prefix(3))
+            let recentPeriods = Array(periodLengths.prefix(3))
+
+            observedCycle = recentCycles.isEmpty ? defaultCycleLength : recentCycles.reduce(0, +) / recentCycles.count
+            observedPeriod = recentPeriods.isEmpty ? defaultPeriodLength : recentPeriods.reduce(0, +) / recentPeriods.count
+            count = sorted.count
         }
 
-        var cycleLengths: [Int] = []
-        for i in 0..<(sorted.count - 1) {
-            let days = daysBetween(sorted[i + 1].periodStartDate, sorted[i].periodStartDate)
-            if days > 15 && days <= 60 { cycleLengths.append(days) }
+        let effectiveCycle = cycleLengthOverride ?? observedCycle
+        let effectivePeriod = periodLengthOverride ?? observedPeriod
+
+        // Compute overdue
+        let daysOverdue: Int
+        if let latest = sorted.first {
+            let rawDay = getCycleDay(from: latest.periodStartDate)
+            daysOverdue = max(0, rawDay - effectiveCycle)
+        } else {
+            daysOverdue = 0
         }
 
-        let recentCycles = Array(cycleLengths.prefix(3))
-        let recentPeriods = Array(periodLengths.prefix(3))
-
-        let avgCycle = recentCycles.isEmpty ? defaultCycleLength : recentCycles.reduce(0, +) / recentCycles.count
-        let avgPeriod = recentPeriods.isEmpty ? defaultPeriodLength : recentPeriods.reduce(0, +) / recentPeriods.count
-
-        return CycleStats(avgCycleLength: avgCycle, avgPeriodLength: avgPeriod, cycleCount: sorted.count)
+        return CycleStats(
+            observedAvgCycleLength: observedCycle,
+            observedAvgPeriodLength: observedPeriod,
+            effectiveCycleLength: effectiveCycle,
+            effectivePeriodLength: effectivePeriod,
+            userDefaultCycleLength: cycleLengthOverride,
+            userDefaultPeriodLength: periodLengthOverride,
+            cycleCount: count,
+            daysOverdue: daysOverdue,
+            isOverdue: daysOverdue > 0
+        )
     }
 
     static func computePhaseRanges(cycleLength: Int, periodLength: Int) -> PhaseRanges {
-        let remaining = Double(cycleLength - periodLength)
+        // Clamp to safe bounds
+        let clampedCycle = max(20, min(40, cycleLength))
+        let clampedPeriod = max(2, min(min(10, clampedCycle - 10), periodLength))
+
+        let remaining = Double(clampedCycle - clampedPeriod)
         let follicularDays = Int(round(remaining * follicularRatio))
         let ovulatoryDays = Int(round(remaining * ovulatoryRatio))
 
-        let menstrualEnd = periodLength
+        let menstrualEnd = clampedPeriod
         let follicularEnd = menstrualEnd + follicularDays
         let ovulatoryEnd = follicularEnd + ovulatoryDays
 
@@ -107,7 +165,7 @@ final class CycleService {
             menstrual: PhaseRange(start: 1, end: menstrualEnd),
             follicular: PhaseRange(start: menstrualEnd + 1, end: follicularEnd),
             ovulatory: PhaseRange(start: follicularEnd + 1, end: ovulatoryEnd),
-            luteal: PhaseRange(start: ovulatoryEnd + 1, end: cycleLength)
+            luteal: PhaseRange(start: ovulatoryEnd + 1, end: clampedCycle)
         )
     }
 
@@ -116,13 +174,13 @@ final class CycleService {
         let sorted = logs.sorted { $0.periodStartDate > $1.periodStartDate }
         guard let latest = sorted.first else { return nil }
 
-        let ranges = computePhaseRanges(cycleLength: stats.avgCycleLength, periodLength: stats.avgPeriodLength)
+        let ranges = computePhaseRanges(cycleLength: stats.effectiveCycleLength, periodLength: stats.effectivePeriodLength)
         let rawCycleDay = getCycleDay(from: latest.periodStartDate)
 
-        // Wrap overdue cycles (matches CalendarService behavior)
+        // When overdue, stay in luteal — don't wrap
         let cycleDay: Int
-        if rawCycleDay > stats.avgCycleLength {
-            cycleDay = ((rawCycleDay - 1) % stats.avgCycleLength) + 1
+        if rawCycleDay > stats.effectiveCycleLength {
+            cycleDay = stats.effectiveCycleLength  // pin to last day (luteal)
         } else {
             cycleDay = rawCycleDay
         }

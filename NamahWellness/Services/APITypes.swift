@@ -14,6 +14,27 @@ struct ContentResponse: Decodable {
     let supplementDefinitions: [SupplementDefinitionDTO]
     let supplementNutrients: [SupplementNutrientDTO]
     let planTemplates: [PlanTemplateDTO]
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        phases = try c.decodeIfPresent([PhaseDTO].self, forKey: .phases) ?? []
+        meals = try c.decodeIfPresent([MealDTO].self, forKey: .meals) ?? []
+        groceryItems = try c.decodeIfPresent([GroceryItemDTO].self, forKey: .groceryItems) ?? []
+        workouts = try c.decodeIfPresent([WorkoutDTO].self, forKey: .workouts) ?? []
+        workoutSessions = try c.decodeIfPresent([WorkoutSessionDTO].self, forKey: .workoutSessions) ?? []
+        coreExercises = try c.decodeIfPresent([CoreExerciseDTO].self, forKey: .coreExercises) ?? []
+        phaseReminders = try c.decodeIfPresent([PhaseReminderDTO].self, forKey: .phaseReminders) ?? []
+        phaseNutrients = try c.decodeIfPresent([PhaseNutrientDTO].self, forKey: .phaseNutrients) ?? []
+        supplementDefinitions = try c.decodeIfPresent([SupplementDefinitionDTO].self, forKey: .supplementDefinitions) ?? []
+        supplementNutrients = try c.decodeIfPresent([SupplementNutrientDTO].self, forKey: .supplementNutrients) ?? []
+        planTemplates = try c.decodeIfPresent([PlanTemplateDTO].self, forKey: .planTemplates) ?? []
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case phases, meals, groceryItems, workouts, workoutSessions
+        case coreExercises, phaseReminders, phaseNutrients
+        case supplementDefinitions, supplementNutrients, planTemplates
+    }
 }
 
 struct UserDataResponse: Decodable {
@@ -29,6 +50,28 @@ struct UserDataResponse: Decodable {
     let userPlanItems: [UserPlanItemDTO]
     let userItemsHidden: [UserItemHiddenDTO]
     let planItemLogs: [PlanItemLogDTO]
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        cycleLogs = try c.decodeIfPresent([CycleLogDTO].self, forKey: .cycleLogs) ?? []
+        mealCompletions = try c.decodeIfPresent([MealCompletionDTO].self, forKey: .mealCompletions) ?? []
+        workoutCompletions = try c.decodeIfPresent([WorkoutCompletionDTO].self, forKey: .workoutCompletions) ?? []
+        symptomLogs = try c.decodeIfPresent([SymptomLogDTO].self, forKey: .symptomLogs) ?? []
+        dailyNotes = try c.decodeIfPresent([DailyNoteDTO].self, forKey: .dailyNotes) ?? []
+        groceryChecks = try c.decodeIfPresent([GroceryCheckDTO].self, forKey: .groceryChecks) ?? []
+        userSupplements = try c.decodeIfPresent([UserSupplementDTO].self, forKey: .userSupplements) ?? []
+        supplementLogs = try c.decodeIfPresent([SupplementLogDTO].self, forKey: .supplementLogs) ?? []
+        userPlanSelections = try c.decodeIfPresent([UserPlanSelectionDTO].self, forKey: .userPlanSelections) ?? []
+        userPlanItems = try c.decodeIfPresent([UserPlanItemDTO].self, forKey: .userPlanItems) ?? []
+        userItemsHidden = try c.decodeIfPresent([UserItemHiddenDTO].self, forKey: .userItemsHidden) ?? []
+        planItemLogs = try c.decodeIfPresent([PlanItemLogDTO].self, forKey: .planItemLogs) ?? []
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case cycleLogs, mealCompletions, workoutCompletions, symptomLogs
+        case dailyNotes, groceryChecks, userSupplements, supplementLogs
+        case userPlanSelections, userPlanItems, userItemsHidden, planItemLogs
+    }
 }
 
 struct CycleBundleResponse: Decodable {
@@ -451,7 +494,17 @@ struct CycleStatsDTO: Decodable {
     let cycleCount: Int
 
     func toCycleStats() -> CycleStats {
-        CycleStats(avgCycleLength: avgCycleLength, avgPeriodLength: avgPeriodLength, cycleCount: cycleCount)
+        CycleStats(
+            observedAvgCycleLength: avgCycleLength,
+            observedAvgPeriodLength: avgPeriodLength,
+            effectiveCycleLength: avgCycleLength,
+            effectivePeriodLength: avgPeriodLength,
+            userDefaultCycleLength: nil,
+            userDefaultPeriodLength: nil,
+            cycleCount: cycleCount,
+            daysOverdue: 0,
+            isOverdue: false
+        )
     }
 }
 
