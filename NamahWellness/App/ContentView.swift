@@ -10,6 +10,7 @@ struct ContentView: View {
     @Query private var cycleLogs: [CycleLog]
     @Query private var phases: [Phase]
     @Query private var schedules: [DailySchedule]
+    @Query private var profiles: [UserProfile]
 
     @State private var cycleService = CycleService()
     @State private var timeBlockService = TimeBlockService()
@@ -73,6 +74,7 @@ struct ContentView: View {
                     }
                 }
                 .onChange(of: cycleLogSnapshot) { recalculate() }
+                .onChange(of: profileSnapshot) { recalculate() }
                 .onChange(of: scenePhase) {
                     if scenePhase == .active {
                         cycleLogManager?.checkAndAutoLog(
@@ -93,8 +95,15 @@ struct ContentView: View {
         cycleLogs.map { "\($0.id)|\($0.periodStartDate)|\($0.periodEndDate ?? "")|\($0.phaseOverride ?? "")" }
     }
 
+    private var profileSnapshot: String {
+        guard let p = profiles.first else { return "" }
+        return "\(p.cycleLengthOverride ?? 0)|\(p.periodLengthOverride ?? 0)|\(p.overdueAckDate ?? "")"
+    }
+
     private func recalculate() {
-        cycleService.recalculate(logs: cycleLogs, phases: phases)
+        withAnimation(.easeInOut(duration: 0.3)) {
+            cycleService.recalculate(logs: cycleLogs, phases: phases, profile: profiles.first)
+        }
     }
 
     private func updateTimeBlocks() {

@@ -22,6 +22,7 @@
 		23C40DBF4493E863CB1948DC /* PlanItemLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E993A1D3841D81A84CE42EA0 /* PlanItemLog.swift */; };
 		241D91888B767F744E89CAC4 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55559112F1FA8F997EDBD43C /* CalendarService.swift */; };
 		24CFECC7E05A555F29097687 /* MacroSummaryBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199440C62E1016C84A8ADDB6 /* MacroSummaryBar.swift */; };
+		28BBB235D84556A111365641 /* CycleServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CACFC950E11B9CFBC046464 /* CycleServiceTests.swift */; };
 		2DB693226B556C4869CE4843 /* SexualActivityLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71FBF2EF588DEFD729D49296 /* SexualActivityLogTests.swift */; };
 		30EE9D79EFF77417CE090737 /* PlusJakartaSans-Italic-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1285963692ECE549381BD855 /* PlusJakartaSans-Italic-Variable.ttf */; };
 		34F0E16AE5A180131D4E929E /* MoveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF90EF9AB5D621D4DEA96727 /* MoveView.swift */; };
@@ -133,6 +134,7 @@
 		6889915F677D9CEB8DCA115D /* UserPlanItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPlanItem.swift; sourceTree = "<group>"; };
 		69D7EBB442896C4ACE42FC67 /* TimeBlockServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlockServiceTests.swift; sourceTree = "<group>"; };
 		6BF3C67B2A132ED0E032E4A8 /* NourishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NourishView.swift; sourceTree = "<group>"; };
+		6CACFC950E11B9CFBC046464 /* CycleServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleServiceTests.swift; sourceTree = "<group>"; };
 		6CF0DC66C421BE29309B9DD3 /* TimeParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeParser.swift; sourceTree = "<group>"; };
 		6D8E2A2E24BC04686A649874 /* InsightsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsSheetView.swift; sourceTree = "<group>"; };
 		71FBF2EF588DEFD729D49296 /* SexualActivityLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SexualActivityLogTests.swift; sourceTree = "<group>"; };
@@ -338,6 +340,7 @@
 			isa = PBXGroup;
 			children = (
 				C3031E31DC0C2CCA190E266F /* BBTLogTests.swift */,
+				6CACFC950E11B9CFBC046464 /* CycleServiceTests.swift */,
 				71FBF2EF588DEFD729D49296 /* SexualActivityLogTests.swift */,
 				69D7EBB442896C4ACE42FC67 /* TimeBlockServiceTests.swift */,
 				EE9C894AE304C8DB2994167E /* TimeParserTests.swift */,
@@ -554,6 +557,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				396A76BA5E7CA677D456F13D /* BBTLogTests.swift in Sources */,
+				28BBB235D84556A111365641 /* CycleServiceTests.swift in Sources */,
 				2DB693226B556C4869CE4843 /* SexualActivityLogTests.swift in Sources */,
 				F4A199749635B750596064B2 /* TimeBlockServiceTests.swift in Sources */,
 				217C430C64F2127E3BC45973 /* TimeParserTests.swift in Sources */,

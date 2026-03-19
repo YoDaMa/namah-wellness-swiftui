@@ -45,7 +45,7 @@ NamahWellnessApp (ModelContainer with 28 model types, AppDelegate for notificati
 
 | Service | Type | Purpose |
 |---------|------|---------|
-| `CycleService` | @Observable class | Cycle state: current phase, cycle day, stats, phase ranges |
+| `CycleService` | @Observable class | Cycle state: current phase, cycle day, stats, phase ranges. Takes user profile for cycle/period length overrides. Extends luteal when overdue instead of wrapping. |
 | `CalendarService` | Stateless enum | Calendar grid generation with phase overlays |
 | `SeedService` | Enum | First-launch database seeding (~509 lines) |
 | `HormoneData` | Static enum | Hardcoded 28-point hormone curves (E2, P4, LH, FSH) |

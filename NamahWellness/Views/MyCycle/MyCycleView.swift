@@ -143,9 +143,9 @@ struct MyCycleView: View {
                     EditProfileView(cycleService: cycleService)
                 } label: {
                     HStack(spacing: 8) {
-                        Label("\(cycleService.cycleStats.avgCycleLength) day cycle", systemImage: "arrow.trianglehead.2.counterclockwise.rotate.90")
+                        Label("\(cycleService.cycleStats.effectiveCycleLength) day cycle", systemImage: "arrow.trianglehead.2.counterclockwise.rotate.90")
                         Text("·")
-                        Label("\(cycleService.cycleStats.avgPeriodLength) day period", systemImage: "drop.fill")
+                        Label("\(cycleService.cycleStats.effectivePeriodLength) day period", systemImage: "drop.fill")
                         Image(systemName: "chevron.right")
                             .font(.system(size: 9, weight: .semibold))
                     }
@@ -215,8 +215,20 @@ struct MyCycleView: View {
 
                 // 7. Cycle stats
                 HStack(spacing: 0) {
-                    statCard(value: "\(cycleService.cycleStats.avgCycleLength)", unit: "days", label: "AVG CYCLE")
-                    statCard(value: "\(cycleService.cycleStats.avgPeriodLength)", unit: "days", label: "AVG PERIOD")
+                    statCard(
+                        value: "\(cycleService.cycleStats.effectiveCycleLength)",
+                        unit: "days",
+                        label: cycleService.cycleStats.userDefaultCycleLength != nil ? "YOUR CYCLE" : "AVG CYCLE"
+                    )
+                    if cycleService.cycleStats.userDefaultCycleLength != nil
+                        && cycleService.cycleStats.observedAvgCycleLength != cycleService.cycleStats.effectiveCycleLength {
+                        statCard(
+                            value: "\(cycleService.cycleStats.observedAvgCycleLength)",
+                            unit: "days",
+                            label: "OBSERVED"
+                        )
+                    }
+                    statCard(value: "\(cycleService.cycleStats.effectivePeriodLength)", unit: "days", label: "PERIOD")
                     statCard(value: "\(cycleService.cycleStats.cycleCount)", unit: "", label: "CYCLES")
                 }
                 .background(Color(uiColor: .secondarySystemGroupedBackground))

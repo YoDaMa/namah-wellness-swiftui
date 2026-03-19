@@ -25,7 +25,7 @@ struct EditProfileView: View {
             // Cycle settings
             Section("Cycle") {
                 Picker("Cycle Length", selection: $cycleLength) {
-                    ForEach(20...45, id: \.self) { day in
+                    ForEach(20...40, id: \.self) { day in
                         Text("\(day) days").tag(day)
                     }
                 }

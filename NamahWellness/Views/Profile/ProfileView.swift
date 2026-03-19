@@ -329,7 +329,7 @@ struct ProfileView: View {
                                     if granted, let lastLog = sortedLogs.first {
                                         await NotificationService.schedulePeriodPrediction(
                                             lastPeriodStart: lastLog.periodStartDate,
-                                            avgCycleLength: cycleService.cycleStats.avgCycleLength
+                                            effectiveCycleLength: cycleService.cycleStats.effectiveCycleLength
                                         )
                                     } else {
                                         profile.periodReminderEnabled = false

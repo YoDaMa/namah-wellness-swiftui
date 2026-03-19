@@ -37,6 +37,8 @@ struct TodayView: View {
     @State private var showSymptoms = false
     @State private var showPhaseDetail = false
 
+    @AppStorage("lastOverdueDismissDate") private var lastOverdueDismissDate: String = ""
+
     private let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
@@ -50,6 +52,22 @@ struct TodayView: View {
 
     private var hasCycleData: Bool {
         cycleService.currentPhase != nil
+    }
+
+    private var isOverdue: Bool {
+        cycleService.cycleStats.isOverdue
+    }
+
+    private var daysOverdue: Int {
+        cycleService.cycleStats.daysOverdue
+    }
+
+    private var daysSinceLastPeriod: Int {
+        cycleService.currentPhase.map { $0.cycleDay } ?? 0
+    }
+
+    private var shouldShowPeriodPrompt: Bool {
+        isOverdue && lastOverdueDismissDate != today
     }
 
     // MARK: - Computed Data
@@ -273,8 +291,12 @@ struct TodayView: View {
                     .padding(.horizontal)
                     .padding(.top, 4)
 
-                    // 2. Time Block Sections
+                    // 2. Period prompt + Time Block Sections
                     if hasCycleData {
+                        if shouldShowPeriodPrompt {
+                            periodPromptBanner
+                                .padding(.horizontal)
+                        }
                         timeBlockSections
                     } else {
                         logCycleCTA
@@ -654,6 +676,75 @@ struct TodayView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+
+    // MARK: - Period Prompt Banner
+
+    @ViewBuilder
+    private var periodPromptBanner: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "drop.triangle.fill")
+                    .foregroundStyle(.orange)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Has your period started?")
+                        .font(.nSubheadline)
+                        .fontWeight(.semibold)
+                    Text("Day \(daysSinceLastPeriod) · \(daysOverdue) day\(daysOverdue == 1 ? "" : "s") late")
+                        .font(.nCaption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+
+            HStack(spacing: 12) {
+                Button {
+                    showLogPeriod = true
+                } label: {
+                    Text("Yes, log it")
+                        .font(.nCaption)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.phaseM)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+
+                Button {
+                    lastOverdueDismissDate = today
+                    if let profile = profiles.first {
+                        profile.overdueAckDate = today
+                        try? modelContext.save()
+                    }
+                } label: {
+                    Text("Not yet")
+                        .font(.nCaption)
+                        .fontWeight(.medium)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color(uiColor: .tertiarySystemFill))
+                        .foregroundStyle(.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
+        .padding(16)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+
+        if daysOverdue >= 14 {
+            HStack(spacing: 8) {
+                Image(systemName: "heart.text.square")
+                    .foregroundStyle(.pink)
+                Text("Your period is significantly late. Consider consulting your healthcare provider.")
+                    .font(.nCaption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .background(Color.pink.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
     }
 
     // MARK: - Log Cycle CTA

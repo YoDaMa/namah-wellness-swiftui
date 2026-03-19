@@ -138,13 +138,16 @@ enum CalendarService {
 
         var cycleDay = (cal.dateComponents([.day], from: startDate, to: target).day ?? 0) + 1
 
-        // If past end of cycle, project forward
+        // If past end of cycle, extend luteal instead of wrapping
         if cycleDay > cycleLength {
-            let overflow = cycleDay - 1
-            let cyclesForward = overflow / stats.avgCycleLength
-            cycleDay = (overflow % stats.avgCycleLength) + 1
-            isProjected = true
-            _ = cyclesForward // used for projection
+            let ranges = CycleService.computePhaseRanges(cycleLength: cycleLength, periodLength: stats.avgPeriodLength)
+            return DayPhaseInfo(
+                phaseSlug: "luteal",
+                cycleDay: cycleDay,
+                dayInPhase: cycleDay - ranges.luteal.start + 1,
+                isPeak: false,
+                isProjected: isProjected
+            )
         }
 
         // Determine phase from cycle day

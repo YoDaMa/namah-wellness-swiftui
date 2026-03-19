@@ -88,7 +88,7 @@ enum NotificationService {
 
     // MARK: - Period Prediction (existing)
 
-    static func schedulePeriodPrediction(lastPeriodStart: String, avgCycleLength: Int) async {
+    static func schedulePeriodPrediction(lastPeriodStart: String, effectiveCycleLength: Int) async {
         let center = UNUserNotificationCenter.current()
         center.removePendingNotificationRequests(withIdentifiers: [periodPredictionId])
 
@@ -96,13 +96,13 @@ enum NotificationService {
         formatter.dateFormat = "yyyy-MM-dd"
         guard let lastDate = formatter.date(from: lastPeriodStart) else { return }
 
-        let daysUntilNext = avgCycleLength - 3
+        let daysUntilNext = effectiveCycleLength - 3
         guard let notifyDate = Calendar.current.date(byAdding: .day, value: daysUntilNext, to: lastDate),
               notifyDate > Date() else { return }
 
         let content = UNMutableNotificationContent()
         content.title = "Period Coming Soon"
-        content.body = "Your period is predicted to start in about 3 days."
+        content.body = "Based on your \(effectiveCycleLength)-day cycle, your period may start in about 3 days."
         content.sound = .default
 
         let components = Calendar.current.dateComponents([.year, .month, .day, .hour], from: notifyDate)

@@ -93,26 +93,25 @@ final class CycleLogManager {
     // MARK: - Auto-log (system-initiated, silent)
 
     func checkAndAutoLog(stats: CycleStats) {
+        // Don't auto-log when the user is overdue — they've acknowledged the period hasn't started
+        guard !stats.isOverdue else { return }
+
         let logs = fetchLogs()
         let sorted = logs.sorted { $0.periodStartDate > $1.periodStartDate }
         guard let latest = sorted.first else { return }
 
         guard let lastStart = dateFormatter.date(from: latest.periodStartDate) else { return }
         let cal = Calendar.current
-        guard let predictedDate = cal.date(byAdding: .day, value: stats.avgCycleLength, to: lastStart) else { return }
+        guard let predictedDate = cal.date(byAdding: .day, value: stats.effectiveCycleLength, to: lastStart) else { return }
 
         let today = cal.startOfDay(for: Date())
         let predicted = cal.startOfDay(for: predictedDate)
 
-        // Only auto-log if predicted date <= today
         guard predicted <= today else { return }
 
         let predictedStr = dateFormatter.string(from: predicted)
 
-        // Don't insert if one already exists for that date
         guard !logs.contains(where: { $0.periodStartDate == predictedStr }) else { return }
-
-        // Don't insert if within 15 days of another entry
         guard findClosestLog(date: predicted, in: logs, thresholdDays: 15) == nil else { return }
 
         insertLog(dateStr: predictedStr)
