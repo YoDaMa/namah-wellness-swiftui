@@ -36,7 +36,8 @@ struct NourishView: View {
     private var groceryCount: Int {
         guard let p = phase else { return 0 }
         let mealIds = Set(allMeals.filter { $0.phaseId == p.id }.map(\.id))
-        return recipeIngredients.filter { mealIds.contains($0.mealId) }.count
+        let names = Set(recipeIngredients.filter { mealIds.contains($0.mealId) }.map { $0.name.lowercased() })
+        return names.count
     }
 
     private var hasMeals: Bool {
