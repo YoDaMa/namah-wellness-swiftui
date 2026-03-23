@@ -138,11 +138,14 @@ struct TodayView: View {
 
     private var todayExtraSupplements: [(def: SupplementDefinition, log: SupplementLog)] {
         let activeIds = Set(activeRegimen.map(\.id))
+        // Pre-compute dictionary for O(1) lookups
+        let definitionsById = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
+        
         return supplementLogs
             .filter { $0.date == today && $0.taken && $0.userSupplementId.hasPrefix("extra-") && !activeIds.contains($0.userSupplementId) }
             .compactMap { log in
                 let defId = String(log.userSupplementId.dropFirst("extra-".count))
-                guard let def = definitions.first(where: { $0.id == defId }) else { return nil }
+                guard let def = definitionsById[defId] else { return nil }  // O(1) lookup
                 return (def: def, log: log)
             }
     }
@@ -163,8 +166,14 @@ struct TodayView: View {
         let todayStart = cal.startOfDay(for: Date())
         var streak = 0
 
-        // Check if today has any completions (meals or supplements)
-        let todayHasActivity = !todayMealCompletionIds.isEmpty || !todaySupplementLogIds.isEmpty
+        // Pre-compute sets of dates with activity (MUCH faster than repeated .contains)
+        let mealDates = Set(mealCompletions.map(\.date))
+        let suppDates = Set(supplementLogs.filter(\.taken).map(\.date))
+        let allActivityDates = mealDates.union(suppDates)
+
+        // Check if today has any completions
+        let todayStr = dateFormatter.string(from: todayStart)
+        let todayHasActivity = allActivityDates.contains(todayStr)
 
         // Start checking from today (if active) or yesterday
         var checkDate = todayStart
@@ -173,14 +182,13 @@ struct TodayView: View {
             checkDate = yesterday
         }
 
+        // Limit to 365 days, but break early on first gap
         for dayOffset in 0..<365 {
             guard let date = cal.date(byAdding: .day, value: -dayOffset, to: checkDate) else { break }
             let dateStr = dateFormatter.string(from: date)
 
-            let hasMeal = mealCompletions.contains { $0.date == dateStr }
-            let hasSupp = supplementLogs.contains { $0.date == dateStr && $0.taken }
-
-            if hasMeal || hasSupp {
+            // Fast O(1) set lookup instead of O(n) array scan
+            if allActivityDates.contains(dateStr) {
                 streak += 1
             } else {
                 break
@@ -406,18 +414,15 @@ struct TodayView: View {
         let blocks = timeBlockService.blocks
         let currentKind = timeBlockService.currentBlock?.kind
 
-        ForEach(blocks) { block in
+        ForEach(Array(blocks.enumerated()), id: \.element.id) { index, block in
             let meals = mealsForBlock(block.kind)
             let supps = supplementsForBlock(block.kind)
             let sessions = workoutSessionsForBlock(block.kind)
             let isCheckIn = block.kind == .evening
             let isCurrentBlock = block.kind == currentKind
 
-            let nextBlock: TimeBlock? = {
-                guard let idx = blocks.firstIndex(where: { $0.kind == block.kind }),
-                      idx + 1 < blocks.count else { return nil }
-                return blocks[idx + 1]
-            }()
+            // Use index instead of linear search - O(1) instead of O(n)
+            let nextBlock: TimeBlock? = index + 1 < blocks.count ? blocks[index + 1] : nil
 
             TimeBlockSectionView(
                 block: block,
@@ -492,14 +497,18 @@ struct TodayView: View {
     }
 
     private func supplementsForBlock(_ kind: TimeBlockKind) -> [TimeBlockSectionView.SupplementItem] {
-        activeRegimen
+        // Pre-compute lookups once instead of inside the map
+        let definitionsById = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
+        let nutrientsBySupplementId = Dictionary(grouping: supplementNutrients, by: { $0.supplementId })
+        
+        return activeRegimen
             .filter { timeBlockService.blockForSupplement(timeOfDay: $0.timeOfDay) == kind }
             .map { userSup in
                 TimeBlockSectionView.SupplementItem(
                     id: userSup.id,
                     userSupplement: userSup,
-                    definition: definitions.first { $0.id == userSup.supplementId },
-                    nutrients: supplementNutrients.filter { $0.supplementId == userSup.supplementId },
+                    definition: definitionsById[userSup.supplementId],  // O(1) lookup
+                    nutrients: nutrientsBySupplementId[userSup.supplementId] ?? [],  // O(1) lookup
                     isTaken: todaySupplementLogIds.contains(userSup.id)
                 )
             }

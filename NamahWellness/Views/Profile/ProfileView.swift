@@ -214,7 +214,7 @@ struct ProfileView: View {
                         get: { schedule.habitNotificationsEnabled },
                         set: { newValue in
                             schedule.habitNotificationsEnabled = newValue
-                            Task {
+                            Task { @MainActor in
                                 if newValue {
                                     let granted = await NotificationService.requestPermissionIfNeeded()
                                     if granted {
@@ -275,7 +275,7 @@ struct ProfileView: View {
                         get: { profile.dailyReminderEnabled },
                         set: { newValue in
                             profile.dailyReminderEnabled = newValue
-                            Task {
+                            Task { @MainActor in
                                 if newValue {
                                     let granted = await NotificationService.requestPermissionIfNeeded()
                                     if granted {
@@ -324,7 +324,7 @@ struct ProfileView: View {
                         get: { profile.periodReminderEnabled },
                         set: { newValue in
                             profile.periodReminderEnabled = newValue
-                            Task {
+                            Task { @MainActor in
                                 if newValue {
                                     let granted = await NotificationService.requestPermissionIfNeeded()
                                     if granted, let lastLog = sortedLogs.first {

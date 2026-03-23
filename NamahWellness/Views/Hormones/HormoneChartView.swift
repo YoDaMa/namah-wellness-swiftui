@@ -16,7 +16,8 @@ struct HormoneChartView: View {
     private var cH: CGFloat { chartHeight - pad.top - pad.bottom }
 
     private func dayToX(_ day: Int) -> CGFloat {
-        pad.left + CGFloat(day - 1) / CGFloat(totalDays - 1) * cW
+        let divisor = max(totalDays - 1, 1)
+        return pad.left + CGFloat(day - 1) / CGFloat(divisor) * cW
     }
 
     private func valToY(_ v: Double) -> CGFloat {
@@ -103,7 +104,7 @@ struct HormoneChartView: View {
                     let pt = CGPoint(x: x, y: valToY(val) * scaleY)
                     let dotRect = CGRect(x: pt.x - 4, y: pt.y - 4, width: 8, height: 8)
                     context.fill(Path(ellipseIn: dotRect), with: .color(meta.color))
-                    context.stroke(Path(ellipseIn: dotRect), with: .color(.white), lineWidth: 1.5)
+                    context.stroke(Path(ellipseIn: dotRect), with: .color(Color(uiColor: .secondarySystemGroupedBackground)), lineWidth: 1.5)
                 }
             }
         }
@@ -114,7 +115,7 @@ struct HormoneChartView: View {
             DragGesture(minimumDistance: 0)
                 .onChanged { value in
                     let fraction = value.location.x / UIScreen.main.bounds.width
-                    let day = Int(round(fraction * CGFloat(totalDays - 1))) + 1
+                    let day = Int(round(fraction * CGFloat(max(totalDays - 1, 1)))) + 1
                     hoverDay = max(1, min(totalDays, day))
                 }
                 .onEnded { _ in hoverDay = nil }

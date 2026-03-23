@@ -94,7 +94,8 @@ struct MealCardContent: View {
                 }
 
                 if let p = proteinG, let c = carbsG, let f = fatG {
-                    let macroText = calories != nil ? "\(p)P · \(c)C · \(f)F · \(calories!)" : "\(p)P · \(c)C · \(f)F"
+                    let base = "\(p)P · \(c)C · \(f)F"
+                    let macroText = calories.map { "\(base) · \($0)" } ?? base
                     Text(macroText)
                         .font(.nCaption)
                         .foregroundStyle(.secondary)

@@ -241,10 +241,10 @@ struct TimeBlockSectionView: View {
 
     // MARK: - Workout Row
 
+    @ViewBuilder
     private func workoutRow(_ item: WorkoutSessionItem) -> some View {
-        let session = item.session!
-
-        return HStack(alignment: .top, spacing: 12) {
+        if let session = item.session {
+        HStack(alignment: .top, spacing: 12) {
             Image(systemName: "figure.run")
                 .font(.sans(16))
                 .foregroundStyle(phaseColor)
@@ -280,14 +280,15 @@ struct TimeBlockSectionView: View {
         .padding(12)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
     }
 
     // MARK: - Custom Workout Row
 
+    @ViewBuilder
     private func customWorkoutRow(_ item: WorkoutSessionItem) -> some View {
-        let custom = item.customItem!
-
-        return HStack(alignment: .top, spacing: 12) {
+        if let custom = item.customItem {
+        HStack(alignment: .top, spacing: 12) {
             Image(systemName: "figure.run")
                 .font(.sans(16))
                 .foregroundStyle(phaseColor)
@@ -342,6 +343,7 @@ struct TimeBlockSectionView: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(phaseColor.opacity(0.2), lineWidth: 1)
         )
+        }
     }
 
     // MARK: - Custom Meal Row

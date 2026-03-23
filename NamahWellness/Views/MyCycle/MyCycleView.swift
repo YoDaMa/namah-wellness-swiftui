@@ -117,7 +117,9 @@ struct MyCycleView: View {
         let allDates = datesWithSymptoms.union(datesWithFlow).union(datesWithBBT).union(datesWithSexualActivity)
         var streak = 0
         var date = today
-        while true {
+        
+        // Safety limit: don't check more than 365 days
+        for _ in 0..<365 {
             let dateStr = dateFormatter.string(from: date)
             if allDates.contains(dateStr) {
                 streak += 1
@@ -790,8 +792,7 @@ struct MyCycleView: View {
             let peakDays = dayAverages.filter { $0.value >= 2.5 }.keys.sorted()
             guard !peakDays.isEmpty else { continue }
 
-            let peakStart = peakDays.first!
-            let peakEnd = peakDays.last!
+            guard let peakStart = peakDays.first, let peakEnd = peakDays.last else { continue }
 
             let phaseName = phaseMap.first { peakStart >= $0.start && peakStart <= $0.end }?.name ?? "cycle"
 

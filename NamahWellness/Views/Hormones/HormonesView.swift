@@ -97,7 +97,7 @@ struct HormonesView: View {
     // MARK: - Day Detail
 
     private func dayDetailPanel(day: Int) -> some View {
-        let refDay = Int(round(Double(day - 1) / Double(totalDays - 1) * 27.0)) + 1
+        let refDay = Int(round(Double(day - 1) / Double(max(totalDays - 1, 1)) * 27.0)) + 1
 
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
