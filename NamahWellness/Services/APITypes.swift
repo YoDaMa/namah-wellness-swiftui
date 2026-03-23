@@ -553,3 +553,21 @@ struct PhaseRangesDTO: Decodable {
         )
     }
 }
+
+// MARK: - Profile DTO
+
+struct ProfileDTO: Decodable {
+    let id: String
+    let name: String
+    let email: String
+    let emailEnabled: Bool?
+    let emailSendHour: Int?
+    let cycleLengthOverride: Int?
+    let periodLengthOverride: Int?
+    let dailyReminderEnabled: Bool?
+    let dailyReminderTime: Int?      // seconds since midnight
+    let periodReminderEnabled: Bool?
+    let overdueAckDate: String?
+    let isPregnant: Bool?
+    let pregnancyStartDate: String?
+}

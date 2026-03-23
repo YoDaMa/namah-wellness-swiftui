@@ -117,6 +117,7 @@ struct ProfileView: View {
                         if isEditingName {
                             profile.name = editedName
                             try? modelContext.save()
+                            Task { await syncService.pushProfile(profile: profile) }
                             isEditingName = false
                         } else {
                             editedName = profile.name

@@ -6,6 +6,7 @@ struct EditProfileView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(SyncService.self) private var syncService
 
     @Query private var profiles: [UserProfile]
 
@@ -61,6 +62,7 @@ struct EditProfileView: View {
         profile.cycleLengthOverride = cycleLength
         profile.periodLengthOverride = periodLength
         try? modelContext.save()
+        Task { await syncService.pushProfile(profile: profile) }
         dismiss()
     }
 }

@@ -54,6 +54,7 @@ final class SyncService {
             try await pushPendingChanges(context: modelContext)
             try await pullContent(context: modelContext)
             try await pullUserData(context: modelContext)
+            try await pullProfile(context: modelContext)
             try modelContext.save()
             lastSyncDate = Date()
             syncState = .idle
@@ -180,4 +181,82 @@ final class SyncService {
         for dto in response.userItemsHidden { context.insert(dto.toModel()) }
         for dto in response.planItemLogs { context.insert(dto.toModel()) }
     }
+
+    // MARK: - Pull Profile
+
+    @MainActor
+    private func pullProfile(context: ModelContext) async throws {
+        let dto: ProfileDTO = try await apiClient.get(path: "/api/v1/profile")
+
+        // Fetch or create local profile
+        let descriptor = FetchDescriptor<UserProfile>()
+        let existing = try context.fetch(descriptor)
+
+        let profile: UserProfile
+        if let p = existing.first {
+            profile = p
+        } else {
+            profile = UserProfile(id: dto.id)
+            context.insert(profile)
+        }
+
+        // Update from backend
+        profile.id = dto.id
+        profile.name = dto.name
+        profile.cycleLengthOverride = dto.cycleLengthOverride
+        profile.periodLengthOverride = dto.periodLengthOverride
+        profile.dailyReminderEnabled = dto.dailyReminderEnabled ?? false
+        profile.periodReminderEnabled = dto.periodReminderEnabled ?? false
+        profile.overdueAckDate = dto.overdueAckDate
+        profile.isPregnant = dto.isPregnant ?? false
+        profile.pregnancyStartDate = dto.pregnancyStartDate
+
+        // Convert seconds since midnight → Date with hour+minute
+        let seconds = dto.dailyReminderTime ?? 72000
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        profile.dailyReminderTime = Calendar.current.date(
+            from: DateComponents(hour: hours, minute: minutes)
+        ) ?? profile.dailyReminderTime
+    }
+
+    // MARK: - Push Profile
+
+    @MainActor
+    func pushProfile(profile: UserProfile) async {
+        // Convert Date → seconds since midnight
+        let components = Calendar.current.dateComponents([.hour, .minute], from: profile.dailyReminderTime)
+        let secondsSinceMidnight = (components.hour ?? 20) * 3600 + (components.minute ?? 0) * 60
+
+        let body = ProfilePushBody(
+            name: profile.name,
+            cycleLengthOverride: profile.cycleLengthOverride,
+            periodLengthOverride: profile.periodLengthOverride,
+            dailyReminderEnabled: profile.dailyReminderEnabled,
+            dailyReminderTime: secondsSinceMidnight,
+            periodReminderEnabled: profile.periodReminderEnabled,
+            overdueAckDate: profile.overdueAckDate,
+            isPregnant: profile.isPregnant,
+            pregnancyStartDate: profile.pregnancyStartDate
+        )
+
+        do {
+            let _: ProfileDTO = try await apiClient.patch(path: "/api/v1/profile", body: body)
+        } catch {
+            // Profile saved locally — push failure is non-fatal
+            print("Failed to push profile: \(error)")
+        }
+    }
+}
+
+private struct ProfilePushBody: Encodable {
+    let name: String
+    let cycleLengthOverride: Int?
+    let periodLengthOverride: Int?
+    let dailyReminderEnabled: Bool
+    let dailyReminderTime: Int
+    let periodReminderEnabled: Bool
+    let overdueAckDate: String?
+    let isPregnant: Bool
+    let pregnancyStartDate: String?
 }
