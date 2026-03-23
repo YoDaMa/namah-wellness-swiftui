@@ -15,7 +15,6 @@ struct NamahWellnessApp: App {
                 Phase.self,
                 Meal.self,
                 RecipeIngredient.self,
-                GroceryItem.self,
                 Workout.self,
                 WorkoutSession.self,
                 CoreExercise.self,

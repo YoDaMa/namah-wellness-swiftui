@@ -1,8 +1,14 @@
 import SwiftUI
 import SwiftData
 
-/// Grocery list presented as a bottom sheet from the Nourish sub-page.
-/// Phase color accent on header, category sections, persistent checkboxes, share button.
+/// Grocery list derived from RecipeIngredients for the current phase.
+/// Supports "By Meal" and "By Category" grouping with synchronized check state.
+///
+/// Data flow:
+///   RecipeIngredient (per-meal) → grouped by meal or category
+///   GroceryCheck (groceryItemId = RecipeIngredient.id) → shared check state
+///   Checking in GroceryListView ↔ checking in MealDetailView (same GroceryCheck)
+///
 struct GroceryListView: View {
     let phaseSlug: String
     let phaseColor: Color
@@ -10,107 +16,69 @@ struct GroceryListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(SyncService.self) private var syncService
-    @Query private var phases: [Phase]
-    @Query private var groceryItems: [GroceryItem]
-    @Query private var groceryChecks: [GroceryCheck]
-    @Query private var userPlanItems: [UserPlanItem]
-    @Query private var userItemsHidden: [UserItemHidden]
 
-    @State private var showAddGrocery = false
+    @Query private var phases: [Phase]
+    @Query(sort: \Meal.dayNumber) private var allMeals: [Meal]
+    @Query(sort: \RecipeIngredient.sortOrder) private var allIngredients: [RecipeIngredient]
+    @Query private var groceryChecks: [GroceryCheck]
+
+    enum GroupMode: String, CaseIterable {
+        case byMeal = "By Meal"
+        case byCategory = "By Category"
+    }
+
+    @State private var groupMode: GroupMode = .byMeal
 
     private var phase: Phase? { phases.first { $0.slug == phaseSlug } }
+    private var phaseColors: PhaseColors { PhaseColors.forSlug(phaseSlug) }
 
-    private var hiddenIds: Set<String> {
-        Set(userItemsHidden.map(\.itemId))
-    }
-
-    private var customGrocery: [UserPlanItem] {
-        userPlanItems.filter { $0.category == .grocery && $0.isActive }
-    }
-
-    private var items: [GroceryItem] {
+    private var phaseMeals: [Meal] {
         guard let p = phase else { return [] }
-        return groceryItems.filter { $0.phaseId == p.id && !hiddenIds.contains($0.id) }
+        return allMeals.filter { $0.phaseId == p.id && $0.proteinG != nil }
     }
 
-    private var totalItemCount: Int { items.count + customGrocery.count }
+    private var phaseMealIds: Set<String> {
+        Set(phaseMeals.map(\.id))
+    }
+
+    private var phaseIngredients: [RecipeIngredient] {
+        allIngredients.filter { phaseMealIds.contains($0.mealId) }
+    }
 
     private var checkedIds: Set<String> {
-        Set(groceryChecks.filter { $0.checked }.map(\.groceryItemId))
+        Set(groceryChecks.filter(\.checked).map(\.groceryItemId))
     }
 
-    private var checkedCount: Int {
-        let templateChecked = items.filter { checkedIds.contains($0.id) }.count
-        let customChecked = customGrocery.filter { checkedIds.contains($0.id) }.count
-        return templateChecked + customChecked
-    }
-    private var progress: Double { totalItemCount == 0 ? 0 : Double(checkedCount) / Double(totalItemCount) }
+    private var totalCount: Int { phaseIngredients.count }
+    private var checkedCount: Int { phaseIngredients.filter { checkedIds.contains($0.id) }.count }
+    private var progress: Double { totalCount == 0 ? 0 : Double(checkedCount) / Double(totalCount) }
 
-    private let categories = ["Protein", "Produce", "Pantry / Grains", "Other"]
-
-    private var phaseColors: PhaseColors { PhaseColors.forSlug(phaseSlug) }
+    // MARK: - Body
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Phase-tinted header with progress
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "bag")
-                                .font(.sans(16))
-                                .foregroundStyle(phaseColor)
-                            Text(phase?.name ?? "")
-                                .font(.nCaption)
-                                .fontWeight(.bold)
-                                .foregroundStyle(phaseColor)
-                            Spacer()
-                            if checkedCount > 0 {
-                                Button("Reset") { resetAll() }
-                                    .font(.nCaption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
+                    // Header
+                    headerSection
 
-                        HStack {
-                            Text("\(checkedCount) of \(totalItemCount) items")
-                                .font(.nFootnote)
-                                .fontWeight(.medium)
-                            Spacer()
-                        }
-
-                        ProgressView(value: progress)
-                            .tint(phaseColor)
-                    }
-                    .padding(16)
-                    .background(phaseColors.soft)
-
-                    // Category sections (template items)
-                    ForEach(categories, id: \.self) { category in
-                        let catItems = items.filter { $0.category == category }
-                        let customCatItems = customGrocery.filter { ($0.groceryCategory ?? "Other") == category }
-                        if !catItems.isEmpty || !customCatItems.isEmpty {
-                            categorySection(category, items: catItems, customItems: customCatItems)
+                    // Group mode picker
+                    Picker("Group by", selection: $groupMode) {
+                        ForEach(GroupMode.allCases, id: \.self) { mode in
+                            Text(mode.rawValue).tag(mode)
                         }
                     }
-
-                    // Add custom grocery item button
-                    Button { showAddGrocery = true } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.sans(16))
-                                .foregroundStyle(phaseColor)
-                            Text("Add Grocery Item")
-                                .font(.nSubheadline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.primary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                    }
-                    .buttonStyle(.plain)
+                    .pickerStyle(.segmented)
                     .padding(.horizontal, 16)
-                    .padding(.top, 12)
+                    .padding(.vertical, 12)
+
+                    // Content
+                    switch groupMode {
+                    case .byMeal:
+                        byMealContent
+                    case .byCategory:
+                        byCategoryContent
+                    }
                 }
                 .padding(.bottom, 24)
             }
@@ -126,143 +94,215 @@ struct GroceryListView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showAddGrocery) {
-                AddPlanItemSheet(
-                    defaultCategory: .grocery,
-                    phaseSlug: phaseSlug
-                )
-            }
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
 
-    // MARK: - Category Section
+    // MARK: - Header
 
-    private func categorySection(_ category: String, items: [GroceryItem], customItems: [UserPlanItem]) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Category header with phase-tinted background
-            Text(category.uppercased())
-                .font(.nCaption2)
-                .fontWeight(.semibold)
-                .tracking(2)
-                .foregroundStyle(phaseColor)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(phaseColor.opacity(0.06))
-
-            // Template items
-            ForEach(items, id: \.id) { item in
-                groceryRow(item)
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            hideItem(item.id, type: .grocery)
-                        } label: {
-                            Label("Hide Item", systemImage: "eye.slash")
-                        }
-                    }
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "bag")
+                    .font(.sans(16))
+                    .foregroundStyle(phaseColor)
+                Text(phase?.name ?? "")
+                    .font(.nCaption)
+                    .fontWeight(.bold)
+                    .foregroundStyle(phaseColor)
+                Spacer()
+                if checkedCount > 0 {
+                    Button("Reset") { resetAll() }
+                        .font(.nCaption2)
+                        .foregroundStyle(.secondary)
+                }
             }
 
-            // Custom items
-            ForEach(customItems, id: \.id) { item in
-                customGroceryRow(item)
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            item.isActive = false
-                            syncService.queueChange(
-                                table: "userPlanItems", action: "upsert",
-                                data: ["id": item.id, "isActive": false], modelContext: modelContext
-                            )
-                        } label: {
-                            Label("Remove", systemImage: "trash")
-                        }
+            HStack {
+                Text("\(checkedCount) of \(totalCount) items")
+                    .font(.nCaption)
+                    .fontWeight(.medium)
+                Spacer()
+            }
+
+            ProgressView(value: progress)
+                .tint(phaseColor)
+        }
+        .padding(16)
+        .background(phaseColors.soft)
+    }
+
+    // MARK: - By Meal
+
+    private var byMealContent: some View {
+        ForEach(phaseMeals, id: \.id) { meal in
+            let mealIngredients = phaseIngredients.filter { $0.mealId == meal.id }
+            if !mealIngredients.isEmpty {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Meal title header
+                    HStack(spacing: 6) {
+                        Text(meal.mealType.uppercased())
+                            .font(.nCaption2)
+                            .fontWeight(.semibold)
+                            .tracking(1.5)
+                            .foregroundStyle(phaseColor)
+                        Text("·").foregroundStyle(.tertiary)
+                        Text(meal.title)
+                            .font(.nCaption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(phaseColor.opacity(0.06))
+
+                    // Ingredients
+                    ForEach(mealIngredients, id: \.id) { ingredient in
+                        ingredientRow(ingredient)
+                    }
+                }
             }
         }
     }
 
-    // MARK: - Grocery Row
+    // MARK: - By Category
 
-    private func groceryRow(_ item: GroceryItem) -> some View {
-        let isChecked = checkedIds.contains(item.id)
+    private let categories = ["Protein", "Produce", "Pantry / Grains", "Other"]
 
-        return Button { toggleItem(item) } label: {
+    private var byCategoryContent: some View {
+        ForEach(categories, id: \.self) { category in
+            let catIngredients = deduplicatedIngredients(for: category)
+            if !catIngredients.isEmpty {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(category.uppercased())
+                        .font(.nCaption2)
+                        .fontWeight(.semibold)
+                        .tracking(2)
+                        .foregroundStyle(phaseColor)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(phaseColor.opacity(0.06))
+
+                    ForEach(catIngredients, id: \.name) { item in
+                        deduplicatedRow(item)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Deduplication for Category View
+
+    private struct DeduplicatedItem {
+        let name: String
+        let ingredientIds: [String]
+        let quantities: [String]
+        let allChecked: Bool
+    }
+
+    private func deduplicatedIngredients(for category: String) -> [DeduplicatedItem] {
+        let matching = phaseIngredients.filter { ($0.category ?? "Other") == category }
+        var grouped: [String: [RecipeIngredient]] = [:]
+        for ing in matching {
+            grouped[ing.name.lowercased(), default: []].append(ing)
+        }
+        return grouped.keys.sorted().map { key in
+            let items = grouped[key]!
+            let ids = items.map(\.id)
+            let qtys = items.compactMap { ing -> String? in
+                let q = [ing.quantity, ing.unit].compactMap { $0 }.joined(separator: " ")
+                return q.isEmpty ? nil : q
+            }
+            let allChecked = ids.allSatisfy { checkedIds.contains($0) }
+            let displayName = items.first?.name ?? key
+            return DeduplicatedItem(name: displayName, ingredientIds: ids, quantities: qtys, allChecked: allChecked)
+        }
+    }
+
+    // MARK: - Rows
+
+    private func ingredientRow(_ ingredient: RecipeIngredient) -> some View {
+        let isChecked = checkedIds.contains(ingredient.id)
+        return Button { toggleIngredient(ingredient) } label: {
             HStack(spacing: 10) {
                 Image(systemName: isChecked ? "checkmark.circle.fill" : "circle")
                     .font(.sans(18))
                     .foregroundStyle(isChecked ? phaseColor : Color(uiColor: .tertiaryLabel))
 
-                Text(item.name)
-                    .font(.nSubheadline)
-                    .foregroundStyle(isChecked ? .secondary : .primary)
-                    .strikethrough(isChecked)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(ingredient.name)
+                        .font(.nSubheadline)
+                        .foregroundStyle(isChecked ? .secondary : .primary)
+                        .strikethrough(isChecked)
 
-                if let flag = item.saFlag, !flag.isEmpty {
-                    Text(flag)
-                        .font(.nCaption2)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.spice)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Color.spice.opacity(0.1))
-                        .clipShape(Capsule())
+                    let qty = [ingredient.quantity, ingredient.unit].compactMap { $0 }.joined(separator: " ")
+                    if !qty.isEmpty {
+                        Text(qty)
+                            .font(.nCaption2)
+                            .foregroundStyle(.tertiary)
+                    }
                 }
 
                 Spacer()
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.vertical, 6)
         }
         .buttonStyle(.plain)
     }
 
-    // MARK: - Custom Grocery Row
-
-    private func customGroceryRow(_ item: UserPlanItem) -> some View {
-        let isChecked = checkedIds.contains(item.id)
-
-        return Button { toggleCustomItem(item) } label: {
+    private func deduplicatedRow(_ item: DeduplicatedItem) -> some View {
+        Button { toggleDeduplicatedItem(item) } label: {
             HStack(spacing: 10) {
-                Image(systemName: isChecked ? "checkmark.circle.fill" : "circle")
+                Image(systemName: item.allChecked ? "checkmark.circle.fill" : "circle")
                     .font(.sans(18))
-                    .foregroundStyle(isChecked ? phaseColor : Color(uiColor: .tertiaryLabel))
+                    .foregroundStyle(item.allChecked ? phaseColor : Color(uiColor: .tertiaryLabel))
 
-                Text(item.title)
-                    .font(.nSubheadline)
-                    .foregroundStyle(isChecked ? .secondary : .primary)
-                    .strikethrough(isChecked)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.name)
+                        .font(.nSubheadline)
+                        .foregroundStyle(item.allChecked ? .secondary : .primary)
+                        .strikethrough(item.allChecked)
 
-                Text("CUSTOM")
-                    .font(.sans(7))
-                    .fontWeight(.bold)
-                    .tracking(0.5)
-                    .foregroundStyle(phaseColor)
+                    if !item.quantities.isEmpty {
+                        let summary = Array(Set(item.quantities)).sorted().joined(separator: ", ")
+                        Text(summary)
+                            .font(.nCaption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+
+                if item.ingredientIds.count > 1 {
+                    Text("×\(item.ingredientIds.count)")
+                        .font(.nCaption2)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.tertiary)
+                }
 
                 Spacer()
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.vertical, 6)
         }
         .buttonStyle(.plain)
     }
 
-    // MARK: - Share Text
+    // MARK: - Share
 
     private var shareText: String {
         var text = "Grocery List — \(phase?.name ?? "") Phase\n\n"
-        for category in categories {
-            let catItems = items.filter { $0.category == category }
-            let customCatItems = customGrocery.filter { ($0.groceryCategory ?? "Other") == category }
-            if !catItems.isEmpty || !customCatItems.isEmpty {
-                text += "\(category):\n"
-                for item in catItems {
-                    let check = checkedIds.contains(item.id) ? "✓" : "○"
-                    text += "  \(check) \(item.name)\n"
-                }
-                for item in customCatItems {
-                    let check = checkedIds.contains(item.id) ? "✓" : "○"
-                    text += "  \(check) \(item.title) (custom)\n"
+        for meal in phaseMeals {
+            let mealIngredients = phaseIngredients.filter { $0.mealId == meal.id }
+            if !mealIngredients.isEmpty {
+                text += "\(meal.mealType): \(meal.title)\n"
+                for ing in mealIngredients {
+                    let check = checkedIds.contains(ing.id) ? "✓" : "○"
+                    let qty = [ing.quantity, ing.unit].compactMap { $0 }.joined(separator: " ")
+                    text += "  \(check) \(qty.isEmpty ? ing.name : "\(qty) \(ing.name)")\n"
                 }
                 text += "\n"
             }
@@ -272,82 +312,57 @@ struct GroceryListView: View {
 
     // MARK: - Actions
 
-    private func toggleItem(_ item: GroceryItem) {
-        if let existing = groceryChecks.first(where: { $0.groceryItemId == item.id }) {
+    private func toggleIngredient(_ ingredient: RecipeIngredient) {
+        if let existing = groceryChecks.first(where: { $0.groceryItemId == ingredient.id }) {
             existing.checked.toggle()
             existing.updatedAt = Date()
             syncService.queueChange(
                 table: "groceryChecks", action: "upsert",
-                data: [
-                    "id": existing.id,
-                    "groceryItemId": item.id,
-                    "checked": existing.checked,
-                ],
+                data: ["id": existing.id, "groceryItemId": ingredient.id, "checked": existing.checked],
                 modelContext: modelContext
             )
         } else {
-            let check = GroceryCheck(groceryItemId: item.id, checked: true)
+            let check = GroceryCheck(groceryItemId: ingredient.id, checked: true)
             modelContext.insert(check)
             syncService.queueChange(
                 table: "groceryChecks", action: "upsert",
-                data: [
-                    "id": check.id,
-                    "groceryItemId": item.id,
-                    "checked": true,
-                ],
+                data: ["id": check.id, "groceryItemId": ingredient.id, "checked": true],
                 modelContext: modelContext
             )
         }
     }
 
-    private func toggleCustomItem(_ item: UserPlanItem) {
-        if let existing = groceryChecks.first(where: { $0.groceryItemId == item.id }) {
-            existing.checked.toggle()
-            existing.updatedAt = Date()
-            syncService.queueChange(
-                table: "groceryChecks", action: "upsert",
-                data: [
-                    "id": existing.id,
-                    "groceryItemId": item.id,
-                    "checked": existing.checked,
-                ],
-                modelContext: modelContext
-            )
-        } else {
-            let check = GroceryCheck(groceryItemId: item.id, checked: true)
-            modelContext.insert(check)
-            syncService.queueChange(
-                table: "groceryChecks", action: "upsert",
-                data: [
-                    "id": check.id,
-                    "groceryItemId": item.id,
-                    "checked": true,
-                ],
-                modelContext: modelContext
-            )
+    private func toggleDeduplicatedItem(_ item: DeduplicatedItem) {
+        let newState = !item.allChecked
+        for ingredientId in item.ingredientIds {
+            if let existing = groceryChecks.first(where: { $0.groceryItemId == ingredientId }) {
+                existing.checked = newState
+                existing.updatedAt = Date()
+                syncService.queueChange(
+                    table: "groceryChecks", action: "upsert",
+                    data: ["id": existing.id, "groceryItemId": ingredientId, "checked": newState],
+                    modelContext: modelContext
+                )
+            } else if newState {
+                let check = GroceryCheck(groceryItemId: ingredientId, checked: true)
+                modelContext.insert(check)
+                syncService.queueChange(
+                    table: "groceryChecks", action: "upsert",
+                    data: ["id": check.id, "groceryItemId": ingredientId, "checked": true],
+                    modelContext: modelContext
+                )
+            }
         }
-    }
-
-    private func hideItem(_ itemId: String, type: PlanItemCategory) {
-        let hidden = UserItemHidden(itemId: itemId, itemType: type)
-        modelContext.insert(hidden)
-        syncService.queueChange(
-            table: "userItemsHidden", action: "upsert",
-            data: ["id": hidden.id, "itemId": itemId], modelContext: modelContext
-        )
     }
 
     private func resetAll() {
-        for check in groceryChecks where checkedIds.contains(check.groceryItemId) {
+        let visibleIds = Set(phaseIngredients.map(\.id))
+        for check in groceryChecks where check.checked && visibleIds.contains(check.groceryItemId) {
             check.checked = false
             check.updatedAt = Date()
             syncService.queueChange(
                 table: "groceryChecks", action: "upsert",
-                data: [
-                    "id": check.id,
-                    "groceryItemId": check.groceryItemId,
-                    "checked": false,
-                ],
+                data: ["id": check.id, "groceryItemId": check.groceryItemId, "checked": false],
                 modelContext: modelContext
             )
         }

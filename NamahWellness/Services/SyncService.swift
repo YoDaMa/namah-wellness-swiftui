@@ -122,7 +122,7 @@ final class SyncService {
         try context.delete(model: RecipeIngredient.self)
         try context.delete(model: Phase.self)
         try context.delete(model: Meal.self)
-        try context.delete(model: GroceryItem.self)
+
         try context.delete(model: Workout.self)
         try context.delete(model: WorkoutSession.self)
         try context.delete(model: CoreExercise.self)
@@ -136,7 +136,6 @@ final class SyncService {
         for dto in response.phases { context.insert(dto.toModel()) }
         for dto in response.meals { context.insert(dto.toModel()) }
         for dto in response.recipeIngredients { context.insert(dto.toModel()) }
-        for dto in response.groceryItems { context.insert(dto.toModel()) }
         for dto in response.workouts { context.insert(dto.toModel()) }
         for dto in response.workoutSessions { context.insert(dto.toModel()) }
         for dto in response.coreExercises { context.insert(dto.toModel()) }

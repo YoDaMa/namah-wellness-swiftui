@@ -9,6 +9,7 @@ final class RecipeIngredient {
     var quantity: String?
     var unit: String?
     var sortOrder: Int
+    var category: String?  // Protein, Produce, Pantry / Grains, Other
 
     init(
         id: String = UUID().uuidString,
@@ -16,7 +17,8 @@ final class RecipeIngredient {
         name: String,
         quantity: String? = nil,
         unit: String? = nil,
-        sortOrder: Int = 0
+        sortOrder: Int = 0,
+        category: String? = nil
     ) {
         self.id = id
         self.mealId = mealId
@@ -24,6 +26,7 @@ final class RecipeIngredient {
         self.quantity = quantity
         self.unit = unit
         self.sortOrder = sortOrder
+        self.category = category
     }
 
     func toIngredient() -> Ingredient {

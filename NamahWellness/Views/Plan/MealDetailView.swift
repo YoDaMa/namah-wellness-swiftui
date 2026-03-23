@@ -8,13 +8,10 @@ struct MealDetailView: View {
     let phaseColor: Color
 
     @Query private var recipeIngredients: [RecipeIngredient]
-    @Query private var groceryItems: [GroceryItem]
-    @Query private var phases: [Phase]
+    @Query private var groceryChecks: [GroceryCheck]
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(SyncService.self) private var syncService
-
-    @State private var addedToGrocery = false
 
     init(meal: any MealDisplayable, mealId: String, phaseSlug: String, phaseColor: Color) {
         self.meal = meal
@@ -38,6 +35,10 @@ struct MealDetailView: View {
 
     private var hasRecipe: Bool {
         !ingredients.isEmpty || !meal.steps.isEmpty
+    }
+
+    private var checkedIds: Set<String> {
+        Set(groceryChecks.filter(\.checked).map(\.groceryItemId))
     }
 
     private var shareText: String {
@@ -104,7 +105,6 @@ struct MealDetailView: View {
                 if hasRecipe {
                     if !ingredients.isEmpty {
                         ingredientsSection
-                        addToGroceryButton
                     }
                     if !meal.steps.isEmpty {
                         stepsSection
@@ -202,7 +202,7 @@ struct MealDetailView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Ingredients
+    // MARK: - Ingredients (checkable, synced with GroceryListView)
 
     private var ingredientsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -212,27 +212,80 @@ struct MealDetailView: View {
                 .tracking(2)
                 .foregroundStyle(.secondary)
 
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(ingredients) { ing in
-                    HStack(alignment: .top, spacing: 10) {
-                        Circle()
-                            .fill(phaseColor.opacity(0.3))
-                            .frame(width: 6, height: 6)
-                            .padding(.top, 6)
+            VStack(alignment: .leading, spacing: 4) {
+                if !meal.isCustomMeal {
+                    // Template meals — use RecipeIngredient IDs for check state
+                    ForEach(recipeIngredients, id: \.id) { ing in
+                        let isChecked = checkedIds.contains(ing.id)
+                        Button { toggleIngredientCheck(ing) } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: isChecked ? "checkmark.circle.fill" : "circle")
+                                    .font(.sans(16))
+                                    .foregroundStyle(isChecked ? phaseColor : Color(uiColor: .tertiaryLabel))
 
-                        HStack(spacing: 0) {
-                            if !ing.displayQuantity.isEmpty {
-                                Text(ing.displayQuantity)
-                                    .fontWeight(.medium)
-                                Text(" ")
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(ing.name)
+                                        .font(.sans(14))
+                                        .foregroundStyle(isChecked ? .secondary : .primary)
+                                        .strikethrough(isChecked)
+
+                                    let qty = [ing.quantity, ing.unit].compactMap { $0 }.joined(separator: " ")
+                                    if !qty.isEmpty {
+                                        Text(qty)
+                                            .font(.nCaption2)
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                }
+
+                                Spacer()
                             }
-                            Text(ing.name)
+                            .padding(.vertical, 4)
                         }
-                        .font(.sans(14))
-                        .foregroundStyle(.primary)
+                        .buttonStyle(.plain)
+                    }
+                } else {
+                    // Custom meals — display-only (no RecipeIngredient IDs to check)
+                    ForEach(ingredients) { ing in
+                        HStack(alignment: .top, spacing: 10) {
+                            Circle()
+                                .fill(phaseColor.opacity(0.3))
+                                .frame(width: 6, height: 6)
+                                .padding(.top, 6)
+
+                            HStack(spacing: 0) {
+                                if !ing.displayQuantity.isEmpty {
+                                    Text(ing.displayQuantity)
+                                        .fontWeight(.medium)
+                                    Text(" ")
+                                }
+                                Text(ing.name)
+                            }
+                            .font(.sans(14))
+                            .foregroundStyle(.primary)
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private func toggleIngredientCheck(_ ingredient: RecipeIngredient) {
+        if let existing = groceryChecks.first(where: { $0.groceryItemId == ingredient.id }) {
+            existing.checked.toggle()
+            existing.updatedAt = Date()
+            syncService.queueChange(
+                table: "groceryChecks", action: "upsert",
+                data: ["id": existing.id, "groceryItemId": ingredient.id, "checked": existing.checked],
+                modelContext: modelContext
+            )
+        } else {
+            let check = GroceryCheck(groceryItemId: ingredient.id, checked: true)
+            modelContext.insert(check)
+            syncService.queueChange(
+                table: "groceryChecks", action: "upsert",
+                data: ["id": check.id, "groceryItemId": ingredient.id, "checked": true],
+                modelContext: modelContext
+            )
         }
     }
 
@@ -299,74 +352,4 @@ struct MealDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    // MARK: - Add to Grocery List
-
-    private var addToGroceryButton: some View {
-        Button {
-            addIngredientsToGroceryList()
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: addedToGrocery ? "checkmark.circle.fill" : "bag.badge.plus")
-                    .font(.system(size: 14))
-                Text(addedToGrocery ? "Added to Grocery List" : "Add All to Grocery List")
-                    .font(.nCaption)
-                    .fontWeight(.semibold)
-            }
-            .foregroundStyle(addedToGrocery ? Color.secondary : Color.white)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(addedToGrocery ? Color(uiColor: .secondarySystemGroupedBackground) : phaseColor)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-        }
-        .buttonStyle(.plain)
-        .disabled(addedToGrocery)
-    }
-
-    private func addIngredientsToGroceryList() {
-        let phase = phases.first { $0.slug == phaseSlug }
-        let phaseGroceryItems = phase.map { p in
-            groceryItems.filter { $0.phaseId == p.id }
-        } ?? []
-
-        for ingredient in ingredients {
-            let lowerName = ingredient.name.lowercased()
-
-            // Try to match against existing grocery items by name (case-insensitive)
-            let matched = phaseGroceryItems.first { item in
-                item.name.lowercased().contains(lowerName) || lowerName.contains(item.name.lowercased())
-            }
-
-            if matched != nil {
-                // Existing grocery item found — no action needed (it's already in the list)
-                continue
-            }
-
-            // No match — create a custom grocery item
-            let customItem = UserPlanItem(
-                category: .grocery,
-                title: ingredient.displayQuantity.isEmpty ? ingredient.name : "\(ingredient.displayQuantity) \(ingredient.name)",
-                phaseSlug: phaseSlug,
-                recurrence: .daily,
-                groceryCategory: "Other"
-            )
-            modelContext.insert(customItem)
-            syncService.queueChange(
-                table: "userPlanItems", action: "upsert",
-                data: [
-                    "id": customItem.id,
-                    "category": "grocery",
-                    "title": customItem.title,
-                    "phaseSlug": phaseSlug ?? "",
-                    "recurrence": "daily",
-                    "isActive": true,
-                    "groceryCategory": "Other",
-                ],
-                modelContext: modelContext
-            )
-        }
-
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-        withAnimation { addedToGrocery = true }
-    }
 }

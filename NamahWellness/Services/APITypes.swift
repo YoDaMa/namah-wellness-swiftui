@@ -6,7 +6,6 @@ struct ContentResponse: Decodable {
     let phases: [PhaseDTO]
     let meals: [MealDTO]
     let recipeIngredients: [RecipeIngredientDTO]
-    let groceryItems: [GroceryItemDTO]
     let workouts: [WorkoutDTO]
     let workoutSessions: [WorkoutSessionDTO]
     let coreExercises: [CoreExerciseDTO]
@@ -21,7 +20,6 @@ struct ContentResponse: Decodable {
         phases = try c.decodeIfPresent([PhaseDTO].self, forKey: .phases) ?? []
         meals = try c.decodeIfPresent([MealDTO].self, forKey: .meals) ?? []
         recipeIngredients = try c.decodeIfPresent([RecipeIngredientDTO].self, forKey: .recipeIngredients) ?? []
-        groceryItems = try c.decodeIfPresent([GroceryItemDTO].self, forKey: .groceryItems) ?? []
         workouts = try c.decodeIfPresent([WorkoutDTO].self, forKey: .workouts) ?? []
         workoutSessions = try c.decodeIfPresent([WorkoutSessionDTO].self, forKey: .workoutSessions) ?? []
         coreExercises = try c.decodeIfPresent([CoreExerciseDTO].self, forKey: .coreExercises) ?? []
@@ -33,7 +31,7 @@ struct ContentResponse: Decodable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case phases, meals, recipeIngredients, groceryItems, workouts, workoutSessions
+        case phases, meals, recipeIngredients, workouts, workoutSessions
         case coreExercises, phaseReminders, phaseNutrients
         case supplementDefinitions, supplementNutrients, planTemplates
     }
@@ -153,22 +151,10 @@ struct RecipeIngredientDTO: Decodable {
     let quantity: String?
     let unit: String?
     let sortOrder: Int
+    let category: String?
 
     func toModel() -> RecipeIngredient {
-        RecipeIngredient(id: id, mealId: mealId, name: name, quantity: quantity, unit: unit, sortOrder: sortOrder)
-    }
-}
-
-struct GroceryItemDTO: Decodable {
-    let id: String
-    let phaseId: String
-    let category: String
-    let name: String
-    let saFlag: String?
-    let templateId: String?
-
-    func toModel() -> GroceryItem {
-        GroceryItem(id: id, phaseId: phaseId, category: category, name: name, saFlag: saFlag, templateId: templateId)
+        RecipeIngredient(id: id, mealId: mealId, name: name, quantity: quantity, unit: unit, sortOrder: sortOrder, category: category)
     }
 }
 

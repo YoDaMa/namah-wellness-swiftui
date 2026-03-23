@@ -13,15 +13,12 @@ struct NourishView: View {
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
     @Query private var phaseNutrients: [PhaseNutrient]
     @Query private var reminders: [PhaseReminder]
-    @Query private var groceryItems: [GroceryItem]
     @Query(sort: \Meal.dayNumber) private var allMeals: [Meal]
-
-    @Query private var recipeIngredients: [RecipeIngredient]
+    @Query(sort: \RecipeIngredient.sortOrder) private var recipeIngredients: [RecipeIngredient]
 
     @State private var showNutrients = false
     @State private var showInsights = false
     @State private var showGroceryList = false
-    @State private var showRecipeGroceryList = false
 
     private var phase: Phase? { phases.first { $0.slug == phaseSlug } }
     private var phaseColors: PhaseColors { PhaseColors.forSlug(phaseSlug) }
@@ -37,34 +34,14 @@ struct NourishView: View {
     }
 
     private var groceryCount: Int {
-        guard let p = phase else { return customGrocery.count }
-        let templateCount = groceryItems.filter { $0.phaseId == p.id && !hiddenIds.contains($0.id) }.count
-        return templateCount + customGrocery.count
+        guard let p = phase else { return 0 }
+        let mealIds = Set(allMeals.filter { $0.phaseId == p.id }.map(\.id))
+        return recipeIngredients.filter { mealIds.contains($0.mealId) }.count
     }
 
     private var hasMeals: Bool {
         guard let p = phase else { return false }
         return allMeals.contains { $0.phaseId == p.id && $0.proteinG != nil }
-    }
-
-    private var phaseMealIds: Set<String> {
-        guard let p = phase else { return [] }
-        return Set(allMeals.filter { $0.phaseId == p.id }.map(\.id))
-    }
-
-    private var aggregatedIngredients: [(name: String, quantities: [String])] {
-        let phaseIngredients = recipeIngredients.filter { phaseMealIds.contains($0.mealId) }
-        var grouped: [String: [String]] = [:]
-        for ing in phaseIngredients {
-            let key = ing.name.lowercased()
-            let qty = [ing.quantity, ing.unit].compactMap { $0 }.joined(separator: " ")
-            grouped[key, default: []].append(qty)
-        }
-        return grouped.keys.sorted().map { key in
-            let quantities = grouped[key]!.filter { !$0.isEmpty }
-            let displayName = recipeIngredients.first { $0.name.lowercased() == key }?.name ?? key
-            return (name: displayName, quantities: quantities)
-        }
     }
 
     // MARK: - Body
@@ -73,48 +50,10 @@ struct NourishView: View {
         VStack(alignment: .leading, spacing: 20) {
             bentoGrid
 
-            // Recipe Groceries — full-width tile
-            if !aggregatedIngredients.isEmpty {
-                Button { showRecipeGroceryList = true } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "basket")
-                            .font(.sans(18))
-                            .foregroundStyle(phaseColors.color)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Recipe Groceries")
-                                .font(.nSubheadline)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.primary)
-                            Text("\(aggregatedIngredients.count) unique ingredients from all meals")
-                                .font(.nCaption)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.nCaption)
-                            .foregroundStyle(.tertiary)
-                    }
-                    .padding(14)
-                    .background(Color(uiColor: .secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                }
-                .buttonStyle(.plain)
-            }
-
             // FOR YOU callout
             if let p = phase, !p.saNote.isEmpty {
                 SACalloutView(text: p.saNote)
             }
-        }
-        .sheet(isPresented: $showRecipeGroceryList) {
-            RecipeGroceryListView(
-                ingredients: aggregatedIngredients,
-                phaseSlug: phaseSlug,
-                phaseColor: phaseColors.color
-            )
         }
         .sheet(isPresented: $showNutrients) {
             NutrientSheetView(phaseSlug: phaseSlug)
