@@ -108,19 +108,15 @@ struct TimeBlockSectionView: View {
                 // Items
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(meals) { item in
-                        SwipeActionWrapper(
-                            actionLabel: item.isCompleted ? "Undo" : "Done",
-                            actionIcon: item.isCompleted ? "arrow.uturn.backward" : "checkmark",
-                            actionColor: item.isCompleted ? .orange : .green,
-                            onAction: { onToggleMeal(item.id) }
-                        ) {
-                            if let meal = item.meal {
-                                MealCardContent(meal: meal, isCompleted: item.isCompleted)
-                            } else if let custom = item.customItem {
-                                MealCardContent(customItem: custom, isCompleted: item.isCompleted, phaseColor: phaseColor)
-                            }
+                        if let meal = item.meal {
+                            MealCardContent(meal: meal, isCompleted: item.isCompleted)
+                                .onTapGesture { onTapMeal(item) }
+                                .onLongPressGesture { onToggleMeal(item.id) }
+                        } else if let custom = item.customItem {
+                            MealCardContent(customItem: custom, isCompleted: item.isCompleted, phaseColor: phaseColor)
+                                .onTapGesture { onTapMeal(item) }
+                                .onLongPressGesture { onToggleMeal(item.id) }
                         }
-                        .onTapGesture { onTapMeal(item) }
                     }
 
                     ForEach(supplements) { item in
