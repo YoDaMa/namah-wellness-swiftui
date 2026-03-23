@@ -18,6 +18,11 @@ struct ContentView: View {
     @State private var selectedTab = 0
     @State private var hasInitialSync = false
 
+    private var currentPhaseColor: Color {
+        guard let slug = cycleService.currentPhase?.phaseSlug else { return .primary }
+        return PhaseColors.forSlug(slug).color
+    }
+
     var body: some View {
         Group {
             if authService.isAuthenticated {
@@ -50,6 +55,7 @@ struct ContentView: View {
                         }
                         .tag(3)
                 }
+                .tint(currentPhaseColor)
                 .environment(syncService)
                 .environment(authService)
                 .environment(cycleLogManager)

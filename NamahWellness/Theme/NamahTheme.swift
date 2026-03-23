@@ -162,7 +162,7 @@ struct NamahLabelStyle: ViewModifier {
             .font(.nCaption2)
             .fontWeight(.medium)
             .textCase(.uppercase)
-            .tracking(2)
+            .tracking(1.5)
             .foregroundStyle(.secondary)
     }
 }

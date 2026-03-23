@@ -56,7 +56,7 @@ struct TimeBlockProgressBar: View {
                     RoundedRectangle(cornerRadius: 4)
                         .fill(phaseColor)
                         .frame(width: geo.size.width * progress, height: 6)
-                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: progress)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: progress)
                 }
             }
             .frame(height: 6)

@@ -97,8 +97,8 @@ struct MealCardContent: View {
                     let base = "\(p)P · \(c)C · \(f)F"
                     let macroText = calories.map { "\(base) · \($0)" } ?? base
                     Text(macroText)
-                        .font(.nCaption)
-                        .foregroundStyle(.secondary)
+                        .font(.nCaption2)
+                        .foregroundStyle(.tertiary)
                 }
             }
 
@@ -113,5 +113,6 @@ struct MealCardContent: View {
                     .stroke((phaseColor ?? Color.secondary).opacity(0.2), lineWidth: 1)
             }
         }
+        .sensoryFeedback(.success, trigger: isCompleted)
     }
 }
