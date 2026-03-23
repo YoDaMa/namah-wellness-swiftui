@@ -176,63 +176,58 @@ struct PlanView: View {
     // MARK: - Hero Card (tappable → phase detail sheet)
 
     private var heroCard: some View {
-        Button { showPhaseDetail = true } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                if let phase = displayedPhase {
-                    VStack(alignment: .leading, spacing: 8) {
-                        // Day counter (cycle day for current phase, day range for browsed phases)
-                        if isViewingCurrentPhase, let info = cycleService.currentPhase {
-                            Text("Day \(info.cycleDay) of \(cycleService.cycleStats.avgCycleLength)")
-                                .font(.nCaption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.white.opacity(0.7))
-                        } else if !isViewingCurrentPhase {
-                            Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
-                                .font(.nCaption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.white.opacity(0.7))
-                        }
-
-                        // Phase title
-                        Text(phase.heroTitle)
-                            .font(.display(26))
-                            .foregroundStyle(.white)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        // Intention sentence (ET Book)
-                        Text(phase.heroSubtitle)
-                            .font(.prose(13))
-                            .foregroundStyle(.white.opacity(0.8))
-                            .lineSpacing(2)
-                            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 0) {
+            if let phase = displayedPhase {
+                VStack(alignment: .leading, spacing: 8) {
+                    // Day counter (cycle day for current phase, day range for browsed phases)
+                    if isViewingCurrentPhase, let info = cycleService.currentPhase {
+                        Text("Day \(info.cycleDay) of \(cycleService.cycleStats.avgCycleLength)")
+                            .font(.nCaption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.white.opacity(0.7))
+                    } else if !isViewingCurrentPhase {
+                        Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
+                            .font(.nCaption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.white.opacity(0.7))
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                    .padding(.bottom, 14)
 
-                    // Footer: Days range + informational phase dots
-                    heroFooter(phase)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 16)
+                    Text(phase.heroTitle)
+                        .font(.display(26))
+                        .foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(phase.heroSubtitle)
+                        .font(.prose(13))
+                        .foregroundStyle(.white.opacity(0.8))
+                        .lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-            }
-            .background(phaseColors.color)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(alignment: .leading) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.3))
-                    .padding(.leading, 6)
-            }
-            .overlay(alignment: .trailing) {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.3))
-                    .padding(.trailing, 6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 14)
+
+                heroFooter(phase)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 16)
             }
         }
-        .buttonStyle(.plain)
+        .background(phaseColors.color)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(alignment: .leading) {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.3))
+                .padding(.leading, 6)
+        }
+        .overlay(alignment: .trailing) {
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.3))
+                .padding(.trailing, 6)
+        }
+        .onTapGesture { showPhaseDetail = true }
     }
 
     // MARK: - Hero Footer (Days X–Y + phase dots)
