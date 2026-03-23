@@ -20,6 +20,7 @@ final class SyncService {
 
     private let apiClient = APIClient.shared
     private var modelContext: ModelContext?
+    private var backgroundContext: ModelContext?
     private weak var authService: AuthService?
     private let monitor = NWPathMonitor()
     private var isOnline = false
@@ -28,6 +29,8 @@ final class SyncService {
 
     func configure(modelContext: ModelContext, authService: AuthService) {
         self.modelContext = modelContext
+        // Background context for SyncChange writes — avoids triggering @Query re-evaluations in UI
+        self.backgroundContext = ModelContext(modelContext.container)
         self.authService = authService
         monitor.pathUpdateHandler = { [weak self] path in
             Task { @MainActor in
@@ -78,15 +81,20 @@ final class SyncService {
 
         let jsonString = String(data: jsonData, encoding: .utf8) ?? "{}"
         let change = SyncChange(tableName: table, action: action, payload: jsonString)
-        modelContext.insert(change)
+        // Insert into background context to avoid triggering @Query re-evaluations
+        // across all UI views (TodayView has 19 @Query properties)
+        let ctx = backgroundContext ?? modelContext
+        ctx.insert(change)
+        try? ctx.save()
     }
 
     // MARK: - Push
 
     @MainActor
     private func pushPendingChanges(context: ModelContext) async throws {
+        let syncCtx = backgroundContext ?? context
         let descriptor = FetchDescriptor<SyncChange>(sortBy: [SortDescriptor(\.createdAt)])
-        let changes = try context.fetch(descriptor)
+        let changes = try syncCtx.fetch(descriptor)
 
         guard !changes.isEmpty else { return }
 
@@ -108,8 +116,9 @@ final class SyncService {
         try await apiClient.postRaw(path: "/api/v1/sync", body: jsonData)
 
         for change in changes {
-            context.delete(change)
+            syncCtx.delete(change)
         }
+        try? syncCtx.save()
     }
 
     // MARK: - Pull Content
@@ -187,20 +196,16 @@ final class SyncService {
     private func pullProfile(context: ModelContext) async throws {
         let dto: ProfileDTO = try await apiClient.get(path: "/api/v1/profile")
 
-        // Fetch or create local profile
+        // Delete any existing profiles and create fresh with correct ID
+        // (avoids duplicate profiles from id="default" vs real user UUID)
         let descriptor = FetchDescriptor<UserProfile>()
         let existing = try context.fetch(descriptor)
-
-        let profile: UserProfile
-        if let p = existing.first {
-            profile = p
-        } else {
-            profile = UserProfile(id: dto.id)
-            context.insert(profile)
+        for old in existing {
+            context.delete(old)
         }
 
-        // Update from backend
-        profile.id = dto.id
+        let profile = UserProfile(id: dto.id)
+        context.insert(profile)
         profile.name = dto.name
         profile.cycleLengthOverride = dto.cycleLengthOverride
         profile.periodLengthOverride = dto.periodLengthOverride
