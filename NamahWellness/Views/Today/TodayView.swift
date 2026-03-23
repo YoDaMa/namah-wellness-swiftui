@@ -526,7 +526,7 @@ struct TodayView: View {
         }
 
         // Core Protocol (shown once, after time blocks, if workout exists and not rest day)
-        if let (workout, _) = todayWorkout, !workout.isRestDay, !coreExercises.isEmpty, workout.hasCoreProtocol {
+        if let (workout, _) = todayWorkout, !workout.isRestDay, !coreExercises.isEmpty {
             coreProtocolCard
                 .padding(.horizontal)
         }

@@ -9,11 +9,11 @@ final class Workout {
     var dayFocus: String     // "Strength", "Cardio", "Rest"
     var templateId: String?
     var isRestDay: Bool
-    var hasCoreProtocol: Bool = true
+    var hasCoreProtocol: Bool = false
 
     init(
         id: String = UUID().uuidString,
-        dayOfWeek: Int, dayLabel: String, dayFocus: String, templateId: String? = nil, isRestDay: Bool, hasCoreProtocol: Bool = true
+        dayOfWeek: Int, dayLabel: String, dayFocus: String, templateId: String? = nil, isRestDay: Bool, hasCoreProtocol: Bool = false
     ) {
         self.id = id
         self.dayOfWeek = dayOfWeek
