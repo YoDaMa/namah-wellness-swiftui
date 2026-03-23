@@ -10,40 +10,54 @@ struct NamahWellnessApp: App {
     @State private var syncService = SyncService()
 
     init() {
+        let schema = Schema([
+            Phase.self,
+            Meal.self,
+            RecipeIngredient.self,
+            Workout.self,
+            WorkoutSession.self,
+            CoreExercise.self,
+            PhaseReminder.self,
+            PhaseNutrient.self,
+            CycleLog.self,
+            MealCompletion.self,
+            WorkoutCompletion.self,
+            GroceryCheck.self,
+            SymptomLog.self,
+            DailyNote.self,
+            SupplementDefinition.self,
+            SupplementNutrient.self,
+            UserSupplement.self,
+            SupplementLog.self,
+            UserProfile.self,
+            SyncChange.self,
+            DailySchedule.self,
+            BBTLog.self,
+            SexualActivityLog.self,
+            PlanTemplate.self,
+            UserPlanSelection.self,
+            UserPlanItem.self,
+            UserItemHidden.self,
+            PlanItemLog.self,
+        ])
+
         do {
-            let schema = Schema([
-                Phase.self,
-                Meal.self,
-                RecipeIngredient.self,
-                Workout.self,
-                WorkoutSession.self,
-                CoreExercise.self,
-                PhaseReminder.self,
-                PhaseNutrient.self,
-                CycleLog.self,
-                MealCompletion.self,
-                WorkoutCompletion.self,
-                GroceryCheck.self,
-                SymptomLog.self,
-                DailyNote.self,
-                SupplementDefinition.self,
-                SupplementNutrient.self,
-                UserSupplement.self,
-                SupplementLog.self,
-                UserProfile.self,
-                SyncChange.self,
-                DailySchedule.self,
-                BBTLog.self,
-                SexualActivityLog.self,
-                PlanTemplate.self,
-                UserPlanSelection.self,
-                UserPlanItem.self,
-                UserItemHidden.self,
-                PlanItemLog.self,
-            ])
             modelContainer = try ModelContainer(for: schema)
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            // Schema migration failed — delete the corrupt store and start fresh.
+            // User data will re-sync from backend on next login.
+            print("⚠️ ModelContainer failed: \(error). Resetting database.")
+            let config = ModelConfiguration()
+            let url = config.url
+            let related = [url, url.deletingPathExtension().appendingPathExtension("sqlite-wal"), url.deletingPathExtension().appendingPathExtension("sqlite-shm")]
+            for file in related {
+                try? FileManager.default.removeItem(at: file)
+            }
+            do {
+                modelContainer = try ModelContainer(for: schema)
+            } catch {
+                fatalError("Failed to create ModelContainer even after reset: \(error)")
+            }
         }
 
         NotificationService.registerCategories()
