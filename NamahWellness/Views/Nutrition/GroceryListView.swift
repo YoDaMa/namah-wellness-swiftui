@@ -50,10 +50,19 @@ struct GroceryListView: View {
         Set(mealGroups.flatMap { $0.ingredients.map(\.id) })
     }
 
-    private var totalCount: Int { allPhaseIngredientIds.count }
+    private var uniqueIngredientNames: Set<String> {
+        Set(mealGroups.flatMap { $0.ingredients.map { $0.name.lowercased() } })
+    }
+
+    private var totalCount: Int { uniqueIngredientNames.count }
 
     private var checkedCount: Int {
-        allPhaseIngredientIds.intersection(checkedIds).count
+        // Count unique names where ALL instances are checked
+        let allIngredients = mealGroups.flatMap(\.ingredients)
+        let byName = Dictionary(grouping: allIngredients, by: { $0.name.lowercased() })
+        return byName.values.filter { ings in
+            ings.allSatisfy { checkedIds.contains($0.id) }
+        }.count
     }
 
     private var progress: Double {
