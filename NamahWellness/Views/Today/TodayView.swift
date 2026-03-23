@@ -36,8 +36,7 @@ struct TodayView: View {
     @State private var showLogPeriod = false
     @State private var showSymptoms = false
     @State private var showPhaseDetail = false
-    @State private var showMealDetail = false
-    @State private var selectedMealItem: TimeBlockSectionView.MealItem?
+    @State private var mealPresentation: MealDetailPresentation?
 
     @AppStorage("lastOverdueDismissDate") private var lastOverdueDismissDate: String = ""
 
@@ -376,17 +375,14 @@ struct TodayView: View {
                 }
                 .presentationDragIndicator(.visible)
             }
-            .sheet(isPresented: $showMealDetail) {
+            .sheet(item: $mealPresentation) { presentation in
                 NavigationStack {
-                    if let item = selectedMealItem {
-                        let displayable: any MealDisplayable = item.meal ?? item.customItem!
-                        MealDetailView(
-                            meal: displayable,
-                            mealId: item.id,
-                            phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual",
-                            phaseColor: phaseColor
-                        )
-                    }
+                    MealDetailView(
+                        meal: presentation.meal,
+                        mealId: presentation.id,
+                        phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual",
+                        phaseColor: phaseColor
+                    )
                 }
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
@@ -439,8 +435,8 @@ struct TodayView: View {
                     Haptics.completion()
                 },
                 onTapMeal: { item in
-                    selectedMealItem = item
-                    showMealDetail = true
+                    let displayable: any MealDisplayable = item.meal ?? item.customItem!
+                    mealPresentation = MealDetailPresentation(id: item.id, meal: displayable)
                 },
                 onToggleSupplement: { suppId in
                     toggleSupplement(suppId)

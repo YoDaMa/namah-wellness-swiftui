@@ -1,6 +1,11 @@
 import SwiftUI
 import SwiftData
 
+struct MealDetailPresentation: Identifiable {
+    let id: String
+    let meal: any MealDisplayable
+}
+
 struct MealPlanView: View {
     let phaseSlug: String
 
@@ -17,9 +22,7 @@ struct MealPlanView: View {
     @State private var showAddMeal = false
     @State private var replaceMealType: String?
     @State private var replaceMealTime: String?
-    @State private var showMealDetail = false
-    @State private var selectedMealId: String?
-    @State private var selectedMealDisplayable: (any MealDisplayable)?
+    @State private var mealPresentation: MealDetailPresentation?
     @State private var ingredientSearch = ""
 
     private var phase: Phase? { phases.first { $0.slug == phaseSlug } }
@@ -133,9 +136,7 @@ struct MealPlanView: View {
                         ForEach(searchFilteredMeals, id: \.id) { meal in
                             mealCard(meal)
                                 .onTapGesture {
-                                    selectedMealId = meal.id
-                                    selectedMealDisplayable = meal
-                                    showMealDetail = true
+                                    mealPresentation = MealDetailPresentation(id: meal.id, meal: meal)
                                 }
                         }
                     }
@@ -155,9 +156,7 @@ struct MealPlanView: View {
                         ForEach(group.meals, id: \.id) { meal in
                             mealCard(meal)
                                 .onTapGesture {
-                                    selectedMealId = meal.id
-                                    selectedMealDisplayable = meal
-                                    showMealDetail = true
+                                    mealPresentation = MealDetailPresentation(id: meal.id, meal: meal)
                                 }
                                 .contextMenu {
                                     Button(role: .destructive) {
@@ -179,9 +178,7 @@ struct MealPlanView: View {
                         ForEach(customMealsForToday, id: \.id) { item in
                             customMealCard(item)
                                 .onTapGesture {
-                                    selectedMealId = item.id
-                                    selectedMealDisplayable = item
-                                    showMealDetail = true
+                                    mealPresentation = MealDetailPresentation(id: item.id, meal: item)
                                 }
                         }
                     }
@@ -197,16 +194,14 @@ struct MealPlanView: View {
                 selectedDay = dayGroups.first?.dayNumber ?? 1
             }
         }
-        .sheet(isPresented: $showMealDetail) {
+        .sheet(item: $mealPresentation) { presentation in
             NavigationStack {
-                if let displayable = selectedMealDisplayable, let mealId = selectedMealId {
-                    MealDetailView(
-                        meal: displayable,
-                        mealId: mealId,
-                        phaseSlug: phaseSlug,
-                        phaseColor: phaseColors.color
-                    )
-                }
+                MealDetailView(
+                    meal: presentation.meal,
+                    mealId: presentation.id,
+                    phaseSlug: phaseSlug,
+                    phaseColor: phaseColors.color
+                )
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
