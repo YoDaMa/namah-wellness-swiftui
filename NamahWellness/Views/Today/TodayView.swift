@@ -449,7 +449,7 @@ struct TodayView: View {
                     customItem: presentation.customItem,
                     dayFocus: presentation.dayFocus,
                     phaseColor: phaseColor,
-                    coreExercises: coreExercises.isEmpty ? [] : Array(coreExercises)
+                    coreExercises: (todayWorkout?.0.hasCoreProtocol == true) ? Array(coreExercises) : []
                 )
             }
             .onChange(of: timeBlockService.currentDate) {
@@ -525,7 +525,7 @@ struct TodayView: View {
         }
 
         // Core Protocol (shown once, after time blocks, if workout exists and not rest day)
-        if let (workout, _) = todayWorkout, !workout.isRestDay, !coreExercises.isEmpty {
+        if let (workout, _) = todayWorkout, !workout.isRestDay, !coreExercises.isEmpty, workout.hasCoreProtocol {
             coreProtocolCard
                 .padding(.horizontal)
         }
