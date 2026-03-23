@@ -3,12 +3,6 @@ import SwiftData
 
 /// Grocery list derived from RecipeIngredients for the current phase.
 /// Supports "By Meal" and "By Category" grouping with synchronized check state.
-///
-/// Data flow:
-///   RecipeIngredient (per-meal) → grouped by meal or category
-///   GroceryCheck (groceryItemId = RecipeIngredient.id) → shared check state
-///   Checking in GroceryListView ↔ checking in MealDetailView (same GroceryCheck)
-///
 struct GroceryListView: View {
     let phaseSlug: String
     let phaseColor: Color
@@ -28,41 +22,52 @@ struct GroceryListView: View {
     }
 
     @State private var groupMode: GroupMode = .byMeal
+    @State private var shareContent = ""
+
+    // MARK: - Derived data (computed once, not per-row)
 
     private var phase: Phase? { phases.first { $0.slug == phaseSlug } }
     private var phaseColors: PhaseColors { PhaseColors.forSlug(phaseSlug) }
-
-    private var phaseMeals: [Meal] {
-        guard let p = phase else { return [] }
-        return allMeals.filter { $0.phaseId == p.id && $0.proteinG != nil }
-    }
-
-    private var phaseMealIds: Set<String> {
-        Set(phaseMeals.map(\.id))
-    }
-
-    private var phaseIngredients: [RecipeIngredient] {
-        allIngredients.filter { phaseMealIds.contains($0.mealId) }
-    }
 
     private var checkedIds: Set<String> {
         Set(groceryChecks.filter(\.checked).map(\.groceryItemId))
     }
 
-    private var totalCount: Int { phaseIngredients.count }
-    private var checkedCount: Int { phaseIngredients.filter { checkedIds.contains($0.id) }.count }
-    private var progress: Double { totalCount == 0 ? 0 : Double(checkedCount) / Double(totalCount) }
+    // Pre-grouped meal data to avoid repeated filtering in ForEach
+    private var mealGroups: [(meal: Meal, ingredients: [RecipeIngredient])] {
+        guard let p = phase else { return [] }
+        let meals = allMeals.filter { $0.phaseId == p.id && $0.proteinG != nil }
+        let mealIds = Set(meals.map(\.id))
+        let ingredients = allIngredients.filter { mealIds.contains($0.mealId) }
+        let byMeal = Dictionary(grouping: ingredients, by: \.mealId)
+        return meals.compactMap { meal in
+            guard let ings = byMeal[meal.id], !ings.isEmpty else { return nil }
+            return (meal: meal, ingredients: ings)
+        }
+    }
+
+    private var allPhaseIngredientIds: Set<String> {
+        Set(mealGroups.flatMap { $0.ingredients.map(\.id) })
+    }
+
+    private var totalCount: Int { allPhaseIngredientIds.count }
+
+    private var checkedCount: Int {
+        allPhaseIngredientIds.intersection(checkedIds).count
+    }
+
+    private var progress: Double {
+        totalCount == 0 ? 0 : Double(checkedCount) / Double(totalCount)
+    }
 
     // MARK: - Body
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Header
+                LazyVStack(alignment: .leading, spacing: 0) {
                     headerSection
 
-                    // Group mode picker
                     Picker("Group by", selection: $groupMode) {
                         ForEach(GroupMode.allCases, id: \.self) { mode in
                             Text(mode.rawValue).tag(mode)
@@ -72,7 +77,6 @@ struct GroceryListView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
 
-                    // Content
                     switch groupMode {
                     case .byMeal:
                         byMealContent
@@ -89,8 +93,21 @@ struct GroceryListView: View {
                     Button("Done") { dismiss() }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    ShareLink(item: shareText) {
+                    Button {
+                        shareContent = buildShareText()
+                    } label: {
                         Image(systemName: "square.and.arrow.up")
+                    }
+                    .sheet(isPresented: .init(
+                        get: { !shareContent.isEmpty },
+                        set: { if !$0 { shareContent = "" } }
+                    )) {
+                        if #available(iOS 16.4, *) {
+                            ShareLink(item: shareContent) {
+                                Text("Share Grocery List")
+                            }
+                            .presentationDetents([.medium])
+                        }
                     }
                 }
             }
@@ -133,94 +150,92 @@ struct GroceryListView: View {
         .background(phaseColors.soft)
     }
 
-    // MARK: - By Meal
+    // MARK: - By Meal (uses pre-grouped data)
 
     private var byMealContent: some View {
-        ForEach(phaseMeals, id: \.id) { meal in
-            let mealIngredients = phaseIngredients.filter { $0.mealId == meal.id }
-            if !mealIngredients.isEmpty {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Meal title header
-                    HStack(spacing: 6) {
-                        Text(meal.mealType.uppercased())
-                            .font(.nCaption2)
-                            .fontWeight(.semibold)
-                            .tracking(1.5)
-                            .foregroundStyle(phaseColor)
-                        Text("·").foregroundStyle(.tertiary)
-                        Text(meal.title)
-                            .font(.nCaption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                    }
+        ForEach(mealGroups, id: \.meal.id) { group in
+            Section {
+                ForEach(group.ingredients, id: \.id) { ingredient in
+                    ingredientRow(ingredient)
+                }
+            } header: {
+                HStack(spacing: 6) {
+                    Text(group.meal.mealType.uppercased())
+                        .font(.nCaption2)
+                        .fontWeight(.semibold)
+                        .tracking(1.5)
+                        .foregroundStyle(phaseColor)
+                    Text("·").foregroundStyle(.tertiary)
+                    Text(group.meal.title)
+                        .font(.nCaption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(phaseColor.opacity(0.06))
+            }
+        }
+    }
+
+    // MARK: - By Category (uses pre-grouped data)
+
+    private let categories = ["Protein", "Produce", "Pantry / Grains", "Other"]
+
+    private var categoryGroups: [(category: String, items: [DeduplicatedItem])] {
+        let allIngredients = mealGroups.flatMap(\.ingredients)
+        var byCat: [String: [String: [RecipeIngredient]]] = [:]
+        for ing in allIngredients {
+            let cat = ing.category ?? "Other"
+            byCat[cat, default: [:]][ing.name.lowercased(), default: []].append(ing)
+        }
+        return categories.compactMap { cat in
+            guard let grouped = byCat[cat], !grouped.isEmpty else { return nil }
+            let items = grouped.keys.sorted().map { key -> DeduplicatedItem in
+                let ings = grouped[key]!
+                let ids = ings.map(\.id)
+                let qtys = ings.compactMap { i -> String? in
+                    let q = [i.quantity, i.unit].compactMap { $0 }.joined(separator: " ")
+                    return q.isEmpty ? nil : q
+                }
+                return DeduplicatedItem(
+                    name: ings.first?.name ?? key,
+                    ingredientIds: ids,
+                    quantities: Array(Set(qtys)).sorted(),
+                    allChecked: ids.allSatisfy { checkedIds.contains($0) }
+                )
+            }
+            return (category: cat, items: items)
+        }
+    }
+
+    private var byCategoryContent: some View {
+        ForEach(categoryGroups, id: \.category) { group in
+            Section {
+                ForEach(group.items, id: \.name) { item in
+                    deduplicatedRow(item)
+                }
+            } header: {
+                Text(group.category.uppercased())
+                    .font(.nCaption2)
+                    .fontWeight(.semibold)
+                    .tracking(2)
+                    .foregroundStyle(phaseColor)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(phaseColor.opacity(0.06))
-
-                    // Ingredients
-                    ForEach(mealIngredients, id: \.id) { ingredient in
-                        ingredientRow(ingredient)
-                    }
-                }
             }
         }
     }
-
-    // MARK: - By Category
-
-    private let categories = ["Protein", "Produce", "Pantry / Grains", "Other"]
-
-    private var byCategoryContent: some View {
-        ForEach(categories, id: \.self) { category in
-            let catIngredients = deduplicatedIngredients(for: category)
-            if !catIngredients.isEmpty {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(category.uppercased())
-                        .font(.nCaption2)
-                        .fontWeight(.semibold)
-                        .tracking(2)
-                        .foregroundStyle(phaseColor)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(phaseColor.opacity(0.06))
-
-                    ForEach(catIngredients, id: \.name) { item in
-                        deduplicatedRow(item)
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - Deduplication for Category View
 
     private struct DeduplicatedItem {
         let name: String
         let ingredientIds: [String]
         let quantities: [String]
         let allChecked: Bool
-    }
-
-    private func deduplicatedIngredients(for category: String) -> [DeduplicatedItem] {
-        let matching = phaseIngredients.filter { ($0.category ?? "Other") == category }
-        var grouped: [String: [RecipeIngredient]] = [:]
-        for ing in matching {
-            grouped[ing.name.lowercased(), default: []].append(ing)
-        }
-        return grouped.keys.sorted().map { key in
-            let items = grouped[key]!
-            let ids = items.map(\.id)
-            let qtys = items.compactMap { ing -> String? in
-                let q = [ing.quantity, ing.unit].compactMap { $0 }.joined(separator: " ")
-                return q.isEmpty ? nil : q
-            }
-            let allChecked = ids.allSatisfy { checkedIds.contains($0) }
-            let displayName = items.first?.name ?? key
-            return DeduplicatedItem(name: displayName, ingredientIds: ids, quantities: qtys, allChecked: allChecked)
-        }
     }
 
     // MARK: - Rows
@@ -269,8 +284,7 @@ struct GroceryListView: View {
                         .strikethrough(item.allChecked)
 
                     if !item.quantities.isEmpty {
-                        let summary = Array(Set(item.quantities)).sorted().joined(separator: ", ")
-                        Text(summary)
+                        Text(item.quantities.joined(separator: ", "))
                             .font(.nCaption2)
                             .foregroundStyle(.tertiary)
                     }
@@ -291,21 +305,18 @@ struct GroceryListView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Share
+    // MARK: - Share (built on demand, not eagerly)
 
-    private var shareText: String {
+    private func buildShareText() -> String {
         var text = "Grocery List — \(phase?.name ?? "") Phase\n\n"
-        for meal in phaseMeals {
-            let mealIngredients = phaseIngredients.filter { $0.mealId == meal.id }
-            if !mealIngredients.isEmpty {
-                text += "\(meal.mealType): \(meal.title)\n"
-                for ing in mealIngredients {
-                    let check = checkedIds.contains(ing.id) ? "✓" : "○"
-                    let qty = [ing.quantity, ing.unit].compactMap { $0 }.joined(separator: " ")
-                    text += "  \(check) \(qty.isEmpty ? ing.name : "\(qty) \(ing.name)")\n"
-                }
-                text += "\n"
+        for group in mealGroups {
+            text += "\(group.meal.mealType): \(group.meal.title)\n"
+            for ing in group.ingredients {
+                let check = checkedIds.contains(ing.id) ? "✓" : "○"
+                let qty = [ing.quantity, ing.unit].compactMap { $0 }.joined(separator: " ")
+                text += "  \(check) \(qty.isEmpty ? ing.name : "\(qty) \(ing.name)")\n"
             }
+            text += "\n"
         }
         return text
     }
@@ -356,7 +367,7 @@ struct GroceryListView: View {
     }
 
     private func resetAll() {
-        let visibleIds = Set(phaseIngredients.map(\.id))
+        let visibleIds = allPhaseIngredientIds
         for check in groceryChecks where check.checked && visibleIds.contains(check.groceryItemId) {
             check.checked = false
             check.updatedAt = Date()
