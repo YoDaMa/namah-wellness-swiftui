@@ -104,12 +104,13 @@ struct MealCardContent: View {
             Spacer()
         }
         .padding(12)
-        .background(isCustom ? (phaseColor ?? .secondary).opacity(0.08) : Color(uiColor: .secondarySystemGroupedBackground))
+        .background(isCustom ? (phaseColor ?? Color.secondary).opacity(0.08) : Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            isCustom
-            ? RoundedRectangle(cornerRadius: 12).stroke((phaseColor ?? .secondary).opacity(0.2), lineWidth: 1)
-            : nil
-        )
+        .overlay {
+            if isCustom {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke((phaseColor ?? Color.secondary).opacity(0.2), lineWidth: 1)
+            }
+        }
     }
 }

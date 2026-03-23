@@ -10,14 +10,13 @@ struct SwipeActionWrapper<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     @State private var offset: CGFloat = 0
-    @State private var isRevealed = false
 
     private let threshold: CGFloat = 70
     private let revealWidth: CGFloat = 80
 
     var body: some View {
         ZStack(alignment: .leading) {
-            // Background action
+            // Background action revealed on swipe
             HStack(spacing: 6) {
                 Image(systemName: actionIcon)
                     .font(.system(size: 14, weight: .semibold))
@@ -35,45 +34,30 @@ struct SwipeActionWrapper<Content: View>: View {
             // Main content
             content()
                 .offset(x: offset)
-                .gesture(swipeGesture)
         }
+        .contentShape(Rectangle())
+        .simultaneousGesture(swipeGesture)
     }
 
     private var swipeGesture: some Gesture {
-        DragGesture(minimumDistance: 20)
+        DragGesture(minimumDistance: 40)
             .onChanged { value in
                 let h = value.translation.width
-                // Only allow rightward swipe, with resistance
-                guard h > 0 else {
-                    // Allow snapping back
-                    if isRevealed {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            offset = 0
-                            isRevealed = false
-                        }
-                    }
+                // Only rightward, and must be clearly horizontal (not a scroll)
+                guard h > 0, abs(h) > abs(value.translation.height) * 2.0 else {
                     return
                 }
-                guard abs(h) > abs(value.translation.height) * 1.2 else { return }
-                offset = min(h * 0.6, revealWidth + 20) // Rubber band effect
+                offset = min(h * 0.6, revealWidth + 20)
             }
             .onEnded { value in
                 let h = value.translation.width
-                if h > threshold {
-                    // Trigger action
+                if h > threshold, abs(h) > abs(value.translation.height) * 2.0 {
                     let generator = UIImpactFeedbackGenerator(style: .medium)
                     generator.impactOccurred()
                     onAction()
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        offset = 0
-                        isRevealed = false
-                    }
-                } else {
-                    // Snap back
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        offset = 0
-                        isRevealed = false
-                    }
+                }
+                withAnimation(.easeOut(duration: 0.2)) {
+                    offset = 0
                 }
             }
     }
