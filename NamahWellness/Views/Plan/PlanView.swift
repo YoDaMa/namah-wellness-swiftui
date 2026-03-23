@@ -70,10 +70,11 @@ struct PlanView: View {
             ScrollView {
                 LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
                     heroCard
+                        .contentShape(Rectangle())
+                        .simultaneousGesture(phaseSwipeGesture)
                         .padding(.horizontal)
                         .padding(.top, 4)
                         .padding(.bottom, 4)
-                        .gesture(phaseSwipeGesture)
 
                     Section {
                         Group {
@@ -153,16 +154,18 @@ struct PlanView: View {
     // MARK: - Phase Swipe Gesture
 
     private var phaseSwipeGesture: some Gesture {
-        DragGesture(minimumDistance: 50)
+        DragGesture(minimumDistance: 40)
             .onEnded { value in
                 let h = value.translation.width
+                // Must be primarily horizontal
                 guard abs(h) > abs(value.translation.height) * 1.5 else { return }
+                guard abs(h) > 40 else { return }
                 let idx = selectedPhaseIndex ?? currentPhaseIndex
-                if h < -50 {
+                if h < 0 {
                     withAnimation(.easeInOut(duration: 0.25)) {
                         selectedPhaseIndex = (idx + 1) % 4
                     }
-                } else if h > 50 {
+                } else {
                     withAnimation(.easeInOut(duration: 0.25)) {
                         selectedPhaseIndex = (idx - 1 + 4) % 4
                     }
