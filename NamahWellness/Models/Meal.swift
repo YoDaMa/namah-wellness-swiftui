@@ -18,6 +18,7 @@ final class Meal {
     var proteinG: Int?
     var carbsG: Int?
     var fatG: Int?
+    var instructions: String?  // JSON array of step strings
 
     init(
         id: String = UUID().uuidString,
@@ -25,7 +26,8 @@ final class Meal {
         mealType: String, time: String, calories: String,
         title: String, mealDescription: String, saNote: String? = nil,
         templateId: String? = nil,
-        proteinG: Int? = nil, carbsG: Int? = nil, fatG: Int? = nil
+        proteinG: Int? = nil, carbsG: Int? = nil, fatG: Int? = nil,
+        instructions: String? = nil
     ) {
         self.id = id
         self.phaseId = phaseId
@@ -42,5 +44,6 @@ final class Meal {
         self.proteinG = proteinG
         self.carbsG = carbsG
         self.fatG = fatG
+        self.instructions = instructions
     }
 }

@@ -14,6 +14,7 @@ struct NamahWellnessApp: App {
             let schema = Schema([
                 Phase.self,
                 Meal.self,
+                RecipeIngredient.self,
                 GroceryItem.self,
                 Workout.self,
                 WorkoutSession.self,

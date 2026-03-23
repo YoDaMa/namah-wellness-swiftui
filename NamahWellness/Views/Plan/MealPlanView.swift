@@ -9,6 +9,7 @@ struct MealPlanView: View {
 
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
     @Query(sort: \Meal.dayNumber) private var allMeals: [Meal]
+    @Query private var recipeIngredients: [RecipeIngredient]
     @Query private var userPlanItems: [UserPlanItem]
     @Query private var userItemsHidden: [UserItemHidden]
 
@@ -16,6 +17,10 @@ struct MealPlanView: View {
     @State private var showAddMeal = false
     @State private var replaceMealType: String?
     @State private var replaceMealTime: String?
+    @State private var showMealDetail = false
+    @State private var selectedMealId: String?
+    @State private var selectedMealDisplayable: (any MealDisplayable)?
+    @State private var ingredientSearch = ""
 
     private var phase: Phase? { phases.first { $0.slug == phaseSlug } }
     private var phaseColors: PhaseColors { PhaseColors.forSlug(phaseSlug) }
@@ -26,6 +31,21 @@ struct MealPlanView: View {
 
     private var customMeals: [UserPlanItem] {
         userPlanItems.filter { $0.category == .meal && $0.isActive }
+    }
+
+    private var isSearching: Bool { !ingredientSearch.isEmpty }
+
+    private var searchMatchedMealIds: Set<String> {
+        guard isSearching else { return [] }
+        let query = ingredientSearch.lowercased()
+        let matchedIds = recipeIngredients
+            .filter { $0.name.lowercased().contains(query) }
+            .map(\.mealId)
+        return Set(matchedIds)
+    }
+
+    private var searchFilteredMeals: [Meal] {
+        phaseMeals.filter { searchMatchedMealIds.contains($0.id) }
     }
 
     private var phaseMeals: [Meal] {
@@ -73,38 +93,97 @@ struct MealPlanView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                dayNavigator
+                // Ingredient search bar
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                    TextField("Search by ingredient...", text: $ingredientSearch)
+                        .font(.sans(14))
+                        .autocorrectionDisabled()
+                    if isSearching {
+                        Button { ingredientSearch = "" } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                }
+                .padding(10)
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                if let group = selectedDayGroup {
-                    let summary = macroSummary(for: group)
-                    if !summary.isEmpty {
-                        Text(summary)
+                if isSearching {
+                    // Search results mode
+                    if searchFilteredMeals.isEmpty {
+                        VStack(spacing: 8) {
+                            Text("No meals found")
+                                .font(.nSubheadline)
+                                .foregroundStyle(.secondary)
+                            Text("No meals contain \"\(ingredientSearch)\"")
+                                .font(.nCaption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 32)
+                    } else {
+                        Text("\(searchFilteredMeals.count) meals with \"\(ingredientSearch)\"")
                             .font(.nCaption)
                             .fontWeight(.medium)
                             .foregroundStyle(.secondary)
-                    }
 
-                    ForEach(group.meals, id: \.id) { meal in
-                        mealCard(meal)
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    hideItem(meal.id, type: .meal)
-                                } label: {
-                                    Label("Hide This Meal", systemImage: "eye.slash")
+                        ForEach(searchFilteredMeals, id: \.id) { meal in
+                            mealCard(meal)
+                                .onTapGesture {
+                                    selectedMealId = meal.id
+                                    selectedMealDisplayable = meal
+                                    showMealDetail = true
                                 }
-                                Button {
-                                    replaceMealType = meal.mealType
-                                    replaceMealTime = meal.time
-                                    showAddMeal = true
-                                } label: {
-                                    Label("Replace with My Own", systemImage: "arrow.triangle.swap")
-                                }
-                            }
+                        }
                     }
+                } else {
+                    // Normal day-based browsing
+                    dayNavigator
 
-                    // Custom meals for today
-                    ForEach(customMealsForToday, id: \.id) { item in
-                        customMealCard(item)
+                    if let group = selectedDayGroup {
+                        let summary = macroSummary(for: group)
+                        if !summary.isEmpty {
+                            Text(summary)
+                                .font(.nCaption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        ForEach(group.meals, id: \.id) { meal in
+                            mealCard(meal)
+                                .onTapGesture {
+                                    selectedMealId = meal.id
+                                    selectedMealDisplayable = meal
+                                    showMealDetail = true
+                                }
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        hideItem(meal.id, type: .meal)
+                                    } label: {
+                                        Label("Hide This Meal", systemImage: "eye.slash")
+                                    }
+                                    Button {
+                                        replaceMealType = meal.mealType
+                                        replaceMealTime = meal.time
+                                        showAddMeal = true
+                                    } label: {
+                                        Label("Replace with My Own", systemImage: "arrow.triangle.swap")
+                                    }
+                                }
+                        }
+
+                        // Custom meals for today
+                        ForEach(customMealsForToday, id: \.id) { item in
+                            customMealCard(item)
+                                .onTapGesture {
+                                    selectedMealId = item.id
+                                    selectedMealDisplayable = item
+                                    showMealDetail = true
+                                }
+                        }
                     }
                 }
             }
@@ -117,6 +196,20 @@ struct MealPlanView: View {
             if dayGroups.first(where: { $0.dayNumber == selectedDay }) == nil {
                 selectedDay = dayGroups.first?.dayNumber ?? 1
             }
+        }
+        .sheet(isPresented: $showMealDetail) {
+            NavigationStack {
+                if let displayable = selectedMealDisplayable, let mealId = selectedMealId {
+                    MealDetailView(
+                        meal: displayable,
+                        mealId: mealId,
+                        phaseSlug: phaseSlug,
+                        phaseColor: phaseColors.color
+                    )
+                }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showAddMeal) {
             AddPlanItemSheet(

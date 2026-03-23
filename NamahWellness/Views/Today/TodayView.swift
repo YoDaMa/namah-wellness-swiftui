@@ -36,6 +36,8 @@ struct TodayView: View {
     @State private var showLogPeriod = false
     @State private var showSymptoms = false
     @State private var showPhaseDetail = false
+    @State private var showMealDetail = false
+    @State private var selectedMealItem: TimeBlockSectionView.MealItem?
 
     @AppStorage("lastOverdueDismissDate") private var lastOverdueDismissDate: String = ""
 
@@ -374,6 +376,21 @@ struct TodayView: View {
                 }
                 .presentationDragIndicator(.visible)
             }
+            .sheet(isPresented: $showMealDetail) {
+                NavigationStack {
+                    if let item = selectedMealItem {
+                        let displayable: any MealDisplayable = item.meal ?? item.customItem!
+                        MealDetailView(
+                            meal: displayable,
+                            mealId: item.id,
+                            phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual",
+                            phaseColor: phaseColor
+                        )
+                    }
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+            }
             .sheet(isPresented: $showLogSupplement) {
                 LogSupplementSheet(phaseColor: phaseColor)
             }
@@ -420,6 +437,10 @@ struct TodayView: View {
                 onToggleMeal: { mealId in
                     toggleMeal(mealId)
                     Haptics.completion()
+                },
+                onTapMeal: { item in
+                    selectedMealItem = item
+                    showMealDetail = true
                 },
                 onToggleSupplement: { suppId in
                     toggleSupplement(suppId)

@@ -5,6 +5,7 @@ import Foundation
 struct ContentResponse: Decodable {
     let phases: [PhaseDTO]
     let meals: [MealDTO]
+    let recipeIngredients: [RecipeIngredientDTO]
     let groceryItems: [GroceryItemDTO]
     let workouts: [WorkoutDTO]
     let workoutSessions: [WorkoutSessionDTO]
@@ -19,6 +20,7 @@ struct ContentResponse: Decodable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         phases = try c.decodeIfPresent([PhaseDTO].self, forKey: .phases) ?? []
         meals = try c.decodeIfPresent([MealDTO].self, forKey: .meals) ?? []
+        recipeIngredients = try c.decodeIfPresent([RecipeIngredientDTO].self, forKey: .recipeIngredients) ?? []
         groceryItems = try c.decodeIfPresent([GroceryItemDTO].self, forKey: .groceryItems) ?? []
         workouts = try c.decodeIfPresent([WorkoutDTO].self, forKey: .workouts) ?? []
         workoutSessions = try c.decodeIfPresent([WorkoutSessionDTO].self, forKey: .workoutSessions) ?? []
@@ -31,7 +33,7 @@ struct ContentResponse: Decodable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case phases, meals, groceryItems, workouts, workoutSessions
+        case phases, meals, recipeIngredients, groceryItems, workouts, workoutSessions
         case coreExercises, phaseReminders, phaseNutrients
         case supplementDefinitions, supplementNutrients, planTemplates
     }
@@ -130,6 +132,7 @@ struct MealDTO: Decodable {
     let proteinG: Int?
     let carbsG: Int?
     let fatG: Int?
+    let instructions: String?
 
     func toModel() -> Meal {
         Meal(
@@ -137,8 +140,22 @@ struct MealDTO: Decodable {
             dayCalories: dayCalories, mealType: mealType, time: time, calories: calories,
             title: title, mealDescription: description, saNote: saNote,
             templateId: templateId,
-            proteinG: proteinG, carbsG: carbsG, fatG: fatG
+            proteinG: proteinG, carbsG: carbsG, fatG: fatG,
+            instructions: instructions
         )
+    }
+}
+
+struct RecipeIngredientDTO: Decodable {
+    let id: String
+    let mealId: String
+    let name: String
+    let quantity: String?
+    let unit: String?
+    let sortOrder: Int
+
+    func toModel() -> RecipeIngredient {
+        RecipeIngredient(id: id, mealId: mealId, name: name, quantity: quantity, unit: unit, sortOrder: sortOrder)
     }
 }
 
@@ -422,6 +439,8 @@ struct UserPlanItemDTO: Decodable {
     let workoutFocus: String?
     let duration: String?
     let groceryCategory: String?
+    let ingredientsJSON: String?
+    let instructions: String?
 
     func toModel() -> UserPlanItem {
         UserPlanItem(
@@ -435,7 +454,9 @@ struct UserPlanItemDTO: Decodable {
             mealType: mealType, calories: calories,
             proteinG: proteinG, carbsG: carbsG, fatG: fatG,
             workoutFocus: workoutFocus, duration: duration,
-            groceryCategory: groceryCategory
+            groceryCategory: groceryCategory,
+            ingredientsJSON: ingredientsJSON,
+            instructions: instructions
         )
     }
 }

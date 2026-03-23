@@ -11,6 +11,7 @@
 		030E1F23D0A89A99B0E78FA7 /* BBTChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAFADF0C35BAC7F00FF550DE /* BBTChartView.swift */; };
 		03648E324E5BFC4EA23A0D56 /* ETBookOT-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8927E550B02C19E21D612E12 /* ETBookOT-Bold.otf */; };
 		0F9AA0D8814C1145305B4249 /* ETBookOT-Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 55B6100F523885E7AA5478CE /* ETBookOT-Italic.otf */; };
+		15DBE4925CDEAF79128645FF /* Ingredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47AE4ABD64FD5A970924AF9F /* Ingredient.swift */; };
 		18562E4C88CA4207B48D8E64 /* ProfileCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6468211DDF034E468B78C474 /* ProfileCardView.swift */; };
 		1998C9D3CDF5081A78BDDC34 /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139601881931CFC6FF7B74E1 /* PlanView.swift */; };
 		1D4AEE89AE3C7364EE642085 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7245C7AA1D424F2BBA5DC4AE /* AuthService.swift */; };
@@ -23,6 +24,7 @@
 		241D91888B767F744E89CAC4 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55559112F1FA8F997EDBD43C /* CalendarService.swift */; };
 		24CFECC7E05A555F29097687 /* MacroSummaryBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199440C62E1016C84A8ADDB6 /* MacroSummaryBar.swift */; };
 		28BBB235D84556A111365641 /* CycleServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CACFC950E11B9CFBC046464 /* CycleServiceTests.swift */; };
+		2CB612F8E387198C82A95B3C /* SwipeActionWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4AAE86FA314900B25D24A5 /* SwipeActionWrapper.swift */; };
 		2DB693226B556C4869CE4843 /* SexualActivityLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71FBF2EF588DEFD729D49296 /* SexualActivityLogTests.swift */; };
 		30EE9D79EFF77417CE090737 /* PlusJakartaSans-Italic-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1285963692ECE549381BD855 /* PlusJakartaSans-Italic-Variable.ttf */; };
 		34F0E16AE5A180131D4E929E /* MoveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF90EF9AB5D621D4DEA96727 /* MoveView.swift */; };
@@ -40,6 +42,7 @@
 		51622F48F5553D812757DE1A /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE970A9A8FCC967A88730894 /* FlowLayout.swift */; };
 		52034D02C4571AB13AC0BD01 /* AddPlanItemSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59244F900B473FF2696C7013 /* AddPlanItemSheet.swift */; };
 		5677803EBD6ABF08732CBDCD /* PlanSupplementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D113899BC720CFB56EE6666C /* PlanSupplementsView.swift */; };
+		5B0FF0DD9F2771C39D5D8F2A /* RecipeIngredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91CB63F1639B1A1C605D6777 /* RecipeIngredient.swift */; };
 		5B212908DEB491DDE37D2745 /* LogPeriodSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2923570EC72BD28B4A99C9 /* LogPeriodSheet.swift */; };
 		5CFD94FA4BBE173A07B270EC /* NourishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF3C67B2A132ED0E032E4A8 /* NourishView.swift */; };
 		5E63BD1CFA35BF71A4FA39F3 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DAAFFB2FDB7137CD4420838 /* TodayView.swift */; };
@@ -50,7 +53,9 @@
 		72B3B9EDA98808F827C928D8 /* EvidenceBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB82FB36EC36F79E61AED6E9 /* EvidenceBadge.swift */; };
 		75D28AEAB79BB2B5DC353ECA /* TimeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF0DC66C421BE29309B9DD3 /* TimeParser.swift */; };
 		7D1FB4CEABC2501DB2557982 /* PlusJakartaSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7F63DDFE165B5700E134096C /* PlusJakartaSans-Variable.ttf */; };
+		7F0E64D08EDB4851A2223BF5 /* MealCardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE4C3B20CAD4C839C99EDF0 /* MealCardContent.swift */; };
 		8ABC08B6124A9C5884082B41 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84D838A60B19FC4A03859BF /* SyncService.swift */; };
+		8D913CF73BCBC73B4A3C20EA /* MealDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8B1149912C3E0EFBC9E4C63 /* MealDetailView.swift */; };
 		8E5574AA47293414B50271D5 /* Workout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F45B46DC6CFDA59430B339 /* Workout.swift */; };
 		8E868CB450DC435E34B9F1F8 /* HormoneChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6B34A58A694FA421F11C00 /* HormoneChartView.swift */; };
 		959CA95B0E6B0FC924697DEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86932D331AAA25CB182FCB41 /* Assets.xcassets */; };
@@ -62,6 +67,7 @@
 		A5C11CBD7002971C23F562C4 /* HormoneData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E06523D5B2AF57425FCB58 /* HormoneData.swift */; };
 		A92DAD25FB6A93C925534217 /* DayDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F69E191E808584409354E6A /* DayDetailSheet.swift */; };
 		AA45A91D2C4939EDA0C59B56 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3700E999B3E7421E7A63B688 /* EditProfileView.swift */; };
+		AA90D64E7358C51BE360EBC5 /* MealDisplayable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7416CDDDF5BB8A424772E72B /* MealDisplayable.swift */; };
 		AC6F2DF69BB78E1AEF682D31 /* PhaseHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 413AFFB88F25D9A99E826CB8 /* PhaseHeroCard.swift */; };
 		B2F48E498FA4918102E7E8E0 /* BBTLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6DA2A80493D12F4EEF44B6D /* BBTLog.swift */; };
 		B821DC990A74D351A4106E40 /* NamahTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC3702C70D1E407D0001AFE /* NamahTheme.swift */; };
@@ -72,6 +78,7 @@
 		C4BDF05079E35A23C0034C27 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6CAEF9024E04895D625C873 /* APIClient.swift */; };
 		C8BAB807476C3FFA2B54D2D1 /* SexualActivityLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E3E192BA8ED1E5E91103B7 /* SexualActivityLog.swift */; };
 		CB8B237ED8E61749185E5299 /* Supplement.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01AE3BCBFBEF573AC5FFC88 /* Supplement.swift */; };
+		CC5C777D33085E2FE6688603 /* RecipeGroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9303B677B3FCC2F47E50F55 /* RecipeGroceryListView.swift */; };
 		CF12D9A71DC5F69035FF5F6B /* CycleLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AF006E3DAEE24FB6B6C291 /* CycleLog.swift */; };
 		D193423B046A79DEE0FD2282 /* PhaseDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1660B9765F081F06A8AF8E7 /* PhaseDetailView.swift */; };
 		D1E9D12383E8E872FAE73F08 /* InsightsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D8E2A2E24BC04686A649874 /* InsightsSheetView.swift */; };
@@ -116,11 +123,13 @@
 		1DAAFFB2FDB7137CD4420838 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		25F04F944466E14D5100AA8E /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		2C46161AE72FE60368EE4CC1 /* TimeBlockProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlockProgressBar.swift; sourceTree = "<group>"; };
+		2FE4C3B20CAD4C839C99EDF0 /* MealCardContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCardContent.swift; sourceTree = "<group>"; };
 		3700E999B3E7421E7A63B688 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		3887E5AE582DF244E341C951 /* CycleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleService.swift; sourceTree = "<group>"; };
 		3AC3702C70D1E407D0001AFE /* NamahTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamahTheme.swift; sourceTree = "<group>"; };
 		413AFFB88F25D9A99E826CB8 /* PhaseHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseHeroCard.swift; sourceTree = "<group>"; };
 		42E06523D5B2AF57425FCB58 /* HormoneData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneData.swift; sourceTree = "<group>"; };
+		47AE4ABD64FD5A970924AF9F /* Ingredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ingredient.swift; sourceTree = "<group>"; };
 		4AF49201192E92E47B9AA71C /* AddCustomSupplementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCustomSupplementView.swift; sourceTree = "<group>"; };
 		4E4EB1437564D16C45AF4C2C /* Completion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Completion.swift; sourceTree = "<group>"; };
 		55559112F1FA8F997EDBD43C /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
@@ -139,6 +148,7 @@
 		6D8E2A2E24BC04686A649874 /* InsightsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsSheetView.swift; sourceTree = "<group>"; };
 		71FBF2EF588DEFD729D49296 /* SexualActivityLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SexualActivityLogTests.swift; sourceTree = "<group>"; };
 		7245C7AA1D424F2BBA5DC4AE /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		7416CDDDF5BB8A424772E72B /* MealDisplayable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDisplayable.swift; sourceTree = "<group>"; };
 		74614E34083D59F3BD2F06CD /* MealCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCardView.swift; sourceTree = "<group>"; };
 		78456B0314BF404BED05D0EA /* MealPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanView.swift; sourceTree = "<group>"; };
 		79F45B46DC6CFDA59430B339 /* Workout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workout.swift; sourceTree = "<group>"; };
@@ -152,14 +162,17 @@
 		8E1C5125977D07DE7E35DCE9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		8E6B34A58A694FA421F11C00 /* HormoneChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneChartView.swift; sourceTree = "<group>"; };
 		9035829E579722DBE6A5FF07 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		91CB63F1639B1A1C605D6777 /* RecipeIngredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeIngredient.swift; sourceTree = "<group>"; };
 		93376BA4A9A4AD8B38E62408 /* UserItemHidden.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserItemHidden.swift; sourceTree = "<group>"; };
 		94A537778367021851D9FB35 /* DMSerifDisplay-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMSerifDisplay-Italic.ttf"; sourceTree = "<group>"; };
 		967B581E5FFA4396DCA99461 /* UserPlanSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPlanSelection.swift; sourceTree = "<group>"; };
 		96AF006E3DAEE24FB6B6C291 /* CycleLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleLog.swift; sourceTree = "<group>"; };
 		9BA1BC08BE8C23DF4CF5E6BE /* InsightRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightRowView.swift; sourceTree = "<group>"; };
 		A179EE9B4D61732EBEBB66FE /* NamahWellness.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NamahWellness.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A8B1149912C3E0EFBC9E4C63 /* MealDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealDetailView.swift; sourceTree = "<group>"; };
 		A8F86A21EEB0120BF2449333 /* PlanTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanTemplate.swift; sourceTree = "<group>"; };
 		AB2E8B0A6BB95CD0F269C551 /* TimeBlockSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlockSectionView.swift; sourceTree = "<group>"; };
+		AC4AAE86FA314900B25D24A5 /* SwipeActionWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeActionWrapper.swift; sourceTree = "<group>"; };
 		ACA0D889653229CA26878820 /* PhaseHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseHeaderView.swift; sourceTree = "<group>"; };
 		ACE2279ADDF428CBE8E2C7CC /* MyCycleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCycleView.swift; sourceTree = "<group>"; };
 		AEE6E78E3C834863E28CB867 /* ETBookOT-Roman.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ETBookOT-Roman.otf"; sourceTree = "<group>"; };
@@ -175,6 +188,7 @@
 		D7529A3B3DADEE6EF5026B0E /* CycleLogManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleLogManager.swift; sourceTree = "<group>"; };
 		DF90EF9AB5D621D4DEA96727 /* MoveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveView.swift; sourceTree = "<group>"; };
 		E78C4B608FA7C85FF07BBBD0 /* PlanResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanResolver.swift; sourceTree = "<group>"; };
+		E9303B677B3FCC2F47E50F55 /* RecipeGroceryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGroceryListView.swift; sourceTree = "<group>"; };
 		E993A1D3841D81A84CE42EA0 /* PlanItemLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanItemLog.swift; sourceTree = "<group>"; };
 		EE3CE1738447313D7A3C38C2 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		EE970A9A8FCC967A88730894 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
@@ -215,11 +229,13 @@
 				9BA1BC08BE8C23DF4CF5E6BE /* InsightRowView.swift */,
 				0F2923570EC72BD28B4A99C9 /* LogPeriodSheet.swift */,
 				199440C62E1016C84A8ADDB6 /* MacroSummaryBar.swift */,
+				2FE4C3B20CAD4C839C99EDF0 /* MealCardContent.swift */,
 				74614E34083D59F3BD2F06CD /* MealCardView.swift */,
 				ACA0D889653229CA26878820 /* PhaseHeaderView.swift */,
 				413AFFB88F25D9A99E826CB8 /* PhaseHeroCard.swift */,
 				6468211DDF034E468B78C474 /* ProfileCardView.swift */,
 				5EE5877B9EDDD4CE4CD13E4E /* SACalloutView.swift */,
+				AC4AAE86FA314900B25D24A5 /* SwipeActionWrapper.swift */,
 				2C46161AE72FE60368EE4CC1 /* TimeBlockProgressBar.swift */,
 				AB2E8B0A6BB95CD0F269C551 /* TimeBlockSectionView.swift */,
 			);
@@ -243,6 +259,7 @@
 			isa = PBXGroup;
 			children = (
 				EFAE8910B36D5AB05B641B60 /* GroceryListView.swift */,
+				E9303B677B3FCC2F47E50F55 /* RecipeGroceryListView.swift */,
 			);
 			path = Nutrition;
 			sourceTree = "<group>";
@@ -319,10 +336,13 @@
 				96AF006E3DAEE24FB6B6C291 /* CycleLog.swift */,
 				00B382B007CE7D900F6D6295 /* DailySchedule.swift */,
 				095186FF8376AA32A7216280 /* GroceryItem.swift */,
+				47AE4ABD64FD5A970924AF9F /* Ingredient.swift */,
 				024E36BD82293C99A5D5521F /* Meal.swift */,
+				7416CDDDF5BB8A424772E72B /* MealDisplayable.swift */,
 				62EC3D42C8A5F785258C6136 /* Phase.swift */,
 				E993A1D3841D81A84CE42EA0 /* PlanItemLog.swift */,
 				A8F86A21EEB0120BF2449333 /* PlanTemplate.swift */,
+				91CB63F1639B1A1C605D6777 /* RecipeIngredient.swift */,
 				F7E3E192BA8ED1E5E91103B7 /* SexualActivityLog.swift */,
 				B01AE3BCBFBEF573AC5FFC88 /* Supplement.swift */,
 				FC809F47B0D06CD2891BC0E3 /* SymptomLog.swift */,
@@ -430,6 +450,7 @@
 				59244F900B473FF2696C7013 /* AddPlanItemSheet.swift */,
 				1A93916862654D91E30A89DF /* BrowseSupplementsSheet.swift */,
 				6D8E2A2E24BC04686A649874 /* InsightsSheetView.swift */,
+				A8B1149912C3E0EFBC9E4C63 /* MealDetailView.swift */,
 				78456B0314BF404BED05D0EA /* MealPlanView.swift */,
 				DF90EF9AB5D621D4DEA96727 /* MoveView.swift */,
 				6BF3C67B2A132ED0E032E4A8 /* NourishView.swift */,
@@ -592,6 +613,7 @@
 				8E868CB450DC435E34B9F1F8 /* HormoneChartView.swift in Sources */,
 				A5C11CBD7002971C23F562C4 /* HormoneData.swift in Sources */,
 				60F28E643071535CE5C35361 /* HormonesView.swift in Sources */,
+				15DBE4925CDEAF79128645FF /* Ingredient.swift in Sources */,
 				D98E5790B5437496E52B4CE7 /* InsightRowView.swift in Sources */,
 				D1E9D12383E8E872FAE73F08 /* InsightsSheetView.swift in Sources */,
 				49860F69A231FAA08E77FD3C /* KeychainHelper.swift in Sources */,
@@ -601,7 +623,10 @@
 				E7C07329818DD50382ECEEE5 /* LoginView.swift in Sources */,
 				24CFECC7E05A555F29097687 /* MacroSummaryBar.swift in Sources */,
 				EE2E0A4EC043873B85602A9D /* Meal.swift in Sources */,
+				7F0E64D08EDB4851A2223BF5 /* MealCardContent.swift in Sources */,
 				1FCEB15251A81E567BCDA861 /* MealCardView.swift in Sources */,
+				8D913CF73BCBC73B4A3C20EA /* MealDetailView.swift in Sources */,
+				AA90D64E7358C51BE360EBC5 /* MealDisplayable.swift in Sources */,
 				F236CCF3E6EDDCAE9D06376C /* MealPlanView.swift in Sources */,
 				34F0E16AE5A180131D4E929E /* MoveView.swift in Sources */,
 				391B30BEF2F89463F895D21A /* MyCycleView.swift in Sources */,
@@ -621,9 +646,12 @@
 				1998C9D3CDF5081A78BDDC34 /* PlanView.swift in Sources */,
 				18562E4C88CA4207B48D8E64 /* ProfileCardView.swift in Sources */,
 				99BB9690759978216DA7CB6A /* ProfileView.swift in Sources */,
+				CC5C777D33085E2FE6688603 /* RecipeGroceryListView.swift in Sources */,
+				5B0FF0DD9F2771C39D5D8F2A /* RecipeIngredient.swift in Sources */,
 				9E53A8392F1F0E0491C3B3E5 /* SACalloutView.swift in Sources */,
 				C8BAB807476C3FFA2B54D2D1 /* SexualActivityLog.swift in Sources */,
 				CB8B237ED8E61749185E5299 /* Supplement.swift in Sources */,
+				2CB612F8E387198C82A95B3C /* SwipeActionWrapper.swift in Sources */,
 				4D188D4E73C2D392A1E96BA0 /* SymptomLog.swift in Sources */,
 				E01236801FB6406CDBC563D6 /* SyncChange.swift in Sources */,
 				8ABC08B6124A9C5884082B41 /* SyncService.swift in Sources */,

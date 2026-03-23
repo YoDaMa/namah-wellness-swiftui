@@ -24,16 +24,30 @@ struct PlanView: View {
     @State private var showProfile = false
     @State private var showPhaseDetail = false
     @State private var showAddItem = false
+    @State private var selectedPhaseIndex: Int? = nil
 
-    private var currentSlug: String {
+    private let slugOrder = ["menstrual", "follicular", "ovulatory", "luteal"]
+
+    private var realCurrentSlug: String {
         cycleService.currentPhase?.phaseSlug ?? "menstrual"
     }
 
-    private var currentPhase: Phase? {
-        phases.first { $0.slug == currentSlug }
+    private var currentPhaseIndex: Int {
+        slugOrder.firstIndex(of: realCurrentSlug) ?? 0
     }
 
-    private var phaseColors: PhaseColors { PhaseColors.forSlug(currentSlug) }
+    private var displayedSlug: String {
+        if let idx = selectedPhaseIndex { return slugOrder[idx] }
+        return realCurrentSlug
+    }
+
+    private var displayedPhase: Phase? {
+        phases.first { $0.slug == displayedSlug }
+    }
+
+    private var isViewingCurrentPhase: Bool { selectedPhaseIndex == nil }
+
+    private var phaseColors: PhaseColors { PhaseColors.forSlug(displayedSlug) }
 
     private var hiddenIds: Set<String> {
         Set(userItemsHidden.map(\.itemId))
@@ -59,13 +73,14 @@ struct PlanView: View {
                         .padding(.horizontal)
                         .padding(.top, 4)
                         .padding(.bottom, 4)
+                        .gesture(phaseSwipeGesture)
 
                     Section {
                         Group {
                             switch selectedTab {
                             case .nourish:
                                 NourishView(
-                                    phaseSlug: currentSlug,
+                                    phaseSlug: displayedSlug,
                                     cycleService: cycleService,
                                     customItems: customMeals,
                                     customGrocery: customGrocery,
@@ -73,7 +88,7 @@ struct PlanView: View {
                                 )
                             case .move:
                                 MoveView(
-                                    phaseSlug: currentSlug,
+                                    phaseSlug: displayedSlug,
                                     customWorkouts: customWorkouts,
                                     hiddenIds: hiddenIds
                                 )
@@ -89,6 +104,7 @@ struct PlanView: View {
                     }
                 }
             }
+            .onAppear { selectedPhaseIndex = nil }
             .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Plan")
             .navigationBarTitleDisplayMode(.inline)
@@ -114,12 +130,12 @@ struct PlanView: View {
             .sheet(isPresented: $showAddItem) {
                 AddPlanItemSheet(
                     defaultCategory: selectedTab == .move ? .workout : selectedTab == .nourish ? .meal : .meal,
-                    phaseSlug: currentSlug
+                    phaseSlug: displayedSlug
                 )
             }
             .sheet(isPresented: $showPhaseDetail) {
                 NavigationStack {
-                    if let phase = currentPhase {
+                    if let phase = displayedPhase {
                         PhaseDetailView(phase: phase, cycleService: cycleService)
                             .toolbar {
                                 ToolbarItem(placement: .cancellationAction) {
@@ -134,16 +150,41 @@ struct PlanView: View {
         }
     }
 
+    // MARK: - Phase Swipe Gesture
+
+    private var phaseSwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 50)
+            .onEnded { value in
+                let h = value.translation.width
+                guard abs(h) > abs(value.translation.height) * 1.5 else { return }
+                let idx = selectedPhaseIndex ?? currentPhaseIndex
+                if h < -50 {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        selectedPhaseIndex = (idx + 1) % 4
+                    }
+                } else if h > 50 {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        selectedPhaseIndex = (idx - 1 + 4) % 4
+                    }
+                }
+            }
+    }
+
     // MARK: - Hero Card (tappable → phase detail sheet)
 
     private var heroCard: some View {
         Button { showPhaseDetail = true } label: {
             VStack(alignment: .leading, spacing: 0) {
-                if let phase = currentPhase {
+                if let phase = displayedPhase {
                     VStack(alignment: .leading, spacing: 8) {
-                        // Day counter
-                        if let info = cycleService.currentPhase {
+                        // Day counter (cycle day for current phase, day range for browsed phases)
+                        if isViewingCurrentPhase, let info = cycleService.currentPhase {
                             Text("Day \(info.cycleDay) of \(cycleService.cycleStats.avgCycleLength)")
+                                .font(.nCaption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.white.opacity(0.7))
+                        } else if !isViewingCurrentPhase {
+                            Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
                                 .font(.nCaption)
                                 .fontWeight(.medium)
                                 .foregroundStyle(.white.opacity(0.7))
@@ -175,6 +216,18 @@ struct PlanView: View {
             }
             .background(phaseColors.color)
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(alignment: .leading) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.3))
+                    .padding(.leading, 6)
+            }
+            .overlay(alignment: .trailing) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.3))
+                    .padding(.trailing, 6)
+            }
         }
         .buttonStyle(.plain)
     }
@@ -182,9 +235,7 @@ struct PlanView: View {
     // MARK: - Hero Footer (Days X–Y + phase dots)
 
     private func heroFooter(_ phase: Phase) -> some View {
-        let slugOrder = ["menstrual", "follicular", "ovulatory", "luteal"]
-
-        return HStack {
+        HStack {
             Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
                 .font(.nCaption2)
                 .fontWeight(.medium)
@@ -194,10 +245,10 @@ struct PlanView: View {
 
             HStack(spacing: 6) {
                 ForEach(slugOrder, id: \.self) { slug in
-                    let isCurrent = currentSlug == slug
+                    let isSelected = displayedSlug == slug
                     Circle()
-                        .fill(isCurrent ? .white : .white.opacity(0.3))
-                        .frame(width: isCurrent ? 8 : 6, height: isCurrent ? 8 : 6)
+                        .fill(isSelected ? .white : .white.opacity(0.3))
+                        .frame(width: isSelected ? 8 : 6, height: isSelected ? 8 : 6)
                 }
             }
         }
@@ -220,13 +271,13 @@ struct PlanView: View {
                     .fill(phaseColors.color)
                     .frame(width: 8, height: 8)
 
-                Text(currentPhase?.name ?? "")
+                Text(displayedPhase?.name ?? "")
                     .font(.nCaption)
                     .fontWeight(.bold)
                     .foregroundStyle(phaseColors.color)
                     .padding(.leading, 6)
 
-                if let info = cycleService.currentPhase {
+                if isViewingCurrentPhase, let info = cycleService.currentPhase {
                     Text("·")
                         .foregroundStyle(phaseColors.color.opacity(0.4))
                         .padding(.leading, 6)
@@ -235,9 +286,41 @@ struct PlanView: View {
                         .fontWeight(.medium)
                         .foregroundStyle(phaseColors.color.opacity(0.7))
                         .padding(.leading, 4)
+                } else if !isViewingCurrentPhase, let phase = displayedPhase {
+                    Text("·")
+                        .foregroundStyle(phaseColors.color.opacity(0.4))
+                        .padding(.leading, 6)
+                    Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
+                        .font(.nCaption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(phaseColors.color.opacity(0.7))
+                        .padding(.leading, 4)
                 }
 
                 Spacer()
+
+                if !isViewingCurrentPhase {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            selectedPhaseIndex = nil
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.uturn.backward")
+                                .font(.system(size: 9, weight: .semibold))
+                            Text("TODAY")
+                                .font(.nCaption2)
+                                .fontWeight(.bold)
+                                .tracking(1)
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(PhaseColors.forSlug(realCurrentSlug).color)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)

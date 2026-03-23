@@ -72,6 +72,10 @@ final class UserPlanItem {
     // Grocery-specific
     var groceryCategory: String?    // Protein, Produce, Pantry, Other
 
+    // Recipe (custom meals only)
+    var ingredientsJSON: String?    // JSON array of {name, quantity, unit}
+    var instructions: String?       // JSON array of step strings
+
     var category: PlanItemCategory {
         get { PlanItemCategory(rawValue: categoryRaw) ?? .meal }
         set { categoryRaw = newValue.rawValue }
@@ -142,7 +146,9 @@ final class UserPlanItem {
         fatG: Int? = nil,
         workoutFocus: String? = nil,
         duration: String? = nil,
-        groceryCategory: String? = nil
+        groceryCategory: String? = nil,
+        ingredientsJSON: String? = nil,
+        instructions: String? = nil
     ) {
         self.id = id
         self.userId = userId
@@ -164,5 +170,7 @@ final class UserPlanItem {
         self.workoutFocus = workoutFocus
         self.duration = duration
         self.groceryCategory = groceryCategory
+        self.ingredientsJSON = ingredientsJSON
+        self.instructions = instructions
     }
 }

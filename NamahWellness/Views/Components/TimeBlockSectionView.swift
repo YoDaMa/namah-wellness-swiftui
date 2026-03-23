@@ -20,6 +20,7 @@ struct TimeBlockSectionView: View {
     let phaseColor: Color
 
     let onToggleMeal: (String) -> Void
+    let onTapMeal: (MealItem) -> Void
     let onToggleSupplement: (String) -> Void
     let onCheckIn: () -> Void
 
@@ -107,17 +108,19 @@ struct TimeBlockSectionView: View {
                 // Items
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(meals) { item in
-                        if let meal = item.meal {
-                            MealCardView(
-                                meal: meal,
-                                isCompleted: item.isCompleted,
-                                onToggle: { onToggleMeal(item.id) }
-                            )
-                        } else if let custom = item.customItem {
-                            customMealRow(custom, isCompleted: item.isCompleted) {
-                                onToggleMeal(item.id)
+                        SwipeActionWrapper(
+                            actionLabel: item.isCompleted ? "Undo" : "Done",
+                            actionIcon: item.isCompleted ? "arrow.uturn.backward" : "checkmark",
+                            actionColor: item.isCompleted ? .orange : .green,
+                            onAction: { onToggleMeal(item.id) }
+                        ) {
+                            if let meal = item.meal {
+                                MealCardContent(meal: meal, isCompleted: item.isCompleted)
+                            } else if let custom = item.customItem {
+                                MealCardContent(customItem: custom, isCompleted: item.isCompleted, phaseColor: phaseColor)
                             }
                         }
+                        .onTapGesture { onTapMeal(item) }
                     }
 
                     ForEach(supplements) { item in

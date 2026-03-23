@@ -118,6 +118,7 @@ final class SyncService {
         let response: ContentResponse = try await apiClient.get(path: "/api/v1/content")
 
         // Delete existing content models
+        try context.delete(model: RecipeIngredient.self)
         try context.delete(model: Phase.self)
         try context.delete(model: Meal.self)
         try context.delete(model: GroceryItem.self)
@@ -133,6 +134,7 @@ final class SyncService {
         // Insert new content
         for dto in response.phases { context.insert(dto.toModel()) }
         for dto in response.meals { context.insert(dto.toModel()) }
+        for dto in response.recipeIngredients { context.insert(dto.toModel()) }
         for dto in response.groceryItems { context.insert(dto.toModel()) }
         for dto in response.workouts { context.insert(dto.toModel()) }
         for dto in response.workoutSessions { context.insert(dto.toModel()) }
