@@ -92,6 +92,26 @@ struct PhaseColors {
     }
 }
 
+// MARK: - Design Tokens
+
+enum NamahSpacing {
+    /// 8pt — compact spacing (within cards, between related elements)
+    static let compact: CGFloat = 8
+    /// 16pt — standard spacing (between cards, between sections)
+    static let standard: CGFloat = 16
+    /// 24pt — relaxed spacing (between major sections, visual breathing room)
+    static let relaxed: CGFloat = 24
+}
+
+enum NamahRadius {
+    /// 8pt — small elements (buttons, badges, nutrient pills)
+    static let small: CGFloat = 8
+    /// 12pt — standard cards (meal cards, supplement rows, progress bar)
+    static let medium: CGFloat = 12
+    /// 14pt — large containers (hero cards, section backgrounds)
+    static let large: CGFloat = 14
+}
+
 // MARK: - Typography
 
 extension Font {
