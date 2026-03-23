@@ -23,6 +23,8 @@ struct TimeBlockSectionView: View {
     let onTapMeal: (MealItem) -> Void
     let onToggleSupplement: (String) -> Void
     let onCheckIn: () -> Void
+    let onToggleWorkout: (String) -> Void
+    let onTapWorkout: (WorkoutSessionItem) -> Void
 
     struct MealItem: Identifiable {
         let id: String
@@ -63,32 +65,35 @@ struct TimeBlockSectionView: View {
         let isRestDay: Bool
         let dayFocus: String
         let isCustom: Bool
+        let isCompleted: Bool
 
-        init(id: String, session: WorkoutSession, isRestDay: Bool, dayFocus: String) {
+        init(id: String, session: WorkoutSession, isRestDay: Bool, dayFocus: String, isCompleted: Bool) {
             self.id = id
             self.session = session
             self.customItem = nil
             self.isRestDay = isRestDay
             self.dayFocus = dayFocus
             self.isCustom = false
+            self.isCompleted = isCompleted
         }
 
-        init(id: String, customItem: UserPlanItem) {
+        init(id: String, customItem: UserPlanItem, isCompleted: Bool) {
             self.id = id
             self.session = nil
             self.customItem = customItem
             self.isRestDay = false
             self.dayFocus = customItem.workoutFocus ?? ""
             self.isCustom = true
+            self.isCompleted = isCompleted
         }
     }
 
     private var totalItems: Int {
-        meals.count + supplements.count
+        meals.count + supplements.count + workoutSessions.count
     }
 
     private var completedItems: Int {
-        meals.filter(\.isCompleted).count + supplements.filter(\.isTaken).count
+        meals.filter(\.isCompleted).count + supplements.filter(\.isTaken).count + workoutSessions.filter(\.isCompleted).count
     }
 
     private var allDone: Bool {
@@ -245,9 +250,9 @@ struct TimeBlockSectionView: View {
     private func workoutRow(_ item: WorkoutSessionItem) -> some View {
         if let session = item.session {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "figure.run")
-                .font(.sans(16))
-                .foregroundStyle(phaseColor)
+            Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                .font(.sans(18))
+                .foregroundStyle(item.isCompleted ? phaseColor : Color(uiColor: .tertiaryLabel))
                 .padding(.top, 2)
 
             VStack(alignment: .leading, spacing: 3) {
@@ -268,7 +273,8 @@ struct TimeBlockSectionView: View {
                 Text(session.title.replacingOccurrences(of: ".$", with: "", options: .regularExpression))
                     .font(.nSubheadline)
                     .fontWeight(.medium)
-                    .foregroundStyle(.primary)
+                    .strikethrough(item.isCompleted)
+                    .foregroundStyle(item.isCompleted ? .secondary : .primary)
 
                 Text(session.sessionDescription)
                     .font(.nCaption)
@@ -280,6 +286,8 @@ struct TimeBlockSectionView: View {
         .padding(12)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .onTapGesture { onTapWorkout(item) }
+        .onLongPressGesture { onToggleWorkout(item.id) }
         }
     }
 
@@ -289,9 +297,9 @@ struct TimeBlockSectionView: View {
     private func customWorkoutRow(_ item: WorkoutSessionItem) -> some View {
         if let custom = item.customItem {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "figure.run")
-                .font(.sans(16))
-                .foregroundStyle(phaseColor)
+            Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                .font(.sans(18))
+                .foregroundStyle(item.isCompleted ? phaseColor : Color(uiColor: .tertiaryLabel))
                 .padding(.top, 2)
 
             VStack(alignment: .leading, spacing: 3) {
@@ -319,7 +327,8 @@ struct TimeBlockSectionView: View {
                 Text(custom.title)
                     .font(.nSubheadline)
                     .fontWeight(.medium)
-                    .foregroundStyle(.primary)
+                    .strikethrough(item.isCompleted)
+                    .foregroundStyle(item.isCompleted ? .secondary : .primary)
 
                 if let sub = custom.subtitle, !sub.isEmpty {
                     Text(sub)
@@ -343,6 +352,8 @@ struct TimeBlockSectionView: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(phaseColor.opacity(0.2), lineWidth: 1)
         )
+        .onTapGesture { onTapWorkout(item) }
+        .onLongPressGesture { onToggleWorkout(item.id) }
         }
     }
 

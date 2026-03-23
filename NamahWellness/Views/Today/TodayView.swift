@@ -7,6 +7,7 @@ struct TodayView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Meal.dayNumber) private var allMeals: [Meal]
     @Query private var mealCompletions: [MealCompletion]
+    @Query private var workoutCompletions: [WorkoutCompletion]
     @Query(sort: \Workout.dayOfWeek) private var workouts: [Workout]
     @Query private var workoutSessions: [WorkoutSession]
     @Query private var phases: [Phase]
@@ -40,6 +41,7 @@ struct TodayView: View {
     @State private var showSymptoms = false
     @State private var showPhaseDetail = false
     @State private var mealPresentation: MealDetailPresentation?
+    @State private var workoutPresentation: WorkoutDetailPresentation?
 
     @AppStorage("lastOverdueDismissDate") private var lastOverdueDismissDate: String = ""
 
@@ -90,6 +92,10 @@ struct TodayView: View {
 
     private var todayMealCompletionIds: Set<String> {
         Set(mealCompletions.filter { $0.date == today }.map(\.mealId))
+    }
+
+    private var todayWorkoutCompletionIds: Set<String> {
+        Set(workoutCompletions.filter { $0.date == today }.map(\.workoutId))
     }
 
     private var todayMeals: [Meal] {
@@ -437,6 +443,15 @@ struct TodayView: View {
             .sheet(isPresented: $showCoreProtocol) {
                 coreProtocolSheet
             }
+            .sheet(item: $workoutPresentation) { presentation in
+                WorkoutDetailView(
+                    session: presentation.session,
+                    customItem: presentation.customItem,
+                    dayFocus: presentation.dayFocus,
+                    phaseColor: phaseColor,
+                    coreExercises: coreExercises.isEmpty ? [] : Array(coreExercises)
+                )
+            }
             .onChange(of: timeBlockService.currentDate) {
                 // Day rollover — force refresh of date-dependent computed properties
             }
@@ -485,6 +500,18 @@ struct TodayView: View {
                 },
                 onCheckIn: {
                     showSymptoms = true
+                },
+                onToggleWorkout: { sessionId in
+                    toggleWorkout(sessionId)
+                    Haptics.completion()
+                },
+                onTapWorkout: { item in
+                    workoutPresentation = WorkoutDetailPresentation(
+                        id: item.id,
+                        session: item.session,
+                        customItem: item.customItem,
+                        dayFocus: item.dayFocus
+                    )
                 }
             )
             .padding(.horizontal)
@@ -568,7 +595,8 @@ struct TodayView: View {
                         id: session.id,
                         session: session,
                         isRestDay: false,
-                        dayFocus: workout.dayFocus
+                        dayFocus: workout.dayFocus,
+                        isCompleted: todayWorkoutCompletionIds.contains(session.id)
                     )
                 }
         }
@@ -579,7 +607,8 @@ struct TodayView: View {
             .map { item in
                 TimeBlockSectionView.WorkoutSessionItem(
                     id: item.id,
-                    customItem: item
+                    customItem: item,
+                    isCompleted: todayWorkoutCompletionIds.contains(item.id)
                 )
             }
 
@@ -857,6 +886,21 @@ struct TodayView: View {
         }
     }
 
+    private func toggleWorkout(_ sessionId: String) {
+        if let existing = workoutCompletions.first(where: { $0.workoutId == sessionId && $0.date == today }) {
+            syncService.queueChange(table: "workoutCompletions", action: "delete",
+                                    data: ["id": existing.id], modelContext: modelContext)
+            modelContext.delete(existing)
+        } else {
+            let completion = WorkoutCompletion(workoutId: sessionId, date: today)
+            modelContext.insert(completion)
+            syncService.queueChange(table: "workoutCompletions", action: "upsert",
+                                    data: ["id": completion.id, "workoutId": sessionId, "date": today],
+                                    modelContext: modelContext)
+            checkAllDoneHaptic()
+        }
+    }
+
     private func toggleSupplement(_ suppId: String) {
         guard let userSup = activeRegimen.first(where: { $0.id == suppId }) else { return }
         if let existing = supplementLogs.first(where: { $0.userSupplementId == userSup.id && $0.date == today }) {
@@ -897,6 +941,15 @@ struct TodayView: View {
             Haptics.celebration()
         }
     }
+}
+
+// MARK: - Workout Detail Presentation
+
+struct WorkoutDetailPresentation: Identifiable {
+    let id: String
+    let session: WorkoutSession?
+    let customItem: UserPlanItem?
+    let dayFocus: String
 }
 
 // MARK: - Haptics
