@@ -165,9 +165,10 @@ struct WorkoutDTO: Decodable {
     let dayFocus: String
     let templateId: String?
     let isRestDay: Bool
+    let hasCoreProtocol: Bool?
 
     func toModel() -> Workout {
-        Workout(id: id, dayOfWeek: dayOfWeek, dayLabel: dayLabel, dayFocus: dayFocus, templateId: templateId, isRestDay: isRestDay)
+        Workout(id: id, dayOfWeek: dayOfWeek, dayLabel: dayLabel, dayFocus: dayFocus, templateId: templateId, isRestDay: isRestDay, hasCoreProtocol: hasCoreProtocol ?? false)
     }
 }
 
