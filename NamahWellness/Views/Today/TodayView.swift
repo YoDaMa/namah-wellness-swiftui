@@ -449,7 +449,7 @@ struct TodayView: View {
                     customItem: presentation.customItem,
                     dayFocus: presentation.dayFocus,
                     phaseColor: phaseColor,
-                    coreExercises: (todayWorkout?.0.hasCoreProtocol == true) ? Array(coreExercises) : []
+                    coreExercises: presentation.hasCoreProtocol ? Array(coreExercises) : []
                 )
             }
             .onChange(of: timeBlockService.currentDate) {
@@ -510,7 +510,8 @@ struct TodayView: View {
                         id: item.id,
                         session: item.session,
                         customItem: item.customItem,
-                        dayFocus: item.dayFocus
+                        dayFocus: item.dayFocus,
+                        hasCoreProtocol: todayWorkout?.0.hasCoreProtocol ?? false
                     )
                 }
             )
@@ -950,6 +951,7 @@ struct WorkoutDetailPresentation: Identifiable {
     let session: WorkoutSession?
     let customItem: UserPlanItem?
     let dayFocus: String
+    let hasCoreProtocol: Bool
 }
 
 // MARK: - Haptics
