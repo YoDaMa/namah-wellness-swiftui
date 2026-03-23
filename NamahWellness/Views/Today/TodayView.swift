@@ -33,6 +33,9 @@ struct TodayView: View {
     @State private var showProfile = false
     @State private var showCoreProtocol = false
     @State private var showLogSupplement = false
+    @State private var showLogMeal = false
+    @State private var showLogWorkout = false
+    @State private var appearedBlocks: Set<TimeBlockKind> = []
     @State private var showLogPeriod = false
     @State private var showSymptoms = false
     @State private var showPhaseDetail = false
@@ -234,22 +237,14 @@ struct TodayView: View {
 
     private var timeGreeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
-        switch hour {
-        case 0..<12:  return "Good morning"
-        case 12..<17: return "Good afternoon"
-        default:      return "Good evening"
-        }
+        let phase = cycleService.currentPhase?.phaseSlug
+        return NamahCopy.greeting(phase: phase, hour: hour).title
     }
 
     private var phaseOneLiner: String? {
         guard let phase = cycleService.currentPhase else { return nil }
-        switch phase.phaseSlug {
-        case "menstrual":  return "Rest is productive today — honor your body's need to slow down."
-        case "follicular": return "Your energy is building — great day for trying something new."
-        case "ovulatory":  return "Peak energy and confidence — make the most of it."
-        case "luteal":     return "Winding down — focus on comfort foods and gentle movement."
-        default:           return nil
-        }
+        let hour = Calendar.current.component(.hour, from: Date())
+        return NamahCopy.greeting(phase: phase.phaseSlug, hour: hour).subtitle
     }
 
     // MARK: - Body
@@ -257,7 +252,7 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 16) {
+                LazyVStack(alignment: .leading, spacing: NamahSpacing.relaxed) {
                     // 1. Greeting + Phase Hero
                     VStack(alignment: .leading, spacing: 16) {
                         if !firstName.isEmpty {
@@ -323,9 +318,32 @@ struct TodayView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showProfile = true } label: {
-                        Image(systemName: "gearshape")
-                            .foregroundStyle(.secondary)
+                    HStack(spacing: 16) {
+                        Menu {
+                            Button {
+                                showLogMeal = true
+                            } label: {
+                                Label("Add Meal", systemImage: "fork.knife")
+                            }
+                            Button {
+                                showLogSupplement = true
+                            } label: {
+                                Label("Log Supplement", systemImage: "pill.fill")
+                            }
+                            Button {
+                                showLogWorkout = true
+                            } label: {
+                                Label("Add Workout", systemImage: "figure.run")
+                            }
+                        } label: {
+                            Image(systemName: "plus")
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Button { showProfile = true } label: {
+                            Image(systemName: "gearshape")
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
@@ -398,6 +416,24 @@ struct TodayView: View {
             .sheet(isPresented: $showLogSupplement) {
                 LogSupplementSheet(phaseColor: phaseColor)
             }
+            .sheet(isPresented: $showLogMeal) {
+                NavigationStack {
+                    AddPlanItemSheet(
+                        defaultCategory: .meal,
+                        phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual"
+                    )
+                }
+                .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented: $showLogWorkout) {
+                NavigationStack {
+                    AddPlanItemSheet(
+                        defaultCategory: .workout,
+                        phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual"
+                    )
+                }
+                .presentationDragIndicator(.visible)
+            }
             .sheet(isPresented: $showCoreProtocol) {
                 coreProtocolSheet
             }
@@ -453,6 +489,12 @@ struct TodayView: View {
             )
             .padding(.horizontal)
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCurrentBlock)
+            .opacity(appearedBlocks.contains(block.kind) ? 1 : 0)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.3).delay(Double(index) * 0.08)) {
+                    _ = appearedBlocks.insert(block.kind)
+                }
+            }
         }
 
         // Core Protocol (shown once, after time blocks, if workout exists and not rest day)
@@ -548,27 +590,34 @@ struct TodayView: View {
 
     private var coreProtocolCard: some View {
         Button { showCoreProtocol = true } label: {
-            HStack(spacing: 10) {
+            HStack(spacing: 12) {
                 Image(systemName: "figure.core.training")
-                    .font(.sans(14))
+                    .font(.sans(18))
                     .foregroundStyle(phaseColor)
-                Text("Core Protocol")
-                    .font(.nSubheadline)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.primary)
-                Text("·")
-                    .foregroundStyle(.tertiary)
-                Text("\(coreExercises.count) exercises")
-                    .font(.nCaption)
-                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Core Protocol")
+                        .font(.nSubheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                    Text("\(coreExercises.count) exercises · phase-matched intensity")
+                        .font(.nCaption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Spacer()
+
                 Image(systemName: "chevron.right")
-                    .font(.sans(11)).fontWeight(.medium)
+                    .font(.nCaption)
                     .foregroundStyle(.tertiary)
             }
             .padding(12)
-            .background(Color(uiColor: .secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .background(phaseColor.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: NamahRadius.medium))
+            .overlay(
+                RoundedRectangle(cornerRadius: NamahRadius.medium)
+                    .stroke(phaseColor.opacity(0.15), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
     }
@@ -640,24 +689,6 @@ struct TodayView: View {
                 }
             }
 
-            Button {
-                showLogSupplement = true
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.sans(16))
-                        .foregroundStyle(phaseColor)
-                    Text("Log Extra Supplement")
-                        .font(.nSubheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(12)
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .buttonStyle(.plain)
         }
     }
 
