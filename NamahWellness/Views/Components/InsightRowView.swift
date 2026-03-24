@@ -11,31 +11,33 @@ struct InsightRowView: View {
     var body: some View {
         let parts = splitHeadline(text)
 
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .top, spacing: 6) {
-                if showIcon {
-                    Image(systemName: NamahIcons.forReminder(text))
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 18)
-                }
+        HStack(alignment: .top, spacing: 8) {
+            if showIcon {
+                Image(systemName: NamahIcons.forReminder(text))
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20, alignment: .center)
+                    .padding(.top, 2)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
                 Text(parts.headline)
                     .font(.proseBold(13))
                     .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
-            }
 
-            if !parts.body.isEmpty {
-                Text(parts.body)
-                    .font(.prose(12))
-                    .foregroundStyle(.primary.opacity(0.75))
-                    .fixedSize(horizontal: false, vertical: true)
-                    .lineSpacing(2)
-            }
+                if !parts.body.isEmpty {
+                    Text(parts.body)
+                        .font(.prose(12))
+                        .foregroundStyle(.primary.opacity(0.75))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(2)
+                }
 
-            if let level = evidenceLevel, !level.isEmpty {
-                EvidenceBadge(level: level)
-                    .padding(.top, 2)
+                if let level = evidenceLevel, !level.isEmpty {
+                    EvidenceBadge(level: level)
+                        .padding(.top, 2)
+                }
             }
         }
         .padding(.horizontal, horizontalPadding)

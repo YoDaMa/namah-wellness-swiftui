@@ -2,6 +2,7 @@ import Foundation
 
 /// SF Symbol icon lookup for nutrients and phase reminders.
 /// Maps label keywords to SF Symbol names for reliable rendering.
+/// All symbols are verified available on iOS 17+.
 enum NamahIcons {
 
     /// Returns an SF Symbol name for a nutrient label.
@@ -22,35 +23,36 @@ enum NamahIcons {
         return "sparkles"
     }
 
-    // MARK: - Nutrient Keywords → SF Symbols
+    // MARK: - Nutrient Keywords → SF Symbols (iOS 17+)
 
     private static let nutrientMap: [(String, String)] = [
         ("iron", "drop.fill"),
-        ("omega", "fish.fill"),
-        ("salmon", "fish.fill"),
+        ("omega", "heart.circle.fill"),
+        ("salmon", "heart.circle.fill"),
         ("turmeric", "leaf.fill"),
         ("ginger", "leaf.fill"),
         ("magnesium", "bolt.fill"),
         ("vitamin c", "sun.max.fill"),
-        ("flaxseed", "seedling"),
-        ("fermented", "bubbles.and.sparkles"),
-        ("antioxidant", "shield.checkered"),
+        ("flaxseed", "leaf.circle.fill"),
+        ("fermented", "sparkles"),
+        ("antioxidant", "shield.fill"),
         ("cruciferous", "leaf.arrow.circlepath"),
-        ("lean protein", "figure.strengthtraining.traditional"),
-        ("protein", "figure.strengthtraining.traditional"),
+        ("lean protein", "dumbbell.fill"),
+        ("protein", "dumbbell.fill"),
         ("zinc", "staroflife.fill"),
         ("fiber", "circle.grid.3x3.fill"),
         ("vitamin b", "pill.fill"),
         ("b6", "pill.fill"),
-        ("healthy fat", "drop.triangle"),
-        ("complex carb", "wheat.bundle.fill"),
+        ("healthy fat", "drop.halffull"),
+        ("complex carb", "takeoutbag.and.cup.and.straw.fill"),
         ("tryptophan", "moon.zzz.fill"),
         ("turkey", "moon.zzz.fill"),
         ("caffeine", "cup.and.saucer.fill"),
-        ("calcium", "bone"),
+        ("calcium", "cross.fill"),
+        ("limit", "exclamationmark.triangle.fill"),
     ]
 
-    // MARK: - Reminder Keywords → SF Symbols
+    // MARK: - Reminder Keywords → SF Symbols (iOS 17+)
 
     private static let reminderMap: [(String, String)] = [
         ("estradiol", "bolt.fill"),
@@ -58,9 +60,9 @@ enum NamahIcons {
         ("blood", "drop.fill"),
         ("period", "drop.fill"),
         ("menstrual", "drop.fill"),
-        ("anti-inflammatory", "fish.fill"),
-        ("omega", "fish.fill"),
-        ("salmon", "fish.fill"),
+        ("anti-inflammatory", "heart.circle.fill"),
+        ("omega", "heart.circle.fill"),
+        ("salmon", "heart.circle.fill"),
         ("magnesium", "bolt.fill"),
         ("supplement", "pill.fill"),
         ("yoga", "figure.yoga"),
@@ -79,9 +81,10 @@ enum NamahIcons {
         ("water", "drop.fill"),
         ("energy", "bolt.fill"),
         ("insulin", "syringe.fill"),
-        ("fermented", "bubbles.and.sparkles"),
-        ("seed cycling", "seedling"),
-        ("flaxseed", "seedling"),
+        ("fermented", "sparkles"),
+        ("seed cycling", "leaf.circle.fill"),
+        ("seed", "leaf.circle.fill"),
+        ("flaxseed", "leaf.circle.fill"),
         ("salt", "exclamationmark.triangle"),
         ("sodium", "exclamationmark.triangle"),
         ("sugar", "exclamationmark.triangle"),
@@ -92,6 +95,7 @@ enum NamahIcons {
         ("cramp", "waveform.path"),
         ("mood", "face.smiling"),
         ("serotonin", "face.smiling"),
+        ("feel", "figure.run"),
         ("progesterone", "waveform.path.ecg"),
         ("estrogen", "waveform.path.ecg"),
         ("hormone", "waveform.path.ecg"),
@@ -102,5 +106,7 @@ enum NamahIcons {
         ("meal", "fork.knife"),
         ("cook", "fork.knife"),
         ("nutrient", "leaf.fill"),
+        ("carbohydrate", "fork.knife"),
+        ("performance", "figure.run"),
     ]
 }
