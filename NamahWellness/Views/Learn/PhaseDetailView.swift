@@ -104,14 +104,18 @@ struct PhaseDetailView: View {
 
             FlowLayout(spacing: 6) {
                 ForEach(nutrients, id: \.id) { nut in
-                    Text("\(nut.icon) \(nut.label)")
-                        .font(.nCaption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(colors.soft)
-                        .clipShape(Capsule())
+                    HStack(spacing: 4) {
+                        Text(nut.icon)
+                            .font(.system(size: 12))
+                        Text(nut.label)
+                            .font(.nCaption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(colors.soft)
+                    .clipShape(Capsule())
                 }
             }
         }
