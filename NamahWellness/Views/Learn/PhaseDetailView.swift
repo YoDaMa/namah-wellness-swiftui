@@ -104,9 +104,8 @@ struct PhaseDetailView: View {
 
             FlowLayout(spacing: 6) {
                 ForEach(nutrients, id: \.id) { nut in
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         Text(nut.icon)
-                            .font(.system(size: 12))
                         Text(nut.label)
                             .font(.nCaption)
                             .fontWeight(.medium)

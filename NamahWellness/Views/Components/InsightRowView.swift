@@ -15,7 +15,6 @@ struct InsightRowView: View {
             HStack(alignment: .top, spacing: 6) {
                 if let icon, !icon.isEmpty {
                     Text(icon)
-                        .font(.system(size: 14))
                 }
                 Text(parts.headline)
                     .font(.proseBold(13))

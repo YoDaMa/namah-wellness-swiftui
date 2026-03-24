@@ -22,9 +22,8 @@ struct NutrientSheetView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     FlowLayout(spacing: 8) {
                         ForEach(nutrients, id: \.id) { nut in
-                            HStack(spacing: 4) {
+                            HStack(spacing: 6) {
                                 Text(nut.icon)
-                                    .font(.system(size: 12))
                                 Text(nut.label)
                                     .font(.nCaption)
                                     .fontWeight(.medium)
