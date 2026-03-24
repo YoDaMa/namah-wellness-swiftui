@@ -5,7 +5,7 @@ import SwiftUI
 struct InsightRowView: View {
     let text: String
     let evidenceLevel: String?
-    var icon: String? = nil
+    var showIcon: Bool = false
     var horizontalPadding: CGFloat = 14
 
     var body: some View {
@@ -13,8 +13,8 @@ struct InsightRowView: View {
 
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top, spacing: 6) {
-                if let icon, !icon.isEmpty {
-                    Text(icon)
+                if showIcon {
+                    Text(NamahEmoji.forReminder(text))
                 }
                 Text(parts.headline)
                     .font(.proseBold(13))

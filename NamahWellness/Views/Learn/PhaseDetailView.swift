@@ -44,11 +44,6 @@ struct PhaseDetailView: View {
                     if !phaseReminders.isEmpty {
                         insightsSection
                     }
-
-                    // SA personalization
-                    if !phase.saNote.isEmpty {
-                        SACalloutView(text: phase.saNote)
-                    }
                 }
                 .padding(.horizontal)
                 .padding(.top, 20)
@@ -88,6 +83,11 @@ struct PhaseDetailView: View {
             Text(phase.heroTitle)
                 .font(.display(26))
                 .foregroundStyle(.white)
+
+            if !phase.saNote.isEmpty {
+                SACalloutView(text: phase.saNote)
+                    .padding(.top, 8)
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 20)
@@ -105,7 +105,7 @@ struct PhaseDetailView: View {
             FlowLayout(spacing: 6) {
                 ForEach(nutrients, id: \.id) { nut in
                     HStack(spacing: 6) {
-                        Text(nut.icon)
+                        Text(NamahEmoji.forNutrient(nut.label))
                         Text(nut.label)
                             .font(.nCaption)
                             .fontWeight(.medium)
@@ -140,7 +140,7 @@ struct PhaseDetailView: View {
                     InsightRowView(
                         text: reminder.text,
                         evidenceLevel: reminder.evidenceLevel,
-                        icon: reminder.icon
+                        showIcon: true
                     )
 
                     if index < phaseReminders.count - 1 {

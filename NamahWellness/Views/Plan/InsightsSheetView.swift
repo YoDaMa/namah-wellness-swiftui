@@ -24,7 +24,7 @@ struct InsightsSheetView: View {
                         InsightRowView(
                             text: reminder.text,
                             evidenceLevel: reminder.evidenceLevel,
-                            icon: reminder.icon,
+                            showIcon: true,
                             horizontalPadding: 16
                         )
 
