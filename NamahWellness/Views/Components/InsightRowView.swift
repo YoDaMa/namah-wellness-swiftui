@@ -5,16 +5,23 @@ import SwiftUI
 struct InsightRowView: View {
     let text: String
     let evidenceLevel: String?
+    var icon: String? = nil
     var horizontalPadding: CGFloat = 14
 
     var body: some View {
         let parts = splitHeadline(text)
 
         VStack(alignment: .leading, spacing: 4) {
-            Text(parts.headline)
-                .font(.proseBold(13))
-                .foregroundStyle(.primary)
-                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .top, spacing: 6) {
+                if let icon, !icon.isEmpty {
+                    Text(icon)
+                        .font(.system(size: 14))
+                }
+                Text(parts.headline)
+                    .font(.proseBold(13))
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             if !parts.body.isEmpty {
                 Text(parts.body)

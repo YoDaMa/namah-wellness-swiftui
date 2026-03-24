@@ -104,7 +104,7 @@ struct PhaseDetailView: View {
 
             FlowLayout(spacing: 6) {
                 ForEach(nutrients, id: \.id) { nut in
-                    Text(nut.label)
+                    Text("\(nut.icon) \(nut.label)")
                         .font(.nCaption)
                         .fontWeight(.medium)
                         .foregroundStyle(.primary)
@@ -136,7 +136,8 @@ struct PhaseDetailView: View {
                 ForEach(Array(phaseReminders.enumerated()), id: \.element.id) { index, reminder in
                     InsightRowView(
                         text: reminder.text,
-                        evidenceLevel: reminder.evidenceLevel
+                        evidenceLevel: reminder.evidenceLevel,
+                        icon: reminder.icon
                     )
 
                     if index < phaseReminders.count - 1 {

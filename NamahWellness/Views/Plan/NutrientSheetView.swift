@@ -22,7 +22,7 @@ struct NutrientSheetView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     FlowLayout(spacing: 8) {
                         ForEach(nutrients, id: \.id) { nut in
-                            Text(nut.label)
+                            Text("\(nut.icon) \(nut.label)")
                                 .font(.nCaption)
                                 .fontWeight(.medium)
                                 .foregroundStyle(.primary)
