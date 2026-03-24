@@ -148,8 +148,8 @@ struct TodayView: View {
     private var todayExtraSupplements: [(def: SupplementDefinition, log: SupplementLog)] {
         let activeIds = Set(activeRegimen.map(\.id))
         // Pre-compute dictionary for O(1) lookups
-        let definitionsById = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
-        
+        let definitionsById = Dictionary(definitions.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
+
         return supplementLogs
             .filter { $0.date == today && $0.taken && $0.userSupplementId.hasPrefix("extra-") && !activeIds.contains($0.userSupplementId) }
             .compactMap { log in
@@ -324,6 +324,7 @@ struct TodayView: View {
             }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.inline)
+            .background(Color.paper.ignoresSafeArea())
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -571,7 +572,7 @@ struct TodayView: View {
 
     private func supplementsForBlock(_ kind: TimeBlockKind) -> [TimeBlockSectionView.SupplementItem] {
         // Pre-compute lookups once instead of inside the map
-        let definitionsById = Dictionary(uniqueKeysWithValues: definitions.map { ($0.id, $0) })
+        let definitionsById = Dictionary(definitions.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
         let nutrientsBySupplementId = Dictionary(grouping: supplementNutrients, by: { $0.supplementId })
         
         return activeRegimen

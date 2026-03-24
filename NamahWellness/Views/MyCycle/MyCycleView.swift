@@ -270,7 +270,7 @@ struct MyCycleView: View {
             await syncService.sync()
         }
         .sensoryFeedback(.selection, trigger: selectedDayId)
-        .background(Color(uiColor: .systemGroupedBackground))
+        .background(Color.paper.ignoresSafeArea())
         .navigationTitle("My Cycle")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

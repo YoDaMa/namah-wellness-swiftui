@@ -35,6 +35,7 @@ struct LearnView: View {
                 }
                 .padding()
             }
+            .background(Color.paper.ignoresSafeArea())
             .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Learn")
             .sheet(isPresented: $showProfile) {

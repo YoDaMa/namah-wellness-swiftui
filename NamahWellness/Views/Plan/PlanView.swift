@@ -25,6 +25,7 @@ struct PlanView: View {
     @State private var showPhaseDetail = false
     @State private var showAddItem = false
     @State private var selectedPhaseIndex: Int? = nil
+    @State private var swipeDirection: Edge = .trailing
 
     private let slugOrder = ["menstrual", "follicular", "ovulatory", "luteal"]
 
@@ -45,7 +46,10 @@ struct PlanView: View {
         phases.first { $0.slug == displayedSlug }
     }
 
-    private var isViewingCurrentPhase: Bool { selectedPhaseIndex == nil }
+    private var isViewingCurrentPhase: Bool {
+        guard let idx = selectedPhaseIndex else { return true }
+        return idx == currentPhaseIndex
+    }
 
     private var phaseColors: PhaseColors { PhaseColors.forSlug(displayedSlug) }
 
@@ -70,6 +74,11 @@ struct PlanView: View {
             ScrollView {
                 LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
                     heroCard
+                        .id(displayedSlug)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: swipeDirection).combined(with: .opacity),
+                            removal: .move(edge: swipeDirection == .trailing ? .leading : .trailing).combined(with: .opacity)
+                        ))
                         .contentShape(Rectangle())
                         .simultaneousGesture(phaseSwipeGesture)
                         .padding(.horizontal)
@@ -106,6 +115,7 @@ struct PlanView: View {
                 }
             }
             .onAppear { selectedPhaseIndex = nil }
+            .background(Color.paper.ignoresSafeArea())
             .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Plan")
             .navigationBarTitleDisplayMode(.inline)
@@ -162,11 +172,13 @@ struct PlanView: View {
                 guard abs(h) > 40 else { return }
                 let idx = selectedPhaseIndex ?? currentPhaseIndex
                 if h < 0 {
-                    withAnimation(.easeInOut(duration: 0.25)) {
+                    swipeDirection = .trailing
+                    withAnimation(.easeInOut(duration: 0.3)) {
                         selectedPhaseIndex = (idx + 1) % 4
                     }
                 } else {
-                    withAnimation(.easeInOut(duration: 0.25)) {
+                    swipeDirection = .leading
+                    withAnimation(.easeInOut(duration: 0.3)) {
                         selectedPhaseIndex = (idx - 1 + 4) % 4
                     }
                 }
@@ -179,18 +191,10 @@ struct PlanView: View {
         VStack(alignment: .leading, spacing: 0) {
             if let phase = displayedPhase {
                 VStack(alignment: .leading, spacing: 8) {
-                    // Day counter (cycle day for current phase, day range for browsed phases)
-                    if isViewingCurrentPhase, let info = cycleService.currentPhase {
-                        Text("Day \(info.cycleDay) of \(cycleService.cycleStats.avgCycleLength)")
-                            .font(.nCaption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.white.opacity(0.7))
-                    } else if !isViewingCurrentPhase {
-                        Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
-                            .font(.nCaption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.white.opacity(0.7))
-                    }
+                    Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
+                        .font(.nCaption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.white.opacity(0.7))
 
                     Text(phase.heroTitle)
                         .font(.display(26))
@@ -230,14 +234,16 @@ struct PlanView: View {
         .onTapGesture { showPhaseDetail = true }
     }
 
-    // MARK: - Hero Footer (Days X–Y + phase dots)
+    // MARK: - Hero Footer (day info + phase dots)
 
     private func heroFooter(_ phase: Phase) -> some View {
         HStack {
-            Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
-                .font(.nCaption2)
-                .fontWeight(.medium)
-                .foregroundStyle(.white.opacity(0.5))
+            if isViewingCurrentPhase, let info = cycleService.currentPhase {
+                Text("Day \(info.dayInPhase) · Cycle day \(info.cycleDay)")
+                    .font(.nCaption2)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.white.opacity(0.5))
+            }
 
             Spacer()
 
@@ -256,48 +262,10 @@ struct PlanView: View {
 
     private var stickyHeader: some View {
         VStack(spacing: 0) {
-            // Phase label row with thick left accent bar
-            HStack(spacing: 0) {
-                // Thick vertical accent bar
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(phaseColors.color)
-                    .frame(width: 4, height: 28)
-                    .padding(.trailing, 10)
-
-                // Phase dot + name
-                Circle()
-                    .fill(phaseColors.color)
-                    .frame(width: 8, height: 8)
-
-                Text(displayedPhase?.name ?? "")
-                    .font(.nCaption)
-                    .fontWeight(.bold)
-                    .foregroundStyle(phaseColors.color)
-                    .padding(.leading, 6)
-
-                if isViewingCurrentPhase, let info = cycleService.currentPhase {
-                    Text("·")
-                        .foregroundStyle(phaseColors.color.opacity(0.4))
-                        .padding(.leading, 6)
-                    Text("Day \(info.dayInPhase)")
-                        .font(.nCaption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(phaseColors.color.opacity(0.7))
-                        .padding(.leading, 4)
-                } else if !isViewingCurrentPhase, let phase = displayedPhase {
-                    Text("·")
-                        .foregroundStyle(phaseColors.color.opacity(0.4))
-                        .padding(.leading, 6)
-                    Text("Days \(phase.dayStart)\u{2013}\(phase.dayEnd)")
-                        .font(.nCaption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(phaseColors.color.opacity(0.7))
-                        .padding(.leading, 4)
-                }
-
-                Spacer()
-
-                if !isViewingCurrentPhase {
+            // "Today" button row — only visible when browsing another phase
+            if !isViewingCurrentPhase {
+                HStack {
+                    Spacer()
                     Button {
                         withAnimation(.easeInOut(duration: 0.25)) {
                             selectedPhaseIndex = nil
@@ -319,9 +287,9 @@ struct PlanView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 6)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
 
             // Sub-tab bar
             HStack(spacing: 0) {
@@ -351,6 +319,6 @@ struct PlanView: View {
 
             Divider()
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(Color.paper)
     }
 }

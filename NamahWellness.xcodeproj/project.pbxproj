@@ -44,13 +44,17 @@
 		5677803EBD6ABF08732CBDCD /* PlanSupplementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D113899BC720CFB56EE6666C /* PlanSupplementsView.swift */; };
 		5B0FF0DD9F2771C39D5D8F2A /* RecipeIngredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91CB63F1639B1A1C605D6777 /* RecipeIngredient.swift */; };
 		5B212908DEB491DDE37D2745 /* LogPeriodSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2923570EC72BD28B4A99C9 /* LogPeriodSheet.swift */; };
+		5BE6BE676B4D1C6745F129FB /* WorkoutDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC3748EF0F2C2C5FD21C8A2B /* WorkoutDetailView.swift */; };
 		5CFD94FA4BBE173A07B270EC /* NourishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF3C67B2A132ED0E032E4A8 /* NourishView.swift */; };
 		5E63BD1CFA35BF71A4FA39F3 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DAAFFB2FDB7137CD4420838 /* TodayView.swift */; };
 		5F08CE76016ECA6456771BFB /* AddCustomSupplementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AF49201192E92E47B9AA71C /* AddCustomSupplementView.swift */; };
+		5F26C726E9C85134C94C0E02 /* NamahCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C544C395C70100B78E0BBEB /* NamahCopy.swift */; };
 		60F28E643071535CE5C35361 /* HormonesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5D909D0CE0E5948C5B7B30 /* HormonesView.swift */; };
+		63295AAACEDC7D54D1FA7B8F /* PhaseShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D534EBA3E8B9917DF250DF0 /* PhaseShapes.swift */; };
 		687FFA677A70FC9A07C6194C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1C5125977D07DE7E35DCE9 /* ContentView.swift */; };
 		6AF99D677B0EAB761D23F3BC /* Phase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EC3D42C8A5F785258C6136 /* Phase.swift */; };
 		72B3B9EDA98808F827C928D8 /* EvidenceBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB82FB36EC36F79E61AED6E9 /* EvidenceBadge.swift */; };
+		743CDF5AA4EF10D7AA39A025 /* DailyScheduleTemplateSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7082DA48A20FFBF7846C3A3 /* DailyScheduleTemplateSheet.swift */; };
 		75D28AEAB79BB2B5DC353ECA /* TimeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF0DC66C421BE29309B9DD3 /* TimeParser.swift */; };
 		7D1FB4CEABC2501DB2557982 /* PlusJakartaSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7F63DDFE165B5700E134096C /* PlusJakartaSans-Variable.ttf */; };
 		7F0E64D08EDB4851A2223BF5 /* MealCardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE4C3B20CAD4C839C99EDF0 /* MealCardContent.swift */; };
@@ -71,6 +75,7 @@
 		AC6F2DF69BB78E1AEF682D31 /* PhaseHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 413AFFB88F25D9A99E826CB8 /* PhaseHeroCard.swift */; };
 		B2F48E498FA4918102E7E8E0 /* BBTLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6DA2A80493D12F4EEF44B6D /* BBTLog.swift */; };
 		B821DC990A74D351A4106E40 /* NamahTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC3702C70D1E407D0001AFE /* NamahTheme.swift */; };
+		BB4E2A34433556CB5CC52937 /* SymptomPillSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8408AF99E858FBFBBD857E6E /* SymptomPillSelector.swift */; };
 		BEF3AF9CCB48E2C5CB8AD985 /* UserItemHidden.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93376BA4A9A4AD8B38E62408 /* UserItemHidden.swift */; };
 		BF28381CA44968E92C6B8D4C /* UserPlanSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967B581E5FFA4396DCA99461 /* UserPlanSelection.swift */; };
 		C3171CC81FF9CD2A155951C2 /* Completion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4EB1437564D16C45AF4C2C /* Completion.swift */; };
@@ -95,6 +100,7 @@
 		F5AFCA007D8AF722786F48B2 /* NutrientSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EFD4D79BBC498CE6682160 /* NutrientSheetView.swift */; };
 		F772722EDD21D966F7EE58CE /* UserPlanItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6889915F677D9CEB8DCA115D /* UserPlanItem.swift */; };
 		FA06C900193CB20E0E208F41 /* GroceryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAE8910B36D5AB05B641B60 /* GroceryListView.swift */; };
+		FA516638BF0D8245EA5622A1 /* NamahEmoji.swift in Sources */ = {isa = PBXBuildFile; fileRef = 494C7A7E9A3AF7C3BDF8937D /* NamahEmoji.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -129,6 +135,7 @@
 		413AFFB88F25D9A99E826CB8 /* PhaseHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseHeroCard.swift; sourceTree = "<group>"; };
 		42E06523D5B2AF57425FCB58 /* HormoneData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneData.swift; sourceTree = "<group>"; };
 		47AE4ABD64FD5A970924AF9F /* Ingredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ingredient.swift; sourceTree = "<group>"; };
+		494C7A7E9A3AF7C3BDF8937D /* NamahEmoji.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamahEmoji.swift; sourceTree = "<group>"; };
 		4AF49201192E92E47B9AA71C /* AddCustomSupplementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCustomSupplementView.swift; sourceTree = "<group>"; };
 		4E4EB1437564D16C45AF4C2C /* Completion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Completion.swift; sourceTree = "<group>"; };
 		55559112F1FA8F997EDBD43C /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
@@ -142,6 +149,7 @@
 		6889915F677D9CEB8DCA115D /* UserPlanItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPlanItem.swift; sourceTree = "<group>"; };
 		69D7EBB442896C4ACE42FC67 /* TimeBlockServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBlockServiceTests.swift; sourceTree = "<group>"; };
 		6BF3C67B2A132ED0E032E4A8 /* NourishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NourishView.swift; sourceTree = "<group>"; };
+		6C544C395C70100B78E0BBEB /* NamahCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamahCopy.swift; sourceTree = "<group>"; };
 		6CACFC950E11B9CFBC046464 /* CycleServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleServiceTests.swift; sourceTree = "<group>"; };
 		6CF0DC66C421BE29309B9DD3 /* TimeParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeParser.swift; sourceTree = "<group>"; };
 		6D8E2A2E24BC04686A649874 /* InsightsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsSheetView.swift; sourceTree = "<group>"; };
@@ -154,10 +162,12 @@
 		7F63DDFE165B5700E134096C /* PlusJakartaSans-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PlusJakartaSans-Variable.ttf"; sourceTree = "<group>"; };
 		7F69E191E808584409354E6A /* DayDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDetailSheet.swift; sourceTree = "<group>"; };
 		83ECE59DABD9991A8BBB57D6 /* SyncChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncChange.swift; sourceTree = "<group>"; };
+		8408AF99E858FBFBBD857E6E /* SymptomPillSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymptomPillSelector.swift; sourceTree = "<group>"; };
 		86932D331AAA25CB182FCB41 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8927E550B02C19E21D612E12 /* ETBookOT-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ETBookOT-Bold.otf"; sourceTree = "<group>"; };
 		8941E67CD7A072776F528BDF /* NamahWellnessTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NamahWellnessTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AADCEB2987B645FB01DF395 /* LogSupplementSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogSupplementSheet.swift; sourceTree = "<group>"; };
+		8D534EBA3E8B9917DF250DF0 /* PhaseShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseShapes.swift; sourceTree = "<group>"; };
 		8E1C5125977D07DE7E35DCE9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		8E6B34A58A694FA421F11C00 /* HormoneChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HormoneChartView.swift; sourceTree = "<group>"; };
 		9035829E579722DBE6A5FF07 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -182,6 +192,8 @@
 		C1660B9765F081F06A8AF8E7 /* PhaseDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseDetailView.swift; sourceTree = "<group>"; };
 		C2EFD4D79BBC498CE6682160 /* NutrientSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutrientSheetView.swift; sourceTree = "<group>"; };
 		C3031E31DC0C2CCA190E266F /* BBTLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBTLogTests.swift; sourceTree = "<group>"; };
+		C7082DA48A20FFBF7846C3A3 /* DailyScheduleTemplateSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyScheduleTemplateSheet.swift; sourceTree = "<group>"; };
+		CC3748EF0F2C2C5FD21C8A2B /* WorkoutDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDetailView.swift; sourceTree = "<group>"; };
 		D113899BC720CFB56EE6666C /* PlanSupplementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanSupplementsView.swift; sourceTree = "<group>"; };
 		D3B892F182887563667F5B94 /* LearnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnView.swift; sourceTree = "<group>"; };
 		D7529A3B3DADEE6EF5026B0E /* CycleLogManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleLogManager.swift; sourceTree = "<group>"; };
@@ -234,6 +246,7 @@
 				6468211DDF034E468B78C474 /* ProfileCardView.swift */,
 				5EE5877B9EDDD4CE4CD13E4E /* SACalloutView.swift */,
 				AC4AAE86FA314900B25D24A5 /* SwipeActionWrapper.swift */,
+				8408AF99E858FBFBBD857E6E /* SymptomPillSelector.swift */,
 				2C46161AE72FE60368EE4CC1 /* TimeBlockProgressBar.swift */,
 				AB2E8B0A6BB95CD0F269C551 /* TimeBlockSectionView.swift */,
 			);
@@ -415,6 +428,7 @@
 			children = (
 				8AADCEB2987B645FB01DF395 /* LogSupplementSheet.swift */,
 				1DAAFFB2FDB7137CD4420838 /* TodayView.swift */,
+				CC3748EF0F2C2C5FD21C8A2B /* WorkoutDetailView.swift */,
 			);
 			path = Today;
 			sourceTree = "<group>";
@@ -446,6 +460,7 @@
 			children = (
 				59244F900B473FF2696C7013 /* AddPlanItemSheet.swift */,
 				1A93916862654D91E30A89DF /* BrowseSupplementsSheet.swift */,
+				C7082DA48A20FFBF7846C3A3 /* DailyScheduleTemplateSheet.swift */,
 				6D8E2A2E24BC04686A649874 /* InsightsSheetView.swift */,
 				A8B1149912C3E0EFBC9E4C63 /* MealDetailView.swift */,
 				78456B0314BF404BED05D0EA /* MealPlanView.swift */,
@@ -461,7 +476,10 @@
 		E49633FE9B6146FC74CD2379 /* Theme */ = {
 			isa = PBXGroup;
 			children = (
+				6C544C395C70100B78E0BBEB /* NamahCopy.swift */,
+				494C7A7E9A3AF7C3BDF8937D /* NamahEmoji.swift */,
 				3AC3702C70D1E407D0001AFE /* NamahTheme.swift */,
+				8D534EBA3E8B9917DF250DF0 /* PhaseShapes.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -601,6 +619,7 @@
 				001A33020576B3AF24341159 /* CycleLogManager.swift in Sources */,
 				4BD51021E9A7DC635BACA0FF /* CycleService.swift in Sources */,
 				437E65AEA8BF08A7D9EB8ACB /* DailySchedule.swift in Sources */,
+				743CDF5AA4EF10D7AA39A025 /* DailyScheduleTemplateSheet.swift in Sources */,
 				A92DAD25FB6A93C925534217 /* DayDetailSheet.swift in Sources */,
 				AA45A91D2C4939EDA0C59B56 /* EditProfileView.swift in Sources */,
 				72B3B9EDA98808F827C928D8 /* EvidenceBadge.swift in Sources */,
@@ -627,6 +646,8 @@
 				F236CCF3E6EDDCAE9D06376C /* MealPlanView.swift in Sources */,
 				34F0E16AE5A180131D4E929E /* MoveView.swift in Sources */,
 				391B30BEF2F89463F895D21A /* MyCycleView.swift in Sources */,
+				5F26C726E9C85134C94C0E02 /* NamahCopy.swift in Sources */,
+				FA516638BF0D8245EA5622A1 /* NamahEmoji.swift in Sources */,
 				B821DC990A74D351A4106E40 /* NamahTheme.swift in Sources */,
 				F50EFC46E176783032A5E28D /* NamahWellnessApp.swift in Sources */,
 				EF6F50A03227B53BCFDC8B5D /* NotificationService.swift in Sources */,
@@ -636,6 +657,7 @@
 				D193423B046A79DEE0FD2282 /* PhaseDetailView.swift in Sources */,
 				A4B1DEDBD4EEBC650EE03979 /* PhaseHeaderView.swift in Sources */,
 				AC6F2DF69BB78E1AEF682D31 /* PhaseHeroCard.swift in Sources */,
+				63295AAACEDC7D54D1FA7B8F /* PhaseShapes.swift in Sources */,
 				23C40DBF4493E863CB1948DC /* PlanItemLog.swift in Sources */,
 				3FB6627C99F80D39D278AC23 /* PlanResolver.swift in Sources */,
 				5677803EBD6ABF08732CBDCD /* PlanSupplementsView.swift in Sources */,
@@ -649,6 +671,7 @@
 				CB8B237ED8E61749185E5299 /* Supplement.swift in Sources */,
 				2CB612F8E387198C82A95B3C /* SwipeActionWrapper.swift in Sources */,
 				4D188D4E73C2D392A1E96BA0 /* SymptomLog.swift in Sources */,
+				BB4E2A34433556CB5CC52937 /* SymptomPillSelector.swift in Sources */,
 				E01236801FB6406CDBC563D6 /* SyncChange.swift in Sources */,
 				8ABC08B6124A9C5884082B41 /* SyncService.swift in Sources */,
 				1EEACB6E8B1B6B40689CB31F /* TimeBlockProgressBar.swift in Sources */,
@@ -661,6 +684,7 @@
 				BF28381CA44968E92C6B8D4C /* UserPlanSelection.swift in Sources */,
 				48444D91397879B8B917C1A2 /* UserProfile.swift in Sources */,
 				8E5574AA47293414B50271D5 /* Workout.swift in Sources */,
+				5BE6BE676B4D1C6745F129FB /* WorkoutDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -13,8 +13,7 @@ struct InsightRowView: View {
 
         HStack(alignment: .top, spacing: 8) {
             if showIcon {
-                Text(verbatim: NamahIcons.forReminder(text))
-                    .font(.custom("Apple Color Emoji", size: 16))
+                NamahIcon(symbolName: NamahIcons.forReminder(text), size: 14)
                     .frame(width: 24, alignment: .center)
             }
 
@@ -51,3 +50,26 @@ struct InsightRowView: View {
         return (text, "")
     }
 }
+#Preview {
+    VStack(spacing: 0) {
+        InsightRowView(
+            text: "Iron-rich foods help replenish blood loss. Focus on leafy greens, lentils, and red meat during menstruation.",
+            evidenceLevel: "strong",
+            showIcon: true
+        )
+        Divider()
+        InsightRowView(
+            text: "Sleep is critical for hormone regulation. Aim for 8 hours during your menstrual phase.",
+            evidenceLevel: "moderate",
+            showIcon: true
+        )
+        Divider()
+        InsightRowView(
+            text: "Gentle yoga and stretching can ease cramps. Avoid intense exercise.",
+            evidenceLevel: nil,
+            showIcon: true
+        )
+    }
+    .background(Color(uiColor: .secondarySystemGroupedBackground))
+}
+

@@ -28,6 +28,9 @@ extension Color {
     // Brand accent
     static let spice = Color(hex: 0xC4693A)
 
+    // Page background — warm paper from webapp
+    static let paper = Color(adaptive: (light: 0xF9F5EF, dark: 0x1C1712))
+
     // Warm cream for callouts — adapts to dark mode
     static let saCalloutBackground = Color(adaptive: (light: 0xFFF8F0, dark: 0x2D2520))
 
@@ -72,6 +75,7 @@ extension ShapeStyle where Self == Color {
     static var macroCarbs: Color { Color.macroCarbs }
     static var macroFat: Color { Color.macroFat }
     static var spice: Color { Color.spice }
+    static var paper: Color { Color.paper }
 }
 
 // MARK: - Phase Color Lookup

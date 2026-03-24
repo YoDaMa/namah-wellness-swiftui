@@ -105,8 +105,7 @@ struct PhaseDetailView: View {
             FlowLayout(spacing: 6) {
                 ForEach(nutrients, id: \.id) { nut in
                     HStack(spacing: 6) {
-                        Text(verbatim: NamahIcons.forNutrient(nut.label))
-                            .font(.custom("Apple Color Emoji", size: 14))
+                        NamahIcon(symbolName: NamahIcons.forNutrient(nut.label), size: 12, color: colors.color)
                         Text(nut.label)
                             .font(.nCaption)
                             .fontWeight(.medium)
