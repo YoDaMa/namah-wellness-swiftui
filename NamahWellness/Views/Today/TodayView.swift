@@ -997,26 +997,33 @@ struct DailyTrackingView: View {
         let id: String
         let icon: String
         let label: String
-        let lowLabel: String
-        let highLabel: String
+        let options: [String]
         let get: (SymptomLog) -> Int?
         let set: (SymptomLog, Int?) -> Void
     }
 
     private static let allSymptoms: [SymptomItem] = [
-        SymptomItem(id: "cramps", icon: "waveform.path", label: "Cramps", lowLabel: "None", highLabel: "Severe", get: { $0.cramps }, set: { $0.cramps = $1 }),
-        SymptomItem(id: "mood", icon: "face.smiling", label: "Mood", lowLabel: "Low", highLabel: "Great", get: { $0.mood }, set: { $0.mood = $1 }),
-        SymptomItem(id: "energy", icon: "bolt.fill", label: "Energy", lowLabel: "Low", highLabel: "High", get: { $0.energy }, set: { $0.energy = $1 }),
-        SymptomItem(id: "bloating", icon: "wind", label: "Bloating", lowLabel: "None", highLabel: "A lot", get: { $0.bloating }, set: { $0.bloating = $1 }),
-        SymptomItem(id: "fatigue", icon: "moon.zzz.fill", label: "Fatigue", lowLabel: "Alert", highLabel: "Exhausted", get: { $0.fatigue }, set: { $0.fatigue = $1 }),
-        SymptomItem(id: "headache", icon: "brain.head.profile", label: "Headache", lowLabel: "None", highLabel: "Splitting", get: { $0.headache }, set: { $0.headache = $1 }),
-        SymptomItem(id: "anxiety", icon: "heart.text.clipboard", label: "Anxiety", lowLabel: "Calm", highLabel: "Very anxious", get: { $0.anxiety }, set: { $0.anxiety = $1 }),
-        SymptomItem(id: "irritability", icon: "flame.fill", label: "Irritability", lowLabel: "Patient", highLabel: "Very irritable", get: { $0.irritability }, set: { $0.irritability = $1 }),
-        SymptomItem(id: "sleepQuality", icon: "moon.fill", label: "Sleep", lowLabel: "Poor", highLabel: "Great", get: { $0.sleepQuality }, set: { $0.sleepQuality = $1 }),
-        SymptomItem(id: "breastTenderness", icon: "heart.fill", label: "Tenderness", lowLabel: "None", highLabel: "Very sore", get: { $0.breastTenderness }, set: { $0.breastTenderness = $1 }),
-        SymptomItem(id: "acne", icon: "circle.dotted", label: "Acne", lowLabel: "Clear", highLabel: "Breaking out", get: { $0.acne }, set: { $0.acne = $1 }),
-        SymptomItem(id: "libido", icon: "flame", label: "Libido", lowLabel: "Low", highLabel: "High", get: { $0.libido }, set: { $0.libido = $1 }),
-        SymptomItem(id: "appetite", icon: "fork.knife", label: "Appetite", lowLabel: "No appetite", highLabel: "Ravenous", get: { $0.appetite }, set: { $0.appetite = $1 }),
+        // 4 options (severity)
+        SymptomItem(id: "cramps", icon: "waveform.path", label: "Cramps", options: ["None", "Mild", "Moderate", "Severe"], get: { $0.cramps }, set: { $0.cramps = $1 }),
+        // 5 options (spectrum)
+        SymptomItem(id: "mood", icon: "face.smiling", label: "Mood", options: ["Low", "Meh", "OK", "Good", "Great"], get: { $0.mood }, set: { $0.mood = $1 }),
+        SymptomItem(id: "energy", icon: "bolt.fill", label: "Energy", options: ["Low", "Tired", "OK", "Good", "High"], get: { $0.energy }, set: { $0.energy = $1 }),
+        // 4 options (severity)
+        SymptomItem(id: "bloating", icon: "wind", label: "Bloating", options: ["None", "Mild", "Moderate", "Bad"], get: { $0.bloating }, set: { $0.bloating = $1 }),
+        SymptomItem(id: "fatigue", icon: "moon.zzz.fill", label: "Fatigue", options: ["None", "Mild", "Tired", "Exhausted"], get: { $0.fatigue }, set: { $0.fatigue = $1 }),
+        // 3 options (presence)
+        SymptomItem(id: "headache", icon: "brain.head.profile", label: "Headache", options: ["None", "Mild", "Severe"], get: { $0.headache }, set: { $0.headache = $1 }),
+        // 4 options (severity)
+        SymptomItem(id: "anxiety", icon: "heart.text.clipboard", label: "Anxiety", options: ["Calm", "Mild", "Anxious", "Intense"], get: { $0.anxiety }, set: { $0.anxiety = $1 }),
+        SymptomItem(id: "irritability", icon: "flame.fill", label: "Irritability", options: ["Patient", "Mild", "Irritable", "Very"], get: { $0.irritability }, set: { $0.irritability = $1 }),
+        // 5 options (spectrum)
+        SymptomItem(id: "sleepQuality", icon: "moon.fill", label: "Sleep", options: ["Poor", "Light", "OK", "Good", "Great"], get: { $0.sleepQuality }, set: { $0.sleepQuality = $1 }),
+        // 3 options (presence)
+        SymptomItem(id: "breastTenderness", icon: "heart.fill", label: "Tenderness", options: ["None", "Some", "Sore"], get: { $0.breastTenderness }, set: { $0.breastTenderness = $1 }),
+        SymptomItem(id: "acne", icon: "circle.dotted", label: "Acne", options: ["Clear", "Some", "Breaking out"], get: { $0.acne }, set: { $0.acne = $1 }),
+        // 5 options (spectrum)
+        SymptomItem(id: "libido", icon: "flame", label: "Libido", options: ["Low", "Mild", "OK", "Good", "High"], get: { $0.libido }, set: { $0.libido = $1 }),
+        SymptomItem(id: "appetite", icon: "fork.knife", label: "Appetite", options: ["None", "Low", "OK", "Good", "Ravenous"], get: { $0.appetite }, set: { $0.appetite = $1 }),
     ]
 
     private static let phaseRelevant: [String: [String]] = [
@@ -1362,7 +1369,7 @@ struct DailyTrackingView: View {
 
             VStack(spacing: 2) {
                 ForEach(orderedSymptoms) { symptom in
-                    symptomSliderRow(symptom)
+                    symptomPillRow(symptom)
                 }
             }
         }
@@ -1407,58 +1414,36 @@ struct DailyTrackingView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    // MARK: - Symptom Slider
+    // MARK: - Symptom Pill Row
 
-    private func symptomSliderRow(_ symptom: SymptomItem) -> some View {
-        let currentValue = Double(symptomLog.flatMap { symptom.get($0) } ?? 0)
+    private func symptomPillRow(_ symptom: SymptomItem) -> some View {
+        let currentValue = symptomLog.flatMap { symptom.get($0) }
 
-        return VStack(spacing: 4) {
+        return VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: symptom.icon)
                     .font(.sans(15))
-                    .foregroundStyle(currentValue > 0 ? accentColor : .secondary)
+                    .foregroundStyle(currentValue != nil ? accentColor : .secondary)
                     .frame(width: 20)
 
                 Text(symptom.label)
                     .font(.nCaption)
                     .fontWeight(.medium)
                     .foregroundStyle(.primary)
-
-                Spacer()
-
-                if currentValue > 0 {
-                    Text("\(Int(currentValue))")
-                        .font(.nCaption2)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(accentColor)
-                        .monospacedDigit()
-                }
             }
 
-            Slider(
-                value: Binding(
+            SymptomPillSelector(
+                options: symptom.options,
+                selection: Binding(
                     get: { currentValue },
                     set: { newValue in
-                        let rounded = Int(newValue.rounded())
                         let log = getOrCreateSymptomLog()
-                        symptom.set(log, rounded == 0 ? nil : rounded)
+                        symptom.set(log, newValue)
                         queueSymptomSync(log)
                     }
                 ),
-                in: 0...5,
-                step: 1
+                accentColor: accentColor
             )
-            .tint(accentColor)
-
-            HStack {
-                Text(symptom.lowLabel)
-                    .font(.nCaption2)
-                    .foregroundStyle(.tertiary)
-                Spacer()
-                Text(symptom.highLabel)
-                    .font(.nCaption2)
-                    .foregroundStyle(.tertiary)
-            }
         }
         .padding(.vertical, 8)
     }
