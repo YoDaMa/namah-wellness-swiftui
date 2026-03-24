@@ -266,6 +266,9 @@ struct MyCycleView: View {
             }
             .padding()
         }
+        .refreshable {
+            await syncService.sync()
+        }
         .sensoryFeedback(.selection, trigger: selectedDayId)
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("My Cycle")
