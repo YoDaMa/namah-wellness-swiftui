@@ -13,11 +13,9 @@ struct InsightRowView: View {
 
         HStack(alignment: .top, spacing: 8) {
             if showIcon {
-                Image(systemName: NamahIcons.forReminder(text))
-                    .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 20, alignment: .center)
-                    .padding(.top, 2)
+                Text(NamahIcons.forReminder(text))
+                    .font(.system(size: 16))
+                    .frame(width: 22, alignment: .center)
             }
 
             VStack(alignment: .leading, spacing: 4) {
