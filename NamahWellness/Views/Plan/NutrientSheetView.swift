@@ -23,7 +23,9 @@ struct NutrientSheetView: View {
                     FlowLayout(spacing: 8) {
                         ForEach(nutrients, id: \.id) { nut in
                             HStack(spacing: 6) {
-                                Text(NamahEmoji.forNutrient(nut.label))
+                                Image(systemName: NamahIcons.forNutrient(nut.label))
+                                    .font(.nCaption2)
+                                    .foregroundStyle(colors.color)
                                 Text(nut.label)
                                     .font(.nCaption)
                                     .fontWeight(.medium)

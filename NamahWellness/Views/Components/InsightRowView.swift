@@ -14,7 +14,10 @@ struct InsightRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top, spacing: 6) {
                 if showIcon {
-                    Text(NamahEmoji.forReminder(text))
+                    Image(systemName: NamahIcons.forReminder(text))
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 18)
                 }
                 Text(parts.headline)
                     .font(.proseBold(13))

@@ -1,113 +1,106 @@
 import Foundation
 
-/// Hardcoded emoji lookup for nutrients and phase reminders.
-/// The backend stores emoji icons but they can get corrupted through the
-/// Turso → JSON → JSONDecoder → SwiftData pipeline. This lookup provides
-/// a reliable local fallback keyed by label substring.
-enum NamahEmoji {
+/// SF Symbol icon lookup for nutrients and phase reminders.
+/// Maps label keywords to SF Symbol names for reliable rendering.
+enum NamahIcons {
 
-    /// Returns an emoji for a nutrient label, or a generic leaf if no match.
+    /// Returns an SF Symbol name for a nutrient label.
     static func forNutrient(_ label: String) -> String {
         let lower = label.lowercased()
-        for (keyword, emoji) in nutrientMap {
-            if lower.contains(keyword) { return emoji }
+        for (keyword, symbol) in nutrientMap {
+            if lower.contains(keyword) { return symbol }
         }
-        return "🌿"
+        return "leaf"
     }
 
-    /// Returns an emoji for a phase reminder, or a generic sparkle if no match.
+    /// Returns an SF Symbol name for a phase reminder.
     static func forReminder(_ text: String) -> String {
         let lower = text.lowercased()
-        for (keyword, emoji) in reminderMap {
-            if lower.contains(keyword) { return emoji }
+        for (keyword, symbol) in reminderMap {
+            if lower.contains(keyword) { return symbol }
         }
-        return "✨"
+        return "sparkles"
     }
 
-    // MARK: - Nutrient Keywords → Emoji
+    // MARK: - Nutrient Keywords → SF Symbols
 
     private static let nutrientMap: [(String, String)] = [
-        // Menstrual
-        ("iron", "🔴"),
-        ("omega-3", "🐟"),
-        ("omega‑3", "🐟"),
-        ("salmon", "🐟"),
-        ("turmeric", "🌿"),
-        ("ginger", "🌿"),
-        ("magnesium", "🍫"),
-        ("vitamin c", "🍋"),
-        // Follicular
-        ("flaxseed", "🌾"),
-        ("fermented", "🥬"),
-        ("antioxidant", "🍇"),
-        ("cruciferous", "🥦"),
-        ("lean protein", "🍗"),
-        ("protein", "🍗"),
-        // Ovulatory
-        ("zinc", "🌻"),
-        ("fiber", "🥦"),
-        ("vitamin b6", "🍌"),
-        ("b6", "🍌"),
-        ("healthy fat", "🥑"),
-        // Luteal
-        ("complex carb", "🍠"),
-        ("tryptophan", "🍗"),
-        ("turkey", "🍗"),
-        ("caffeine", "☕"),
-        ("calcium", "🥛"),
+        ("iron", "drop.fill"),
+        ("omega", "fish.fill"),
+        ("salmon", "fish.fill"),
+        ("turmeric", "leaf.fill"),
+        ("ginger", "leaf.fill"),
+        ("magnesium", "bolt.fill"),
+        ("vitamin c", "sun.max.fill"),
+        ("flaxseed", "seedling"),
+        ("fermented", "bubbles.and.sparkles"),
+        ("antioxidant", "shield.checkered"),
+        ("cruciferous", "leaf.arrow.circlepath"),
+        ("lean protein", "figure.strengthtraining.traditional"),
+        ("protein", "figure.strengthtraining.traditional"),
+        ("zinc", "staroflife.fill"),
+        ("fiber", "circle.grid.3x3.fill"),
+        ("vitamin b", "pill.fill"),
+        ("b6", "pill.fill"),
+        ("healthy fat", "drop.triangle"),
+        ("complex carb", "wheat.bundle.fill"),
+        ("tryptophan", "moon.zzz.fill"),
+        ("turkey", "moon.zzz.fill"),
+        ("caffeine", "cup.and.saucer.fill"),
+        ("calcium", "bone"),
     ]
 
-    // MARK: - Reminder Keywords → Emoji
+    // MARK: - Reminder Keywords → SF Symbols
 
     private static let reminderMap: [(String, String)] = [
-        ("estradiol", "⚡"),
-        ("iron", "🩸"),
-        ("blood loss", "🩸"),
-        ("period", "🩸"),
-        ("menstrual", "🩸"),
-        ("anti-inflammatory", "🐟"),
-        ("omega", "🐟"),
-        ("salmon", "🐟"),
-        ("magnesium", "🍫"),
-        ("supplement", "💊"),
-        ("yoga", "🧘"),
-        ("stretch", "🧘"),
-        ("gentle", "🧘"),
-        ("walk", "🚶"),
-        ("exercise", "🏃"),
-        ("workout", "🏋️"),
-        ("train", "🏋️"),
-        ("strength", "🏋️"),
-        ("sleep", "😴"),
-        ("rest", "😴"),
-        ("temperature", "🌡️"),
-        ("bbt", "🌡️"),
-        ("hydrat", "💧"),
-        ("water", "💧"),
-        ("energy", "⚡"),
-        ("insulin", "🧪"),
-        ("fermented", "🫙"),
-        ("seed cycling", "🌱"),
-        ("flaxseed", "🌱"),
-        ("salt", "🧂"),
-        ("sodium", "🧂"),
-        ("sugar", "🍬"),
-        ("chocolate", "🍫"),
-        ("caffeine", "☕"),
-        ("alcohol", "🚫"),
-        ("bloat", "💨"),
-        ("cramp", "🩹"),
-        ("mood", "😊"),
-        ("serotonin", "😊"),
-        ("progesterone", "🔬"),
-        ("estrogen", "🔬"),
-        ("hormone", "🔬"),
-        ("libido", "💕"),
-        ("ovulat", "🌸"),
-        ("fertile", "🌸"),
-        ("food", "🥗"),
-        ("meal", "🍽️"),
-        ("cook", "🍽️"),
-        ("nutrient", "🥗"),
+        ("estradiol", "bolt.fill"),
+        ("iron", "drop.fill"),
+        ("blood", "drop.fill"),
+        ("period", "drop.fill"),
+        ("menstrual", "drop.fill"),
+        ("anti-inflammatory", "fish.fill"),
+        ("omega", "fish.fill"),
+        ("salmon", "fish.fill"),
+        ("magnesium", "bolt.fill"),
+        ("supplement", "pill.fill"),
+        ("yoga", "figure.yoga"),
+        ("stretch", "figure.flexibility"),
+        ("gentle", "figure.flexibility"),
+        ("walk", "figure.walk"),
+        ("exercise", "figure.run"),
+        ("workout", "figure.strengthtraining.traditional"),
+        ("train", "figure.strengthtraining.traditional"),
+        ("strength", "dumbbell.fill"),
+        ("sleep", "moon.zzz.fill"),
+        ("rest", "moon.zzz.fill"),
+        ("temperature", "thermometer.medium"),
+        ("bbt", "thermometer.medium"),
+        ("hydrat", "drop.fill"),
+        ("water", "drop.fill"),
+        ("energy", "bolt.fill"),
+        ("insulin", "syringe.fill"),
+        ("fermented", "bubbles.and.sparkles"),
+        ("seed cycling", "seedling"),
+        ("flaxseed", "seedling"),
+        ("salt", "exclamationmark.triangle"),
+        ("sodium", "exclamationmark.triangle"),
+        ("sugar", "exclamationmark.triangle"),
+        ("chocolate", "heart.fill"),
+        ("caffeine", "cup.and.saucer.fill"),
+        ("alcohol", "xmark.circle"),
+        ("bloat", "wind"),
+        ("cramp", "waveform.path"),
+        ("mood", "face.smiling"),
+        ("serotonin", "face.smiling"),
+        ("progesterone", "waveform.path.ecg"),
+        ("estrogen", "waveform.path.ecg"),
+        ("hormone", "waveform.path.ecg"),
+        ("libido", "heart.fill"),
+        ("ovulat", "sparkles"),
+        ("fertile", "sparkles"),
+        ("food", "fork.knife"),
+        ("meal", "fork.knife"),
+        ("cook", "fork.knife"),
+        ("nutrient", "leaf.fill"),
     ]
 }
