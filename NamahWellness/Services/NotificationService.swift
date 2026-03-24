@@ -155,7 +155,7 @@ enum NotificationService {
             }
 
             let content = UNMutableNotificationContent()
-            content.title = "\(meal.mealType) Time"
+            content.title = "\(meal.mealType.capitalized) Time"
             if let phase = meal.phaseName {
                 content.body = "\(phase) phase pick: \(meal.title)"
             } else {

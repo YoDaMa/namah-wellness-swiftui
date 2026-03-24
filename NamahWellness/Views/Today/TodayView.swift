@@ -40,6 +40,7 @@ struct TodayView: View {
     @State private var showLogPeriod = false
     @State private var showSymptoms = false
     @State private var showPhaseDetail = false
+    @State private var showQiGong = false
     @State private var mealPresentation: MealDetailPresentation?
     @State private var workoutPresentation: WorkoutDetailPresentation?
 
@@ -286,6 +287,27 @@ struct TodayView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+
+                            Button { showQiGong = true } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "figure.mind.and.body")
+                                        .font(.sans(14))
+                                        .foregroundStyle(phaseColor)
+                                    Text("Qi Gong Resources")
+                                        .font(.nCaption)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.sans(10))
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            .buttonStyle(.plain)
                         }
 
                         // Progress bar
@@ -446,6 +468,9 @@ struct TodayView: View {
             }
             .sheet(isPresented: $showCoreProtocol) {
                 coreProtocolSheet
+            }
+            .sheet(isPresented: $showQiGong) {
+                QiGongResourcesSheet()
             }
             .sheet(item: $workoutPresentation) { presentation in
                 WorkoutDetailView(
