@@ -319,6 +319,9 @@ struct TodayView: View {
                         .padding(.bottom, 32)
                 }
             }
+            .refreshable {
+                await syncService.sync()
+            }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.visible, for: .navigationBar)
