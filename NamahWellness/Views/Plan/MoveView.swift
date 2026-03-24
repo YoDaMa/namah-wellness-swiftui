@@ -17,6 +17,7 @@ struct MoveView: View {
     @State private var selectedDayOfWeek: Int?
     @State private var showAddWorkout = false
     @State private var showDailySchedule = false
+    @State private var showQiGong = false
 
     private var phase: Phase? { phases.first { $0.slug == phaseSlug } }
     private var phaseColor: Color { PhaseColors.forSlug(phaseSlug).color }
@@ -60,7 +61,8 @@ struct MoveView: View {
                 intensityBar(p.exerciseIntensity)
             }
 
-            // Daily schedule template button
+            // Resource buttons
+            qiGongButton
             dailyScheduleButton
 
             // 7-day week strip
@@ -76,9 +78,44 @@ struct MoveView: View {
                 coreProtocol
             }
         }
+        .sheet(isPresented: $showQiGong) {
+            QiGongResourcesSheet()
+        }
         .sheet(isPresented: $showDailySchedule) {
             DailyScheduleTemplateSheet()
         }
+    }
+
+    // MARK: - Qi Gong Button
+
+    private var qiGongButton: some View {
+        Button { showQiGong = true } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "figure.mind.and.body")
+                    .font(.sans(18))
+                    .foregroundStyle(phaseColor)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Qi Gong Resources")
+                        .font(.nSubheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                    Text("Gentle energy work for any phase")
+                        .font(.nCaption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.nCaption2)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(14)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Daily Schedule Button

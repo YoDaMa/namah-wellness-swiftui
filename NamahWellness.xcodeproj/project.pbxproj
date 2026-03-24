@@ -64,6 +64,7 @@
 		8E868CB450DC435E34B9F1F8 /* HormoneChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6B34A58A694FA421F11C00 /* HormoneChartView.swift */; };
 		959CA95B0E6B0FC924697DEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86932D331AAA25CB182FCB41 /* Assets.xcassets */; };
 		96797BB1154BAD605606F099 /* BrowseSupplementsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A93916862654D91E30A89DF /* BrowseSupplementsSheet.swift */; };
+		99B829C823A00BB6428BA817 /* QiGongResourcesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AACB9DB8567A499A01FF4FF /* QiGongResourcesSheet.swift */; };
 		99BB9690759978216DA7CB6A /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F04F944466E14D5100AA8E /* ProfileView.swift */; };
 		9E53A8392F1F0E0491C3B3E5 /* SACalloutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EE5877B9EDDD4CE4CD13E4E /* SACalloutView.swift */; };
 		9F83E0BD2B0F5ED3DA69CB4A /* DMSerifDisplay-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 088E5B747F884FC19A781A1F /* DMSerifDisplay-Regular.ttf */; };
@@ -159,6 +160,7 @@
 		74614E34083D59F3BD2F06CD /* MealCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCardView.swift; sourceTree = "<group>"; };
 		78456B0314BF404BED05D0EA /* MealPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanView.swift; sourceTree = "<group>"; };
 		79F45B46DC6CFDA59430B339 /* Workout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workout.swift; sourceTree = "<group>"; };
+		7AACB9DB8567A499A01FF4FF /* QiGongResourcesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QiGongResourcesSheet.swift; sourceTree = "<group>"; };
 		7F63DDFE165B5700E134096C /* PlusJakartaSans-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PlusJakartaSans-Variable.ttf"; sourceTree = "<group>"; };
 		7F69E191E808584409354E6A /* DayDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDetailSheet.swift; sourceTree = "<group>"; };
 		83ECE59DABD9991A8BBB57D6 /* SyncChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncChange.swift; sourceTree = "<group>"; };
@@ -469,6 +471,7 @@
 				C2EFD4D79BBC498CE6682160 /* NutrientSheetView.swift */,
 				D113899BC720CFB56EE6666C /* PlanSupplementsView.swift */,
 				139601881931CFC6FF7B74E1 /* PlanView.swift */,
+				7AACB9DB8567A499A01FF4FF /* QiGongResourcesSheet.swift */,
 			);
 			path = Plan;
 			sourceTree = "<group>";
@@ -665,6 +668,7 @@
 				1998C9D3CDF5081A78BDDC34 /* PlanView.swift in Sources */,
 				18562E4C88CA4207B48D8E64 /* ProfileCardView.swift in Sources */,
 				99BB9690759978216DA7CB6A /* ProfileView.swift in Sources */,
+				99B829C823A00BB6428BA817 /* QiGongResourcesSheet.swift in Sources */,
 				5B0FF0DD9F2771C39D5D8F2A /* RecipeIngredient.swift in Sources */,
 				9E53A8392F1F0E0491C3B3E5 /* SACalloutView.swift in Sources */,
 				C8BAB807476C3FFA2B54D2D1 /* SexualActivityLog.swift in Sources */,

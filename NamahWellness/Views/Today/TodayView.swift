@@ -264,12 +264,12 @@ struct TodayView: View {
                         if !firstName.isEmpty {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("\(timeGreeting), \(firstName).")
-                                    .font(.prose(72))
+                                    .font(.prose(42))
                                     .foregroundStyle(.primary)
 
                                 if let oneLiner = phaseOneLiner {
                                     Text(oneLiner)
-                                        .font(.prose(13, relativeTo: .footnote))
+                                        .font(.prose(17, relativeTo: .body))
                                         .foregroundStyle(.secondary)
                                 }
                             }
@@ -510,12 +510,13 @@ struct TodayView: View {
                     Haptics.completion()
                 },
                 onTapWorkout: { item in
+                    let sessionIsCoreRelated = item.session?.title.localizedCaseInsensitiveContains("core") == true
                     workoutPresentation = WorkoutDetailPresentation(
                         id: item.id,
                         session: item.session,
                         customItem: item.customItem,
                         dayFocus: item.dayFocus,
-                        hasCoreProtocol: todayWorkout?.0.hasCoreProtocol ?? false
+                        hasCoreProtocol: sessionIsCoreRelated
                     )
                 }
             )
