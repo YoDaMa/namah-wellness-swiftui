@@ -9,8 +9,8 @@ final class UserItemHidden {
     var itemTypeRaw: String     // "meal" | "workout" | "grocery"
     var hiddenAt: Date
 
-    var itemType: PlanItemCategory {
-        get { PlanItemCategory(rawValue: itemTypeRaw) ?? .meal }
+    var itemType: HabitCategory {
+        get { HabitCategory(rawValue: itemTypeRaw) ?? .meal }
         set { itemTypeRaw = newValue.rawValue }
     }
 
@@ -18,7 +18,7 @@ final class UserItemHidden {
         id: String = UUID().uuidString,
         userId: String = "",
         itemId: String,
-        itemType: PlanItemCategory,
+        itemType: HabitCategory,
         hiddenAt: Date = Date()
     ) {
         self.id = id

@@ -3,7 +3,7 @@ import SwiftData
 
 struct WorkoutDetailView: View {
     let session: WorkoutSession?
-    let customItem: UserPlanItem?
+    let customItem: Habit?
     let dayFocus: String
     let phaseColor: Color
     let coreExercises: [CoreExercise]

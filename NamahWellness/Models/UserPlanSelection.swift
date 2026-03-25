@@ -10,8 +10,8 @@ final class UserPlanSelection {
     var isActive: Bool
     var selectedAt: Date
 
-    var category: PlanItemCategory {
-        get { PlanItemCategory(rawValue: categoryRaw) ?? .meal }
+    var category: HabitCategory {
+        get { HabitCategory(rawValue: categoryRaw) ?? .meal }
         set { categoryRaw = newValue.rawValue }
     }
 
@@ -19,7 +19,7 @@ final class UserPlanSelection {
         id: String = UUID().uuidString,
         userId: String = "",
         templateId: String,
-        category: PlanItemCategory = .meal,
+        category: HabitCategory = .meal,
         isActive: Bool = true,
         selectedAt: Date = Date()
     ) {

@@ -47,9 +47,9 @@ struct UserDataResponse: Decodable {
     let userSupplements: [UserSupplementDTO]
     let supplementLogs: [SupplementLogDTO]
     let userPlanSelections: [UserPlanSelectionDTO]
-    let userPlanItems: [UserPlanItemDTO]
+    let habits: [HabitDTO]
     let userItemsHidden: [UserItemHiddenDTO]
-    let planItemLogs: [PlanItemLogDTO]
+    let habitLogs: [HabitLogDTO]
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -62,15 +62,22 @@ struct UserDataResponse: Decodable {
         userSupplements = try c.decodeIfPresent([UserSupplementDTO].self, forKey: .userSupplements) ?? []
         supplementLogs = try c.decodeIfPresent([SupplementLogDTO].self, forKey: .supplementLogs) ?? []
         userPlanSelections = try c.decodeIfPresent([UserPlanSelectionDTO].self, forKey: .userPlanSelections) ?? []
-        userPlanItems = try c.decodeIfPresent([UserPlanItemDTO].self, forKey: .userPlanItems) ?? []
+        // Decode new key name, fall back to old key name for backward compat
+        habits = try c.decodeIfPresent([HabitDTO].self, forKey: .habits)
+            ?? c.decodeIfPresent([HabitDTO].self, forKey: .userPlanItems)
+            ?? []
         userItemsHidden = try c.decodeIfPresent([UserItemHiddenDTO].self, forKey: .userItemsHidden) ?? []
-        planItemLogs = try c.decodeIfPresent([PlanItemLogDTO].self, forKey: .planItemLogs) ?? []
+        habitLogs = try c.decodeIfPresent([HabitLogDTO].self, forKey: .habitLogs)
+            ?? c.decodeIfPresent([HabitLogDTO].self, forKey: .planItemLogs)
+            ?? []
     }
 
     private enum CodingKeys: String, CodingKey {
         case cycleLogs, mealCompletions, workoutCompletions, symptomLogs
         case dailyNotes, groceryChecks, userSupplements, supplementLogs
-        case userPlanSelections, userPlanItems, userItemsHidden, planItemLogs
+        case userPlanSelections, habits, userItemsHidden, habitLogs
+        // Backward compat keys
+        case userPlanItems, planItemLogs
     }
 }
 
@@ -345,17 +352,25 @@ struct GroceryCheckDTO: Decodable {
 struct UserSupplementDTO: Decodable {
     let id: String
     let userId: String
-    let supplementId: String
+    let supplementId: String?
     let dosage: Double
     let frequency: String
     let timeOfDay: String
     let isActive: Bool
+    let supplementCategory: String?
+    let supplementTitle: String?
+    let supplementReminderEnabled: Bool?
+    let supplementReminderTime: String?
 
     func toModel() -> UserSupplement {
         UserSupplement(
             id: id, userId: userId, supplementId: supplementId,
             dosage: dosage, frequency: frequency, timeOfDay: timeOfDay,
-            isActive: isActive
+            isActive: isActive,
+            supplementCategory: supplementCategory ?? "supplement",
+            supplementTitle: supplementTitle,
+            reminderEnabled: supplementReminderEnabled ?? false,
+            reminderTime: supplementReminderTime
         )
     }
 }
@@ -384,7 +399,7 @@ struct PlanTemplateDTO: Decodable {
     func toModel() -> PlanTemplate {
         PlanTemplate(
             id: id, name: name, templateDescription: description,
-            category: PlanItemCategory(rawValue: category) ?? .meal,
+            category: HabitCategory(rawValue: category) ?? .meal,
             isDefault: isDefault
         )
     }
@@ -400,13 +415,13 @@ struct UserPlanSelectionDTO: Decodable {
     func toModel() -> UserPlanSelection {
         UserPlanSelection(
             id: id, userId: userId, templateId: templateId,
-            category: PlanItemCategory(rawValue: category) ?? .meal,
+            category: HabitCategory(rawValue: category) ?? .meal,
             isActive: isActive
         )
     }
 }
 
-struct UserPlanItemDTO: Decodable {
+struct HabitDTO: Decodable {
     let id: String
     let userId: String
     let category: String
@@ -428,14 +443,17 @@ struct UserPlanItemDTO: Decodable {
     let groceryCategory: String?
     let ingredientsJSON: String?
     let instructions: String?
+    let reminderEnabled: Bool?
+    let reminderTime: String?
+    let replacesItemId: String?
 
-    func toModel() -> UserPlanItem {
-        UserPlanItem(
+    func toModel() -> Habit {
+        Habit(
             id: id, userId: userId,
-            category: PlanItemCategory(rawValue: category) ?? .meal,
+            category: HabitCategory(rawValue: category) ?? .meal,
             title: title, subtitle: subtitle, time: time,
             phaseSlug: phaseSlug,
-            recurrence: PlanItemRecurrence(rawValue: recurrence) ?? .specificDays,
+            recurrence: HabitRecurrence(rawValue: recurrence) ?? .specificDays,
             recurrenceDays: recurrenceDays, specificDate: specificDate,
             isActive: isActive,
             mealType: mealType, calories: calories,
@@ -443,7 +461,10 @@ struct UserPlanItemDTO: Decodable {
             workoutFocus: workoutFocus, duration: duration,
             groceryCategory: groceryCategory,
             ingredientsJSON: ingredientsJSON,
-            instructions: instructions
+            instructions: instructions,
+            reminderEnabled: reminderEnabled ?? false,
+            reminderTime: reminderTime,
+            replacesItemId: replacesItemId
         )
     }
 }
@@ -457,20 +478,20 @@ struct UserItemHiddenDTO: Decodable {
     func toModel() -> UserItemHidden {
         UserItemHidden(
             id: id, userId: userId, itemId: itemId,
-            itemType: PlanItemCategory(rawValue: itemType) ?? .meal
+            itemType: HabitCategory(rawValue: itemType) ?? .meal
         )
     }
 }
 
-struct PlanItemLogDTO: Decodable {
+struct HabitLogDTO: Decodable {
     let id: String
     let userId: String
-    let planItemId: String
+    let habitId: String
     let date: String
     let completed: Bool
 
-    func toModel() -> PlanItemLog {
-        PlanItemLog(id: id, userId: userId, planItemId: planItemId, date: date, completed: completed)
+    func toModel() -> HabitLog {
+        HabitLog(id: id, userId: userId, habitId: habitId, date: date, completed: completed)
     }
 }
 

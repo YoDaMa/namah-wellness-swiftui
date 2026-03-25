@@ -37,7 +37,7 @@ struct MyCycleView: View {
     @State private var showDeleteConfirm = false
     @State private var logToDelete: CycleLog?
     @State private var showDayDetail = false
-    @State private var todayPulse = false
+    @State private var cachedSymptomInsights: [SymptomInsight] = []
 
     private let weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -68,7 +68,7 @@ struct MyCycleView: View {
     private var monthTitle: String {
         let f = DateFormatter()
         f.dateFormat = "MMMM yyyy"
-        return f.string(from: anchor)
+        return f.string(from: anchor).uppercased()
     }
 
     // Data lookups for selected day
@@ -160,35 +160,43 @@ struct MyCycleView: View {
                 }
 
                 // 1. Calendar header + logging streak
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(monthTitle)
-                            .font(.display(22, relativeTo: .title2))
-                            .contentTransition(.numericText())
-                        if loggingStreak > 0 {
-                            HStack(spacing: 4) {
-                                Image(systemName: "flame.fill")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(.orange)
-                                Text("\(loggingStreak)-day streak")
-                                    .font(.nCaption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+                HStack(alignment: .center) {
+                    Text(monthTitle)
+                        .font(.sans(20, relativeTo: .title2))
+                        .fontWeight(.bold)
+                        .tracking(1)
+                        .contentTransition(.numericText())
+
                     Spacer()
+
                     navigationButtons
                 }
 
-                // 2. Legend row
-                legendRow
+                if loggingStreak > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.orange)
+                        Text("\(loggingStreak)-day streak")
+                            .font(.nCaption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
 
-                // 3. Calendar grid with month transition
+                // 2. Calendar grid with month transition
                 calendarGrid
                     .id(monthTitle)
                     .transition(.push(from: slideDirection))
                     .clipped()
                     .simultaneousGesture(monthSwipeGesture)
+
+                // 3. Legend + wavy separator
+                legendRow
+
+                WavyLine()
+                    .stroke(Color.primary.opacity(0.15), lineWidth: 1.5)
+                    .frame(height: 8)
+                    .padding(.horizontal, -16)
 
                 // 4. Selected day phase info + tap to view details
                 if let day = selectedDay {
@@ -273,16 +281,6 @@ struct MyCycleView: View {
         .background(Color.paper.ignoresSafeArea())
         .navigationTitle("My Cycle")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink {
-                    ProfileView(cycleService: cycleService)
-                } label: {
-                    Image(systemName: "gearshape")
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
         .sheet(isPresented: $showDayDetail) {
             if let day = selectedDay {
                 DayDetailSheet(
@@ -295,11 +293,10 @@ struct MyCycleView: View {
                 )
             }
         }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                todayPulse = true
-            }
-        }
+        
+        .task { cachedSymptomInsights = computeSymptomInsights() }
+        .onChange(of: symptomLogs.count) { cachedSymptomInsights = computeSymptomInsights() }
+        .onChange(of: cycleLogs.count) { cachedSymptomInsights = computeSymptomInsights() }
         .alert("Delete Period Log?", isPresented: $showDeleteConfirm) {
             Button("Delete", role: .destructive) {
                 if let log = logToDelete {
@@ -318,39 +315,42 @@ struct MyCycleView: View {
     // MARK: - Navigation
 
     private var navigationButtons: some View {
-        HStack(spacing: 0) {
-            Button { changeMonth(-1) } label: {
-                Image(systemName: "chevron.left")
-                    .font(.sans(11)).fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 32, height: 28)
+        HStack(spacing: 10) {
+            HStack(spacing: 2) {
+                Button { changeMonth(-1) } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.sans(11)).fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
+
+                Button { changeMonth(1) } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.sans(11)).fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             Button {
                 goToToday()
             } label: {
-                Text("Today")
+                Text("TODAY")
                     .font(.nCaption2)
-                    .fontWeight(.medium)
-                    .textCase(.uppercase)
+                    .fontWeight(.bold)
                     .tracking(1)
                     .foregroundStyle(.primary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
             }
             .buttonStyle(.plain)
-
-            Button { changeMonth(1) } label: {
-                Image(systemName: "chevron.right")
-                    .font(.sans(11)).fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 32, height: 28)
-            }
-            .buttonStyle(.plain)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.primary.opacity(0.3), lineWidth: 1)
+            )
         }
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     private func changeMonth(_ delta: Int) {
@@ -393,16 +393,16 @@ struct MyCycleView: View {
         HStack(spacing: 12) {
             legendItem("Period", color: .phaseMMid)
             legendItem("Follicular", color: .phaseFMid)
-            legendItem("Fertile", color: .phaseOMid)
+            legendItem("Ovulation", color: .phaseOMid)
             legendItem("Luteal", color: .phaseLMid)
         }
     }
 
     private func legendItem(_ label: String, color: Color) -> some View {
         HStack(spacing: 4) {
-            RoundedRectangle(cornerRadius: 2)
+            Circle()
                 .fill(color)
-                .frame(width: 12, height: 8)
+                .frame(width: 8, height: 8)
             Text(label)
                 .font(.nCaption2)
                 .foregroundStyle(.secondary)
@@ -412,11 +412,12 @@ struct MyCycleView: View {
     // MARK: - Calendar Grid
 
     private var calendarGrid: some View {
-        let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 7)
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
         let days = calendarDays
 
-        return VStack(spacing: 2) {
-            LazyVGrid(columns: columns, spacing: 2) {
+        return VStack(spacing: 0) {
+            // Weekday headers
+            LazyVGrid(columns: columns, spacing: 0) {
                 ForEach(weekdays, id: \.self) { day in
                     Text(day)
                         .font(.nCaption2)
@@ -424,101 +425,70 @@ struct MyCycleView: View {
                         .textCase(.uppercase)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
+                        .padding(.vertical, 6)
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+                        )
                 }
             }
 
-            LazyVGrid(columns: columns, spacing: 2) {
+            // Day cells
+            LazyVGrid(columns: columns, spacing: 0) {
                 ForEach(Array(days.enumerated()), id: \.element.id) { index, day in
                     dayCell(day, index: index, in: days)
                 }
             }
+
         }
+        .background(Color(uiColor: .systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     private func dayCell(_ day: CalendarDay, index: Int, in days: [CalendarDay]) -> some View {
         let isSelected = selectedDayId == day.id
-        let hasFlow = datesWithFlow.contains(day.id)
-        let hasSymptoms = datesWithSymptoms.contains(day.id)
-        let hasBBT = datesWithBBT.contains(day.id)
-        let hasActivity = datesWithSexualActivity.contains(day.id)
-        let hasDots = hasFlow || hasSymptoms || hasBBT || hasActivity
+        let phaseColor = day.phase != nil ? colorForPhase(day.phase?.phaseSlug, isPeak: day.phase?.isPeak ?? false) : Color.clear
 
         return Button {
             withAnimation(.easeOut(duration: 0.2)) {
                 selectedDayId = day.id
             }
         } label: {
-            VStack(spacing: 1) {
-                ZStack {
-                    if day.phase != nil {
-                        phaseBackground(day, index: index, in: days)
-                    }
-
-                    if day.isToday {
-                        Text("\(day.dayOfMonth)")
-                            .font(.nCaption)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.white)
-                            .frame(width: 26, height: 26)
-                            .background(
-                                Circle().fill(Color.accentColor)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.accentColor.opacity(todayPulse ? 0.4 : 0), lineWidth: 2)
-                                            .scaleEffect(todayPulse ? 1.4 : 1.0)
-                                    )
-                            )
-                    } else {
-                        Text("\(day.dayOfMonth)")
-                            .font(.nCaption)
-                            .foregroundStyle(day.isCurrentMonth ? .primary : .secondary)
-                    }
+            ZStack {
+                // Phase circle behind the number
+                if day.phase != nil && day.isCurrentMonth {
+                    Circle()
+                        .fill(phaseColor.opacity(0.3))
+                        .frame(width: 32, height: 32)
                 }
-                .frame(maxWidth: .infinity)
-                .frame(height: 36)
 
-                // Data density dots
-                if hasDots && day.isCurrentMonth {
-                    HStack(spacing: 2) {
-                        if hasFlow { Circle().fill(Color.phaseM).frame(width: 4, height: 4) }
-                        if hasSymptoms { Circle().fill(Color.blue).frame(width: 4, height: 4) }
-                        if hasBBT { Circle().fill(Color.green).frame(width: 4, height: 4) }
-                        if hasActivity { Circle().fill(Color.purple).frame(width: 4, height: 4) }
-                    }
-                    .frame(height: 4)
-                } else {
-                    Spacer().frame(height: 4)
+                // Today ring
+                if day.isToday {
+                    Circle()
+                        .stroke(phaseColor, lineWidth: 2)
+                        .frame(width: 32, height: 32)
                 }
+
+                // Selected indicator
+                if isSelected && !day.isToday {
+                    Circle()
+                        .stroke(Color.primary.opacity(0.5), lineWidth: 1.5)
+                        .frame(width: 32, height: 32)
+                }
+
+                Text("\(day.dayOfMonth)")
+                    .font(.sans(13))
+                    .fontWeight(day.isToday ? .bold : .regular)
+                    .foregroundStyle(day.isCurrentMonth ? .primary : .tertiary)
             }
-            .frame(height: 44)
+            .frame(maxWidth: .infinity)
+            .frame(height: 40)
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isSelected ? Color.primary : .clear, lineWidth: 2)
+                Rectangle()
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
             )
         }
         .buttonStyle(.plain)
-    }
-
-    private func phaseBackground(_ day: CalendarDay, index: Int, in days: [CalendarDay]) -> some View {
-        let slug = day.phase?.phaseSlug ?? ""
-        let isPeak = day.phase?.isPeak ?? false
-        let color = colorForPhase(slug, isPeak: isPeak)
-
-        let prevSlug = index > 0 ? days[index - 1].phase?.phaseSlug : nil
-        let nextSlug = index < days.count - 1 ? days[index + 1].phase?.phaseSlug : nil
-
-        let isStart = prevSlug != slug
-        let isEnd = nextSlug != slug
-
-        return UnevenRoundedRectangle(
-            topLeadingRadius: isStart ? 12 : 0,
-            bottomLeadingRadius: isStart ? 12 : 0,
-            bottomTrailingRadius: isEnd ? 12 : 0,
-            topTrailingRadius: isEnd ? 12 : 0
-        )
-        .fill(color.opacity(0.35))
-        .padding(.vertical, 4)
     }
 
     private func colorForPhase(_ slug: String?, isPeak: Bool) -> Color {
@@ -709,7 +679,7 @@ struct MyCycleView: View {
             Text("SYMPTOM PATTERNS")
                 .namahLabel()
 
-            let insights = computeSymptomInsights()
+            let insights = cachedSymptomInsights
             if insights.isEmpty {
                 Text("Log symptoms daily to unlock patterns.")
                     .font(.nCaption)
@@ -887,3 +857,29 @@ struct MyCycleView: View {
         }
     }
 }
+
+/// Decorative wavy line separator for the calendar.
+private struct WavyLine: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let wavelength: CGFloat = 16
+        let amplitude: CGFloat = rect.height / 2
+        let midY = rect.midY
+
+        path.move(to: CGPoint(x: 0, y: midY))
+
+        var x: CGFloat = 0
+        while x < rect.width {
+            let nextX = min(x + wavelength / 2, rect.width)
+            let controlY = (Int(x / (wavelength / 2)) % 2 == 0) ? midY - amplitude : midY + amplitude
+            path.addQuadCurve(
+                to: CGPoint(x: nextX, y: midY),
+                control: CGPoint(x: (x + nextX) / 2, y: controlY)
+            )
+            x = nextX
+        }
+
+        return path
+    }
+}
+

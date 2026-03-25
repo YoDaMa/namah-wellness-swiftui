@@ -2,7 +2,7 @@ import Foundation
 
 /// Stateless service that resolves what plan items to display.
 /// Merges template content (Meals, WorkoutSessions, GroceryItems) with
-/// user custom items (UserPlanItem) while filtering out hidden items (UserItemHidden).
+/// user custom items (Habit) while filtering out hidden items (UserItemHidden).
 enum PlanResolver {
 
     // MARK: - Resolved Item Types
@@ -36,8 +36,8 @@ enum PlanResolver {
             self.isCustom = false
         }
 
-        /// Create from a UserPlanItem
-        init(planItem: UserPlanItem) {
+        /// Create from a Habit
+        init(planItem: Habit) {
             self.id = planItem.id
             self.title = planItem.title
             self.mealDescription = planItem.subtitle ?? ""
@@ -73,8 +73,8 @@ enum PlanResolver {
             self.isCustom = false
         }
 
-        /// Create from a UserPlanItem
-        init(planItem: UserPlanItem) {
+        /// Create from a Habit
+        init(planItem: Habit) {
             self.id = planItem.id
             self.title = planItem.title
             self.sessionDescription = planItem.subtitle ?? ""
@@ -102,8 +102,8 @@ enum PlanResolver {
             self.isCustom = false
         }
 
-        /// Create from a UserPlanItem
-        init(planItem: UserPlanItem) {
+        /// Create from a Habit
+        init(planItem: Habit) {
             self.id = planItem.id
             self.name = planItem.title
             self.category = planItem.groceryCategory ?? "Other"
@@ -117,13 +117,13 @@ enum PlanResolver {
     /// Resolve meals for a given date: template meals + custom meals - hidden.
     /// - Parameters:
     ///   - templateMeals: Phase-filtered meals from the active template
-    ///   - customItems: All UserPlanItems with category=meal
+    ///   - customItems: All Habits with category=meal
     ///   - hiddenIds: Set of item IDs the user has hidden
     ///   - dateStr: The date string ("yyyy-MM-dd") to check recurrence against
     /// - Returns: Merged, sorted array of ResolvedMeal
     static func resolveMeals(
         templateMeals: [Meal],
-        customItems: [UserPlanItem],
+        customItems: [Habit],
         hiddenIds: Set<String>,
         dateStr: String
     ) -> [ResolvedMeal] {
@@ -143,7 +143,7 @@ enum PlanResolver {
     /// Resolve workout sessions for a given date: template sessions + custom workouts - hidden.
     static func resolveWorkouts(
         templateSessions: [WorkoutSession],
-        customItems: [UserPlanItem],
+        customItems: [Habit],
         hiddenIds: Set<String>,
         dateStr: String
     ) -> [ResolvedWorkout] {
@@ -163,7 +163,7 @@ enum PlanResolver {
     /// Resolve grocery items for a phase: template items + custom items - hidden.
     static func resolveGrocery(
         templateItems: [GroceryItem],
-        customItems: [UserPlanItem],
+        customItems: [Habit],
         hiddenIds: Set<String>
     ) -> [ResolvedGrocery] {
         let visible = templateItems

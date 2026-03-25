@@ -171,9 +171,9 @@ final class SyncService {
         try context.delete(model: UserSupplement.self)
         try context.delete(model: SupplementLog.self)
         try context.delete(model: UserPlanSelection.self)
-        try context.delete(model: UserPlanItem.self)
+        try context.delete(model: Habit.self)
         try context.delete(model: UserItemHidden.self)
-        try context.delete(model: PlanItemLog.self)
+        try context.delete(model: HabitLog.self)
 
         // Insert new user data
         for dto in response.cycleLogs { context.insert(dto.toModel()) }
@@ -185,9 +185,9 @@ final class SyncService {
         for dto in response.userSupplements { context.insert(dto.toModel()) }
         for dto in response.supplementLogs { context.insert(dto.toModel()) }
         for dto in response.userPlanSelections { context.insert(dto.toModel()) }
-        for dto in response.userPlanItems { context.insert(dto.toModel()) }
+        for dto in response.habits { context.insert(dto.toModel()) }
         for dto in response.userItemsHidden { context.insert(dto.toModel()) }
-        for dto in response.planItemLogs { context.insert(dto.toModel()) }
+        for dto in response.habitLogs { context.insert(dto.toModel()) }
     }
 
     // MARK: - Pull Profile

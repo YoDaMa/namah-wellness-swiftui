@@ -13,6 +13,7 @@ struct TimeBlockSectionView: View {
     let meals: [MealItem]
     let supplements: [SupplementItem]
     let workoutSessions: [WorkoutSessionItem]
+    let habitItems: [HabitItem]
     let isCheckInBlock: Bool
     let hasCheckedIn: Bool
     let nextBlockName: String?
@@ -25,11 +26,12 @@ struct TimeBlockSectionView: View {
     let onCheckIn: () -> Void
     let onToggleWorkout: (String) -> Void
     let onTapWorkout: (WorkoutSessionItem) -> Void
+    var onToggleHabit: ((String) -> Void)? = nil
 
     struct MealItem: Identifiable {
         let id: String
         let meal: Meal?
-        let customItem: UserPlanItem?
+        let customItem: Habit?
         let isCompleted: Bool
         let isCustom: Bool
 
@@ -41,7 +43,7 @@ struct TimeBlockSectionView: View {
             self.isCustom = false
         }
 
-        init(id: String, customItem: UserPlanItem, isCompleted: Bool) {
+        init(id: String, customItem: Habit, isCompleted: Bool) {
             self.id = id
             self.meal = nil
             self.customItem = customItem
@@ -61,7 +63,7 @@ struct TimeBlockSectionView: View {
     struct WorkoutSessionItem: Identifiable {
         let id: String
         let session: WorkoutSession?
-        let customItem: UserPlanItem?
+        let customItem: Habit?
         let isRestDay: Bool
         let dayFocus: String
         let isCustom: Bool
@@ -77,7 +79,7 @@ struct TimeBlockSectionView: View {
             self.isCompleted = isCompleted
         }
 
-        init(id: String, customItem: UserPlanItem, isCompleted: Bool) {
+        init(id: String, customItem: Habit, isCompleted: Bool) {
             self.id = id
             self.session = nil
             self.customItem = customItem
@@ -88,12 +90,18 @@ struct TimeBlockSectionView: View {
         }
     }
 
+    struct HabitItem: Identifiable {
+        let id: String
+        let habit: Habit
+        let isCompleted: Bool
+    }
+
     private var totalItems: Int {
-        meals.count + supplements.count + workoutSessions.count
+        meals.count + supplements.count + workoutSessions.count + habitItems.count
     }
 
     private var completedItems: Int {
-        meals.filter(\.isCompleted).count + supplements.filter(\.isTaken).count + workoutSessions.filter(\.isCompleted).count
+        meals.filter(\.isCompleted).count + supplements.filter(\.isTaken).count + workoutSessions.filter(\.isCompleted).count + habitItems.filter(\.isCompleted).count
     }
 
     private var allDone: Bool {
@@ -101,7 +109,7 @@ struct TimeBlockSectionView: View {
     }
 
     private var isEmpty: Bool {
-        meals.isEmpty && supplements.isEmpty && workoutSessions.isEmpty && !isCheckInBlock
+        meals.isEmpty && supplements.isEmpty && workoutSessions.isEmpty && habitItems.isEmpty && !isCheckInBlock
     }
 
     var body: some View {
@@ -134,6 +142,10 @@ struct TimeBlockSectionView: View {
                         } else if item.customItem != nil {
                             customWorkoutRow(item)
                         }
+                    }
+
+                    ForEach(habitItems) { item in
+                        habitRow(item)
                     }
 
                     if isCheckInBlock {
@@ -359,7 +371,7 @@ struct TimeBlockSectionView: View {
 
     // MARK: - Custom Meal Row
 
-    private func customMealRow(_ item: UserPlanItem, isCompleted: Bool, onToggle: @escaping () -> Void) -> some View {
+    private func customMealRow(_ item: Habit, isCompleted: Bool, onToggle: @escaping () -> Void) -> some View {
         Button(action: onToggle) {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
@@ -421,6 +433,46 @@ struct TimeBlockSectionView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(phaseColor.opacity(0.2), lineWidth: 1)
             )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Habit Row
+
+    private func habitRow(_ item: HabitItem) -> some View {
+        Button {
+            onToggleHabit?(item.id)
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.sans(18))
+                    .foregroundStyle(item.isCompleted ? phaseColor : Color(uiColor: .tertiaryLabel))
+                    .padding(.top, 2)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 10))
+                            .foregroundStyle(phaseColor)
+                        Text(item.habit.title)
+                            .font(.nSubheadline)
+                            .fontWeight(.medium)
+                            .strikethrough(item.isCompleted, color: .secondary)
+                            .foregroundStyle(item.isCompleted ? .secondary : .primary)
+                    }
+
+                    if let duration = item.habit.duration, !duration.isEmpty {
+                        Text(duration)
+                            .font(.nCaption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(12)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
     }

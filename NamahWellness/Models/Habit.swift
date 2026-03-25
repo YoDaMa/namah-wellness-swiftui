@@ -3,16 +3,22 @@ import SwiftData
 
 // MARK: - Shared Enums
 
-enum PlanItemCategory: String, Codable, CaseIterable {
+enum HabitCategory: String, Codable, CaseIterable {
     case meal = "meal"
     case workout = "workout"
     case grocery = "grocery"
+    case habit = "habit"
+    case medication = "medication"
+    case supplement = "supplement"
 
     var displayName: String {
         switch self {
         case .meal: return "Meal"
         case .workout: return "Workout"
         case .grocery: return "Grocery Item"
+        case .habit: return "Habit"
+        case .medication: return "Medication"
+        case .supplement: return "Supplement"
         }
     }
 
@@ -21,11 +27,14 @@ enum PlanItemCategory: String, Codable, CaseIterable {
         case .meal: return "fork.knife"
         case .workout: return "figure.run"
         case .grocery: return "bag"
+        case .habit: return "sparkles"
+        case .medication: return "pills"
+        case .supplement: return "pill"
         }
     }
 }
 
-enum PlanItemRecurrence: String, Codable, CaseIterable {
+enum HabitRecurrence: String, Codable, CaseIterable {
     case daily = "daily"
     case weekdays = "weekdays"
     case specificDays = "specific_days"
@@ -41,10 +50,10 @@ enum PlanItemRecurrence: String, Codable, CaseIterable {
     }
 }
 
-// MARK: - UserPlanItem
+// MARK: - Habit (formerly UserPlanItem)
 
 @Model
-final class UserPlanItem {
+final class Habit {
     @Attribute(.unique) var id: String
     var userId: String = ""
     var categoryRaw: String
@@ -76,13 +85,20 @@ final class UserPlanItem {
     var ingredientsJSON: String?    // JSON array of {name, quantity, unit}
     var instructions: String?       // JSON array of step strings
 
-    var category: PlanItemCategory {
-        get { PlanItemCategory(rawValue: categoryRaw) ?? .meal }
+    // Reminders
+    var reminderEnabled: Bool = false
+    var reminderTime: String?
+
+    // Copy-on-write tracking
+    var replacesItemId: String?
+
+    var category: HabitCategory {
+        get { HabitCategory(rawValue: categoryRaw) ?? .meal }
         set { categoryRaw = newValue.rawValue }
     }
 
-    var recurrence: PlanItemRecurrence {
-        get { PlanItemRecurrence(rawValue: recurrenceRaw) ?? .specificDays }
+    var recurrence: HabitRecurrence {
+        get { HabitRecurrence(rawValue: recurrenceRaw) ?? .specificDays }
         set { recurrenceRaw = newValue.rawValue }
     }
 
@@ -129,12 +145,12 @@ final class UserPlanItem {
     init(
         id: String = UUID().uuidString,
         userId: String = "",
-        category: PlanItemCategory,
+        category: HabitCategory,
         title: String,
         subtitle: String? = nil,
         time: String? = nil,
         phaseSlug: String? = nil,
-        recurrence: PlanItemRecurrence = .specificDays,
+        recurrence: HabitRecurrence = .specificDays,
         recurrenceDays: String? = nil,
         specificDate: String? = nil,
         isActive: Bool = true,
@@ -148,7 +164,10 @@ final class UserPlanItem {
         duration: String? = nil,
         groceryCategory: String? = nil,
         ingredientsJSON: String? = nil,
-        instructions: String? = nil
+        instructions: String? = nil,
+        reminderEnabled: Bool = false,
+        reminderTime: String? = nil,
+        replacesItemId: String? = nil
     ) {
         self.id = id
         self.userId = userId
@@ -172,5 +191,8 @@ final class UserPlanItem {
         self.groceryCategory = groceryCategory
         self.ingredientsJSON = ingredientsJSON
         self.instructions = instructions
+        self.reminderEnabled = reminderEnabled
+        self.reminderTime = reminderTime
+        self.replacesItemId = replacesItemId
     }
 }

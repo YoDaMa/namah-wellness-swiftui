@@ -378,7 +378,7 @@ struct ProfileView: View {
         // Build supplement notification infos
         let activeSupps = userSupplements.filter(\.isActive)
         let suppInfos = activeSupps.map { userSup in
-            let def = definitions.first { $0.id == userSup.supplementId }
+            let def = userSup.supplementId.flatMap { supId in definitions.first { $0.id == supId } }
             return NotificationService.SupplementNotificationInfo(
                 userSupplementId: userSup.id,
                 name: def?.name ?? "Supplement",

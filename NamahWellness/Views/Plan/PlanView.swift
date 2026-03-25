@@ -6,7 +6,8 @@ import SwiftData
 enum PlanTab: String, CaseIterable, Identifiable {
     case nourish = "NOURISH"
     case move = "MOVE"
-    case supplements = "SUPPLEMENTS"
+    case supplements = "SUPPS"
+    case habits = "HABITS"
 
     var id: String { rawValue }
 }
@@ -17,7 +18,7 @@ struct PlanView: View {
     let cycleService: CycleService
 
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
-    @Query private var userPlanItems: [UserPlanItem]
+    @Query private var habits: [Habit]
     @Query private var userItemsHidden: [UserItemHidden]
 
     @State private var selectedTab: PlanTab = .nourish
@@ -57,16 +58,16 @@ struct PlanView: View {
         Set(userItemsHidden.map(\.itemId))
     }
 
-    private var customMeals: [UserPlanItem] {
-        userPlanItems.filter { $0.category == .meal && $0.isActive }
+    private var customMeals: [Habit] {
+        habits.filter { $0.category == .meal && $0.isActive }
     }
 
-    private var customWorkouts: [UserPlanItem] {
-        userPlanItems.filter { $0.category == .workout && $0.isActive }
+    private var customWorkouts: [Habit] {
+        habits.filter { $0.category == .workout && $0.isActive }
     }
 
-    private var customGrocery: [UserPlanItem] {
-        userPlanItems.filter { $0.category == .grocery && $0.isActive }
+    private var customGrocery: [Habit] {
+        habits.filter { $0.category == .grocery && $0.isActive }
     }
 
     var body: some View {
@@ -104,6 +105,8 @@ struct PlanView: View {
                                 )
                             case .supplements:
                                 PlanSupplementsView()
+                            case .habits:
+                                HabitsView(phaseSlug: displayedSlug)
                             }
                         }
                         .padding(.horizontal)
@@ -140,7 +143,7 @@ struct PlanView: View {
             }
             .sheet(isPresented: $showAddItem) {
                 AddPlanItemSheet(
-                    defaultCategory: selectedTab == .move ? .workout : selectedTab == .nourish ? .meal : .meal,
+                    defaultCategory: selectedTab == .move ? .workout : selectedTab == .habits ? .habit : .meal,
                     phaseSlug: displayedSlug
                 )
             }

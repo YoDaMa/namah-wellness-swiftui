@@ -10,8 +10,8 @@ final class PlanTemplate {
     var isDefault: Bool
     var createdAt: Date
 
-    var category: PlanItemCategory {
-        get { PlanItemCategory(rawValue: categoryRaw) ?? .meal }
+    var category: HabitCategory {
+        get { HabitCategory(rawValue: categoryRaw) ?? .meal }
         set { categoryRaw = newValue.rawValue }
     }
 
@@ -19,7 +19,7 @@ final class PlanTemplate {
         id: String = UUID().uuidString,
         name: String,
         templateDescription: String = "",
-        category: PlanItemCategory = .meal,
+        category: HabitCategory = .meal,
         isDefault: Bool = false,
         createdAt: Date = Date()
     ) {

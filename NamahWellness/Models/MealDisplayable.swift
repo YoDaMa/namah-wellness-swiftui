@@ -1,6 +1,6 @@
 import Foundation
 
-/// Unifies template Meals and custom UserPlanItems for MealDetailView display.
+/// Unifies template Meals and custom Habits for MealDetailView display.
 protocol MealDisplayable {
     var title: String { get }
     var displayMealType: String? { get }
@@ -31,9 +31,9 @@ extension Meal: MealDisplayable {
     }
 }
 
-// MARK: - UserPlanItem conformance
+// MARK: - Habit conformance
 
-extension UserPlanItem: MealDisplayable {
+extension Habit: MealDisplayable {
     var displayMealType: String? { mealType }
     var displayTime: String? { time }
     var displayDescription: String? { subtitle }

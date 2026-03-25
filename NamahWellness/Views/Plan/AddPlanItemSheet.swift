@@ -2,8 +2,9 @@ import SwiftUI
 import SwiftData
 
 struct AddPlanItemSheet: View {
-    let defaultCategory: PlanItemCategory
+    let defaultCategory: HabitCategory
     let phaseSlug: String
+    let allowedCategories: [HabitCategory]
 
     // Pre-fill from a meal being replaced
     var replacingMealType: String?
@@ -13,7 +14,7 @@ struct AddPlanItemSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(SyncService.self) private var syncService
 
-    @State private var category: PlanItemCategory
+    @State private var category: HabitCategory
     @State private var title = ""
     @State private var subtitle = ""
     @State private var time = "7:00am"
@@ -33,7 +34,7 @@ struct AddPlanItemSheet: View {
     @State private var groceryCategory = "Produce"
 
     // Recurrence
-    @State private var recurrence: PlanItemRecurrence = .specificDays
+    @State private var recurrence: HabitRecurrence = .specificDays
     @State private var selectedDays: Set<Int> = []  // 0=Monday
 
     private let dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -46,13 +47,15 @@ struct AddPlanItemSheet: View {
     private var canSave: Bool { !title.isEmpty }
 
     init(
-        defaultCategory: PlanItemCategory = .meal,
+        defaultCategory: HabitCategory = .meal,
         phaseSlug: String,
+        allowedCategories: [HabitCategory] = HabitCategory.allCases,
         replacingMealType: String? = nil,
         replacingTime: String? = nil
     ) {
         self.defaultCategory = defaultCategory
         self.phaseSlug = phaseSlug
+        self.allowedCategories = allowedCategories
         self.replacingMealType = replacingMealType
         self.replacingTime = replacingTime
         _category = State(initialValue: defaultCategory)
@@ -84,6 +87,8 @@ struct AddPlanItemSheet: View {
                     case .meal: mealFields
                     case .workout: workoutFields
                     case .grocery: groceryFields
+                    case .habit: habitFields
+                    case .medication, .supplement: EmptyView()
                     }
 
                     // Recurrence (not for grocery)
@@ -119,7 +124,7 @@ struct AddPlanItemSheet: View {
                 .namahLabel()
 
             HStack(spacing: 8) {
-                ForEach(PlanItemCategory.allCases, id: \.rawValue) { cat in
+                ForEach(allowedCategories, id: \.rawValue) { cat in
                     Button {
                         withAnimation(.easeInOut(duration: 0.15)) {
                             category = cat
@@ -283,6 +288,34 @@ struct AddPlanItemSheet: View {
         }
     }
 
+    // MARK: - Habit Fields
+
+    private var habitFields: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("TIME (OPTIONAL)")
+                        .namahLabel()
+                    TextField("7:00am", text: $time)
+                        .font(.nSubheadline)
+                        .padding(14)
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("DURATION")
+                        .namahLabel()
+                    TextField("10 min", text: $duration)
+                        .font(.nSubheadline)
+                        .padding(14)
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
+        }
+    }
+
     // MARK: - Grocery Fields
 
     private var groceryFields: some View {
@@ -319,7 +352,7 @@ struct AddPlanItemSheet: View {
 
             // Recurrence type picker
             HStack(spacing: 6) {
-                ForEach(PlanItemRecurrence.allCases, id: \.rawValue) { rec in
+                ForEach(HabitRecurrence.allCases, id: \.rawValue) { rec in
                     Button {
                         withAnimation(.easeInOut(duration: 0.15)) {
                             recurrence = rec
@@ -387,7 +420,7 @@ struct AddPlanItemSheet: View {
         formatter.timeZone = .current
         let todayStr = recurrence == .once ? formatter.string(from: Date()) : nil
 
-        let item = UserPlanItem(
+        let item = Habit(
             category: category,
             title: title,
             subtitle: subtitle.isEmpty ? nil : subtitle,
@@ -407,7 +440,7 @@ struct AddPlanItemSheet: View {
 
         modelContext.insert(item)
         syncService.queueChange(
-            table: "userPlanItems", action: "upsert",
+            table: "habits", action: "upsert",
             data: ["id": item.id], modelContext: modelContext
         )
 

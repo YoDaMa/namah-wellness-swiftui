@@ -27,7 +27,7 @@ struct MealDetailView: View {
     private var ingredients: [Ingredient] {
         if !meal.isCustomMeal {
             return recipeIngredients.map { $0.toIngredient() }
-        } else if let custom = meal as? UserPlanItem {
+        } else if let custom = meal as? Habit {
             return custom.decodedIngredients
         }
         return []

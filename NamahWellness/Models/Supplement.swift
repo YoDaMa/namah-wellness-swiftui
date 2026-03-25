@@ -52,19 +52,31 @@ final class SupplementNutrient {
 final class UserSupplement {
     @Attribute(.unique) var id: String
     var userId: String = ""
-    var supplementId: String
+    var supplementId: String?       // nil for generic medications
     var dosage: Double
-    var frequency: String    // daily, weekly, as_needed
-    var timeOfDay: String    // morning, with_meals, evening, as_needed
+    var frequency: String           // daily, weekly, as_needed
+    var timeOfDay: String           // morning, with_meals, evening, as_needed
     var isActive: Bool
     var startedAt: Date
+
+    // Medication / reminder support
+    var supplementCategory: String = "supplement"  // "supplement" | "medication"
+    var supplementTitle: String?                    // Custom display name (for generic entries)
+    var reminderEnabled: Bool = false
+    var reminderTime: String?                       // "8:00am"
+
+    var isMedication: Bool { supplementCategory == "medication" }
 
     init(
         id: String = UUID().uuidString,
         userId: String = "",
-        supplementId: String, dosage: Double = 1.0,
+        supplementId: String? = nil, dosage: Double = 1.0,
         frequency: String = "daily", timeOfDay: String = "morning",
-        isActive: Bool = true, startedAt: Date = Date()
+        isActive: Bool = true, startedAt: Date = Date(),
+        supplementCategory: String = "supplement",
+        supplementTitle: String? = nil,
+        reminderEnabled: Bool = false,
+        reminderTime: String? = nil
     ) {
         self.id = id
         self.userId = userId
@@ -74,6 +86,10 @@ final class UserSupplement {
         self.timeOfDay = timeOfDay
         self.isActive = isActive
         self.startedAt = startedAt
+        self.supplementCategory = supplementCategory
+        self.supplementTitle = supplementTitle
+        self.reminderEnabled = reminderEnabled
+        self.reminderTime = reminderTime
     }
 }
 

@@ -29,7 +29,7 @@ struct MealCardContent: View {
         self.phaseColor = nil
     }
 
-    init(customItem: UserPlanItem, isCompleted: Bool, phaseColor: Color) {
+    init(customItem: Habit, isCompleted: Bool, phaseColor: Color) {
         self.title = customItem.title
         self.time = customItem.time
         self.mealType = customItem.mealType

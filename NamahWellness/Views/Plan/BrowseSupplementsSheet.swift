@@ -20,7 +20,7 @@ struct BrowseSupplementsSheet: View {
     }
 
     private var activeSupplementIds: Set<String> {
-        Set(userSupplements.filter(\.isActive).map(\.supplementId))
+        Set(userSupplements.filter(\.isActive).compactMap(\.supplementId))
     }
 
     var body: some View {

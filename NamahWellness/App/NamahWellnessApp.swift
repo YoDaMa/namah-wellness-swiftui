@@ -36,9 +36,9 @@ struct NamahWellnessApp: App {
             SexualActivityLog.self,
             PlanTemplate.self,
             UserPlanSelection.self,
-            UserPlanItem.self,
+            Habit.self,
             UserItemHidden.self,
-            PlanItemLog.self,
+            HabitLog.self,
         ])
 
         do {

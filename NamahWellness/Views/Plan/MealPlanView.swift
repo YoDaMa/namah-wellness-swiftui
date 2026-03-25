@@ -15,7 +15,7 @@ struct MealPlanView: View {
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
     @Query(sort: \Meal.dayNumber) private var allMeals: [Meal]
     @Query private var recipeIngredients: [RecipeIngredient]
-    @Query private var userPlanItems: [UserPlanItem]
+    @Query private var habits: [Habit]
     @Query private var userItemsHidden: [UserItemHidden]
 
     @State private var selectedDay: Int = 1
@@ -32,8 +32,8 @@ struct MealPlanView: View {
         Set(userItemsHidden.map(\.itemId))
     }
 
-    private var customMeals: [UserPlanItem] {
-        userPlanItems.filter { $0.category == .meal && $0.isActive }
+    private var customMeals: [Habit] {
+        habits.filter { $0.category == .meal && $0.isActive }
     }
 
     private var isSearching: Bool { !ingredientSearch.isEmpty }
@@ -80,7 +80,7 @@ struct MealPlanView: View {
         dateFormatter.string(from: Date())
     }
 
-    private var customMealsForToday: [UserPlanItem] {
+    private var customMealsForToday: [Habit] {
         customMeals.filter { $0.appliesOnDate(todayStr) }
     }
 
@@ -293,7 +293,7 @@ struct MealPlanView: View {
 
     // MARK: - Custom Meal Card
 
-    private func customMealCard(_ item: UserPlanItem) -> some View {
+    private func customMealCard(_ item: Habit) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 4) {
                 if let time = item.time {
@@ -347,10 +347,17 @@ struct MealPlanView: View {
                 .stroke(phaseColors.color.opacity(0.3), lineWidth: 1)
         )
         .contextMenu {
+            if item.replacesItemId != nil {
+                Button {
+                    resetToDefault(item)
+                } label: {
+                    Label("Reset to Default", systemImage: "arrow.uturn.backward")
+                }
+            }
             Button(role: .destructive) {
                 item.isActive = false
                 syncService.queueChange(
-                    table: "userPlanItems", action: "upsert",
+                    table: "habits", action: "upsert",
                     data: ["id": item.id, "isActive": false], modelContext: modelContext
                 )
             } label: {
@@ -359,9 +366,30 @@ struct MealPlanView: View {
         }
     }
 
+    // MARK: - Copy-on-Write: Reset to Default
+
+    private func resetToDefault(_ item: Habit) {
+        guard let replacesId = item.replacesItemId else { return }
+        let descriptor = FetchDescriptor<UserItemHidden>(
+            predicate: #Predicate { $0.itemId == replacesId }
+        )
+        if let hidden = try? modelContext.fetch(descriptor).first {
+            syncService.queueChange(
+                table: "userItemsHidden", action: "delete",
+                data: ["id": hidden.id], modelContext: modelContext
+            )
+            modelContext.delete(hidden)
+        }
+        syncService.queueChange(
+            table: "habits", action: "delete",
+            data: ["id": item.id], modelContext: modelContext
+        )
+        modelContext.delete(item)
+    }
+
     // MARK: - Hide Item
 
-    private func hideItem(_ itemId: String, type: PlanItemCategory) {
+    private func hideItem(_ itemId: String, type: HabitCategory) {
         let hidden = UserItemHidden(itemId: itemId, itemType: type)
         modelContext.insert(hidden)
         syncService.queueChange(

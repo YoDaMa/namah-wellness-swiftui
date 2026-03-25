@@ -6,8 +6,6 @@ struct LearnView: View {
 
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
 
-    @State private var showProfile = false
-
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -38,19 +36,6 @@ struct LearnView: View {
             .background(Color.paper.ignoresSafeArea())
             .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Learn")
-            .sheet(isPresented: $showProfile) {
-                NavigationStack {
-                    ProfileView(cycleService: cycleService)
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showProfile = true } label: {
-                        Image(systemName: "gearshape")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
         }
     }
 

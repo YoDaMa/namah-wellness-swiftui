@@ -23,15 +23,16 @@ struct TodayView: View {
     @Query private var schedules: [DailySchedule]
     @Query private var bbtLogs: [BBTLog]
     @Query private var sexualActivityLogs: [SexualActivityLog]
-    @Query private var userPlanItems: [UserPlanItem]
+    @Query private var habits: [Habit]
+    @Query private var habitLogs: [HabitLog]
     @Query private var userItemsHidden: [UserItemHidden]
 
     @Environment(SyncService.self) private var syncService
+    @Environment(PlanAggregatorService.self) private var planAggregator
     @Environment(AuthService.self) private var authService
     @Environment(CycleLogManager.self) private var cycleLogManager: CycleLogManager?
     @Environment(TimeBlockService.self) private var timeBlockService
 
-    @State private var showProfile = false
     @State private var showCoreProtocol = false
     @State private var showLogSupplement = false
     @State private var showLogMeal = false
@@ -83,12 +84,20 @@ struct TodayView: View {
         Set(userItemsHidden.map(\.itemId))
     }
 
-    private var customMeals: [UserPlanItem] {
-        userPlanItems.filter { $0.category == .meal && $0.isActive && $0.appliesOnDate(today) }
+    private var customMeals: [Habit] {
+        habits.filter { $0.category == .meal && $0.isActive && $0.appliesOnDate(today) }
     }
 
-    private var customWorkouts: [UserPlanItem] {
-        userPlanItems.filter { $0.category == .workout && $0.isActive && $0.appliesOnDate(today) }
+    private var customWorkouts: [Habit] {
+        habits.filter { $0.category == .workout && $0.isActive && $0.appliesOnDate(today) }
+    }
+
+    private var todayHabits: [Habit] {
+        habits.filter { $0.category == .habit && $0.isActive && $0.appliesOnDate(today) }
+    }
+
+    private var todayHabitLogIds: Set<String> {
+        Set(habitLogs.filter { $0.date == today && $0.completed }.map(\.habitId))
     }
 
     private var todayMealCompletionIds: Set<String> {
@@ -308,16 +317,27 @@ struct TodayView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                             }
                             .buttonStyle(.plain)
-                        }
 
-                        // Progress bar
-                        if totalActionableItems > 0 {
-                            TimeBlockProgressBar(
-                                completed: completedActionableItems,
-                                total: totalActionableItems,
-                                streak: currentStreak,
-                                phaseColor: phaseColor
-                            )
+                            Button { showSymptoms = true } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: hasAnyCheckIn ? "checkmark.circle.fill" : "heart.text.square")
+                                        .font(.sans(14))
+                                        .foregroundStyle(hasAnyCheckIn ? phaseColor : .secondary)
+                                    Text(hasAnyCheckIn ? "Check-In Complete" : "Symptom Check-In")
+                                        .font(.nCaption)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.sans(10))
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                     .padding(.horizontal)
@@ -338,7 +358,20 @@ struct TodayView: View {
                     // 3. Extra supplements + Log button
                     extrasSection
                         .padding(.horizontal)
-                        .padding(.bottom, 32)
+
+                    // 4. Progress bar at bottom
+                    if totalActionableItems > 0 {
+                        TimeBlockProgressBar(
+                            completed: completedActionableItems,
+                            total: totalActionableItems,
+                            streak: currentStreak,
+                            phaseColor: phaseColor
+                        )
+                        .padding(.horizontal)
+                    }
+
+                    Spacer()
+                        .frame(height: 32)
                 }
             }
             .refreshable {
@@ -350,38 +383,30 @@ struct TodayView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 16) {
-                        Menu {
-                            Button {
-                                showLogMeal = true
-                            } label: {
-                                Label("Add Meal", systemImage: "fork.knife")
-                            }
-                            Button {
-                                showLogSupplement = true
-                            } label: {
-                                Label("Log Supplement", systemImage: "pill.fill")
-                            }
-                            Button {
-                                showLogWorkout = true
-                            } label: {
-                                Label("Add Workout", systemImage: "figure.run")
-                            }
+                    Menu {
+                        Button {
+                            showLogMeal = true
                         } label: {
+                            Label("Log Meal", systemImage: "fork.knife")
+                        }
+                        Button {
+                            showLogSupplement = true
+                        } label: {
+                            Label("Log Supplement", systemImage: "pill.fill")
+                        }
+                        Button {
+                            showLogWorkout = true
+                        } label: {
+                            Label("Log Workout", systemImage: "figure.run")
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
                             Image(systemName: "plus")
-                                .foregroundStyle(.secondary)
+                            Text("Log Activity")
+                                .font(.nCaption2)
                         }
-
-                        Button { showProfile = true } label: {
-                            Image(systemName: "gearshape")
-                                .foregroundStyle(.secondary)
-                        }
+                        .foregroundStyle(.secondary)
                     }
-                }
-            }
-            .sheet(isPresented: $showProfile) {
-                NavigationStack {
-                    ProfileView(cycleService: cycleService)
                 }
             }
             .sheet(isPresented: $showPhaseDetail) {
@@ -452,7 +477,8 @@ struct TodayView: View {
                 NavigationStack {
                     AddPlanItemSheet(
                         defaultCategory: .meal,
-                        phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual"
+                        phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual",
+                        allowedCategories: [.meal, .workout]
                     )
                 }
                 .presentationDragIndicator(.visible)
@@ -461,7 +487,8 @@ struct TodayView: View {
                 NavigationStack {
                     AddPlanItemSheet(
                         defaultCategory: .workout,
-                        phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual"
+                        phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual",
+                        allowedCategories: [.meal, .workout]
                     )
                 }
                 .presentationDragIndicator(.visible)
@@ -498,6 +525,7 @@ struct TodayView: View {
             let meals = mealsForBlock(block.kind)
             let supps = supplementsForBlock(block.kind)
             let sessions = workoutSessionsForBlock(block.kind)
+            let blockHabits = habitsForBlock(block.kind)
             let isCheckIn = block.kind == .evening
             let isCurrentBlock = block.kind == currentKind
 
@@ -510,7 +538,8 @@ struct TodayView: View {
                 meals: meals,
                 supplements: supps,
                 workoutSessions: sessions,
-                isCheckInBlock: isCheckIn,
+                habitItems: blockHabits,
+                isCheckInBlock: false,
                 hasCheckedIn: hasAnyCheckIn,
                 nextBlockName: nextBlock?.displayName,
                 nextBlockTime: nextBlock?.startTimeLabel,
@@ -543,6 +572,10 @@ struct TodayView: View {
                         dayFocus: item.dayFocus,
                         hasCoreProtocol: sessionIsCoreRelated
                     )
+                },
+                onToggleHabit: { habitId in
+                    toggleHabit(habitId)
+                    Haptics.completion()
                 }
             )
             .padding(.horizontal)
@@ -607,8 +640,8 @@ struct TodayView: View {
                 TimeBlockSectionView.SupplementItem(
                     id: userSup.id,
                     userSupplement: userSup,
-                    definition: definitionsById[userSup.supplementId],  // O(1) lookup
-                    nutrients: nutrientsBySupplementId[userSup.supplementId] ?? [],  // O(1) lookup
+                    definition: userSup.supplementId.flatMap { definitionsById[$0] },
+                    nutrients: userSup.supplementId.flatMap { nutrientsBySupplementId[$0] } ?? [],
                     isTaken: todaySupplementLogIds.contains(userSup.id)
                 )
             }
@@ -644,6 +677,48 @@ struct TodayView: View {
             }
 
         return items
+    }
+
+    // MARK: - Habits for Block
+
+    private func habitsForBlock(_ kind: TimeBlockKind) -> [TimeBlockSectionView.HabitItem] {
+        todayHabits
+            .filter { habit in
+                guard let time = habit.time, !time.isEmpty else {
+                    // Habits without a time go in morning block
+                    return kind == .morning
+                }
+                return timeBlockService.blockForWorkoutSession(timeSlot: time) == kind
+            }
+            .sorted { (TimeParser.minutesSinceMidnight(from: $0.time ?? "8:00am") ?? 480) < (TimeParser.minutesSinceMidnight(from: $1.time ?? "8:00am") ?? 480) }
+            .map { habit in
+                TimeBlockSectionView.HabitItem(
+                    id: habit.id,
+                    habit: habit,
+                    isCompleted: todayHabitLogIds.contains(habit.id)
+                )
+            }
+    }
+
+    // MARK: - Toggle Habit
+
+    private func toggleHabit(_ habitId: String) {
+        if let existing = habitLogs.first(where: { $0.habitId == habitId && $0.date == today }) {
+            existing.completed.toggle()
+            syncService.queueChange(
+                table: "habitLogs", action: "upsert",
+                data: ["id": existing.id, "habitId": habitId, "date": today, "completed": existing.completed],
+                modelContext: modelContext
+            )
+        } else {
+            let log = HabitLog(habitId: habitId, date: today, completed: true)
+            modelContext.insert(log)
+            syncService.queueChange(
+                table: "habitLogs", action: "upsert",
+                data: ["id": log.id, "habitId": habitId, "date": today, "completed": true],
+                modelContext: modelContext
+            )
+        }
     }
 
     // MARK: - Core Protocol Card
@@ -979,7 +1054,7 @@ struct TodayView: View {
 struct WorkoutDetailPresentation: Identifiable {
     let id: String
     let session: WorkoutSession?
-    let customItem: UserPlanItem?
+    let customItem: Habit?
     let dayFocus: String
     let hasCoreProtocol: Bool
 }

@@ -313,13 +313,145 @@ enum NotificationService {
         }
     }
 
-    // MARK: - Reschedule All (NEW — orchestrator)
+    // MARK: - Per-Item Habit Reminders
+
+    private static let habitReminderPrefix = "namah.habitReminder."
+    private static let supplementReminderPrefix = "namah.supplementReminder."
+    static let habitReminderCategoryId = "HABIT_REMINDER"
+
+    /// Schedule a notification reminder for a single habit
+    static func scheduleHabitReminder(
+        identifier: String,
+        title: String,
+        time: String,
+        recurrence: HabitRecurrence,
+        recurrenceDays: String?
+    ) async {
+        let center = UNUserNotificationCenter.current()
+        let fullId = "\(habitReminderPrefix)\(identifier)"
+
+        // Remove existing
+        center.removePendingNotificationRequests(withIdentifiers: [fullId])
+
+        guard let minutes = TimeParser.minutesSinceMidnight(from: time) else { return }
+        let hour = minutes / 60
+        let minute = minutes % 60
+
+        let content = UNMutableNotificationContent()
+        content.title = "Time for \(title)"
+        content.sound = .default
+        content.userInfo = ["type": "habit", "itemId": identifier]
+
+        switch recurrence {
+        case .daily:
+            var components = DateComponents()
+            components.hour = hour
+            components.minute = minute
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+            let request = UNNotificationRequest(identifier: fullId, content: content, trigger: trigger)
+            try? await center.add(request)
+
+        case .weekdays:
+            for weekday in 2...6 {
+                var components = DateComponents()
+                components.hour = hour
+                components.minute = minute
+                components.weekday = weekday
+                let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+                let request = UNNotificationRequest(identifier: "\(fullId)-\(weekday)", content: content, trigger: trigger)
+                try? await center.add(request)
+            }
+
+        case .specificDays:
+            let dayIndices = (recurrenceDays ?? "").split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+            for dayIndex in dayIndices {
+                // dayIndex 0=Monday → weekday 2, 6=Sunday → weekday 1
+                let weekday = dayIndex == 6 ? 1 : dayIndex + 2
+                var components = DateComponents()
+                components.hour = hour
+                components.minute = minute
+                components.weekday = weekday
+                let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+                let request = UNNotificationRequest(identifier: "\(fullId)-\(weekday)", content: content, trigger: trigger)
+                try? await center.add(request)
+            }
+
+        case .once:
+            // Non-repeating — schedule for today at the specified time
+            var components = DateComponents()
+            components.hour = hour
+            components.minute = minute
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+            let request = UNNotificationRequest(identifier: fullId, content: content, trigger: trigger)
+            try? await center.add(request)
+        }
+
+        logger.info("Scheduled habit reminder for '\(title)'")
+    }
+
+    /// Cancel a habit reminder
+    static func cancelHabitReminder(identifier: String) {
+        let center = UNUserNotificationCenter.current()
+        let prefix = "\(habitReminderPrefix)\(identifier)"
+        // Cancel all variants (daily + per-weekday)
+        let ids = [prefix] + (1...7).map { "\(prefix)-\($0)" }
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+    }
+
+    /// Reschedule all habit and supplement reminders from current data
+    static func rescheduleAllItemReminders(habits: [Habit], supplements: [UserSupplement]) async {
+        let center = UNUserNotificationCenter.current()
+
+        // Remove all existing item reminders
+        let pending = await center.pendingNotificationRequests()
+        let oldIds = pending.map(\.identifier).filter {
+            $0.hasPrefix(habitReminderPrefix) || $0.hasPrefix(supplementReminderPrefix)
+        }
+        center.removePendingNotificationRequests(withIdentifiers: oldIds)
+
+        // Schedule habit reminders
+        for habit in habits where habit.reminderEnabled && habit.isActive {
+            guard let time = habit.reminderTime else { continue }
+            await scheduleHabitReminder(
+                identifier: habit.id,
+                title: habit.title,
+                time: time,
+                recurrence: habit.recurrence,
+                recurrenceDays: habit.recurrenceDays
+            )
+        }
+
+        // Schedule supplement/medication reminders
+        for supp in supplements where supp.reminderEnabled && supp.isActive {
+            guard let time = supp.reminderTime else { continue }
+            let name = supp.supplementTitle ?? "Supplement"
+            let fullId = "\(supplementReminderPrefix)\(supp.id)"
+
+            let content = UNMutableNotificationContent()
+            content.title = "Time for \(name)"
+            content.sound = .default
+            content.userInfo = ["type": "supplement", "itemId": supp.id]
+
+            guard let minutes = TimeParser.minutesSinceMidnight(from: time) else { continue }
+            var components = DateComponents()
+            components.hour = minutes / 60
+            components.minute = minutes % 60
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+            let request = UNNotificationRequest(identifier: fullId, content: content, trigger: trigger)
+            try? await center.add(request)
+        }
+
+        logger.info("Rescheduled all item reminders")
+    }
+
+    // MARK: - Reschedule All (orchestrator)
 
     static func cancelHabitNotifications() async {
         let center = UNUserNotificationCenter.current()
         let pending = await center.pendingNotificationRequests()
         let habitIds = pending.map(\.identifier).filter {
             $0.hasPrefix(mealPrefix) || $0.hasPrefix(supplementPrefix) || $0 == workoutId
+                || $0.hasPrefix(habitReminderPrefix) || $0.hasPrefix(supplementReminderPrefix)
         }
         center.removePendingNotificationRequests(withIdentifiers: habitIds)
         logger.info("Cancelled \(habitIds.count) habit notifications")

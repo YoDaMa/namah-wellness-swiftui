@@ -19,68 +19,89 @@ struct PhaseHeroCard: View {
         PhaseColors.forSlug(phase.phaseSlug)
     }
 
-    /// Extract the tagline from heroTitle (e.g., "Restore & Replenish" from "Menstrual — Restore & Replenish")
-    private var tagline: String? {
-        guard let title = heroTitle else { return nil }
-        if let dashRange = title.range(of: " \u{2014} ") {
-            return String(title[dashRange.upperBound...])
-        }
-        return title
-    }
+    private let slugOrder = ["menstrual", "follicular", "ovulatory", "luteal"]
 
-    /// First sentence of the subtitle (split on ". " and take the first).
-    private var firstSentence: String? {
-        guard let subtitle = heroSubtitle, !subtitle.isEmpty else { return nil }
-        if let dotSpace = subtitle.range(of: ". ") {
-            return String(subtitle[..<dotSpace.upperBound]).trimmingCharacters(in: .whitespaces)
-        }
-        return subtitle
+    private var isPeak: Bool {
+        phase.phaseSlug == "ovulatory" && (phase.dayInPhase == 2 || phase.dayInPhase == 3)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Phase dot + label
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
+                // Phase badge
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(.white.opacity(0.8))
+                        .frame(width: 8, height: 8)
+                    Text(phase.phaseName.uppercased())
+                        .font(.nCaption2)
+                        .fontWeight(.bold)
+                        .tracking(1)
+                        .foregroundStyle(.white.opacity(0.8))
+
+                    if phase.isOverridden {
+                        Text("· OVERRIDE")
+                            .font(.nCaption2)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.white.opacity(0.5))
+                    }
+                }
+
+                // Hero title
+                if let title = heroTitle {
+                    Text(title)
+                        .font(.display(22, relativeTo: .title2))
+                        .foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                // Hero subtitle
+                if let subtitle = heroSubtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.prose(13, relativeTo: .footnote))
+                        .foregroundStyle(.white.opacity(0.8))
+                        .lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            // Footer
             HStack {
-                Circle()
-                    .fill(phaseColors.color)
-                    .frame(width: 10, height: 10)
-                Text(phase.phaseName.uppercased())
+                Text("Day \(phase.dayInPhase) · Cycle day \(phase.cycleDay)")
                     .font(.nCaption2)
                     .fontWeight(.medium)
-                    .tracking(2)
-                    .foregroundStyle(.secondary)
-            }
+                    .foregroundStyle(.white.opacity(0.5))
 
-            // Tagline as large display title
-            if let tagline {
-                Text(tagline)
-                    .font(.display(26))
-                    .foregroundStyle(.primary)
-            }
+                Spacer()
 
-            // Description — first sentence only, never truncated
-            if let sentence = firstSentence {
-                Text(sentence)
-                    .font(.prose(13, relativeTo: .footnote))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                if isPeak {
+                    Text("Peak Fertility")
+                        .font(.nCaption2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(.white.opacity(0.2))
+                        .clipShape(Capsule())
+                } else {
+                    HStack(spacing: 6) {
+                        ForEach(slugOrder, id: \.self) { slug in
+                            let isCurrent = phase.phaseSlug == slug
+                            Circle()
+                                .fill(isCurrent ? .white : .white.opacity(0.3))
+                                .frame(width: isCurrent ? 8 : 6, height: isCurrent ? 8 : 6)
+                        }
+                    }
+                }
             }
-
-            // Day info — plain text, no icons
-            Text("Day \(phase.dayInPhase) · Cycle day \(phase.cycleDay)/\(cycleStats.avgCycleLength)")
-                .font(.nCaption)
-                .foregroundStyle(.secondary)
-
-            if phase.isOverridden {
-                Text("Manual override active")
-                    .font(.nCaption2)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.spice)
-            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 14)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(phaseColors.mid)
-        .clipShape(RoundedRectangle(cornerRadius: NamahRadius.medium))
+        .background(phaseColors.color)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 }

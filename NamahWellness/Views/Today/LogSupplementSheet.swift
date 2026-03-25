@@ -28,7 +28,7 @@ struct LogSupplementSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                let activeIds = Set(activeRegimen.map(\.supplementId))
+                let activeIds = Set(activeRegimen.compactMap(\.supplementId))
                 let extraDefs = definitions.filter { !activeIds.contains($0.id) }
 
                 if !extraDefs.isEmpty {
@@ -62,7 +62,7 @@ struct LogSupplementSheet: View {
                 if !activeRegimen.isEmpty {
                     Section("In Your Plan") {
                         ForEach(activeRegimen, id: \.id) { userSup in
-                            let def = definitions.first { $0.id == userSup.supplementId }
+                            let def = userSup.supplementId.flatMap { supId in definitions.first { $0.id == supId } }
                             let isTaken = todayLogIds.contains(userSup.id)
                             Button {
                                 toggleSupplement(userSup)

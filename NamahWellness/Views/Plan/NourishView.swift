@@ -6,8 +6,8 @@ import SwiftData
 struct NourishView: View {
     let phaseSlug: String
     let cycleService: CycleService
-    let customItems: [UserPlanItem]
-    let customGrocery: [UserPlanItem]
+    let customItems: [Habit]
+    let customGrocery: [Habit]
     let hiddenIds: Set<String>
 
     @Query(sort: \Phase.dayStart) private var phases: [Phase]

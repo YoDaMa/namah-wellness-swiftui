@@ -3,7 +3,7 @@ import SwiftData
 
 struct MoveView: View {
     let phaseSlug: String
-    let customWorkouts: [UserPlanItem]
+    let customWorkouts: [Habit]
     let hiddenIds: Set<String>
 
     @Environment(\.modelContext) private var modelContext
@@ -14,10 +14,14 @@ struct MoveView: View {
     @Query private var workoutSessions: [WorkoutSession]
     @Query private var exercises: [CoreExercise]
 
+    @Query private var workoutCompletions: [WorkoutCompletion]
+    @Query private var habitLogs: [HabitLog]
+
     @State private var selectedDayOfWeek: Int?
     @State private var showAddWorkout = false
     @State private var showDailySchedule = false
     @State private var showQiGong = false
+    @State private var editingSession: WorkoutSession?
 
     private var phase: Phase? { phases.first { $0.slug == phaseSlug } }
     private var phaseColor: Color { PhaseColors.forSlug(phaseSlug).color }
@@ -50,7 +54,7 @@ struct MoveView: View {
         dateFormatter.string(from: Date())
     }
 
-    private var customWorkoutsForDay: [UserPlanItem] {
+    private var customWorkoutsForDay: [Habit] {
         customWorkouts.filter { $0.appliesOnDate(todayStr) }
     }
 
@@ -83,6 +87,15 @@ struct MoveView: View {
         }
         .sheet(isPresented: $showDailySchedule) {
             DailyScheduleTemplateSheet()
+        }
+        .sheet(item: $editingSession) { session in
+            AddPlanItemSheet(
+                defaultCategory: .workout,
+                phaseSlug: phaseSlug,
+                allowedCategories: [.workout],
+                replacingMealType: nil,
+                replacingTime: session.timeSlot
+            )
         }
     }
 
@@ -270,6 +283,11 @@ struct MoveView: View {
                 ForEach(currentSessions, id: \.id) { session in
                     sessionCard(session)
                         .contextMenu {
+                            Button {
+                                editingSession = session
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
                             Button(role: .destructive) {
                                 hideItem(session.id, type: .workout)
                             } label: {
@@ -312,7 +330,7 @@ struct MoveView: View {
 
     // MARK: - Custom Workout Card
 
-    private func customWorkoutCard(_ item: UserPlanItem) -> some View {
+    private func customWorkoutCard(_ item: Habit) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 if let time = item.time {
@@ -361,10 +379,17 @@ struct MoveView: View {
                 .stroke(phaseColor.opacity(0.3), lineWidth: 1)
         )
         .contextMenu {
+            if item.replacesItemId != nil {
+                Button {
+                    resetToDefault(item)
+                } label: {
+                    Label("Reset to Default", systemImage: "arrow.uturn.backward")
+                }
+            }
             Button(role: .destructive) {
                 item.isActive = false
                 syncService.queueChange(
-                    table: "userPlanItems", action: "upsert",
+                    table: "habits", action: "upsert",
                     data: ["id": item.id, "isActive": false], modelContext: modelContext
                 )
             } label: {
@@ -375,13 +400,39 @@ struct MoveView: View {
 
     // MARK: - Hide Item
 
-    private func hideItem(_ itemId: String, type: PlanItemCategory) {
+    private func hideItem(_ itemId: String, type: HabitCategory) {
         let hidden = UserItemHidden(itemId: itemId, itemType: type)
         modelContext.insert(hidden)
         syncService.queueChange(
             table: "userItemsHidden", action: "upsert",
             data: ["id": hidden.id, "itemId": itemId], modelContext: modelContext
         )
+    }
+
+    // MARK: - Copy-on-Write: Reset to Default
+
+    private func resetToDefault(_ item: Habit) {
+        guard let replacesId = item.replacesItemId else { return }
+        // Delete the UserItemHidden that hid the original
+        let hiddenToRemove = hiddenIds.contains(replacesId) ? true : false
+        if hiddenToRemove {
+            let descriptor = FetchDescriptor<UserItemHidden>(
+                predicate: #Predicate { $0.itemId == replacesId }
+            )
+            if let hidden = try? modelContext.fetch(descriptor).first {
+                syncService.queueChange(
+                    table: "userItemsHidden", action: "delete",
+                    data: ["id": hidden.id], modelContext: modelContext
+                )
+                modelContext.delete(hidden)
+            }
+        }
+        // Delete the custom item
+        syncService.queueChange(
+            table: "habits", action: "delete",
+            data: ["id": item.id], modelContext: modelContext
+        )
+        modelContext.delete(item)
     }
 
     // MARK: - Core Protocol

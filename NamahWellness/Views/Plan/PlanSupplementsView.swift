@@ -95,9 +95,9 @@ struct PlanSupplementsView: View {
     }
 
     private func supplementCard(_ userSup: UserSupplement) -> some View {
-        let def = definitions.first { $0.id == userSup.supplementId }
+        let def = userSup.supplementId.flatMap { supId in definitions.first { $0.id == supId } }
         let isTaken = todayLogIds.contains(userSup.id)
-        let supNuts = supplementNutrients.filter { $0.supplementId == userSup.supplementId }
+        let supNuts = userSup.supplementId.map { supId in supplementNutrients.filter { $0.supplementId == supId } } ?? []
 
         return Button { toggleTaken(userSup) } label: {
             HStack(alignment: .top, spacing: 12) {
@@ -213,7 +213,7 @@ struct PlanSupplementsView: View {
     ]
 
     private var aggregatedNutrients: [AggregatedNutrient] {
-        let activeSupplementIds = Set(activeRegimen.map(\.supplementId))
+        let activeSupplementIds = Set(activeRegimen.compactMap(\.supplementId))
         let relevantNutrients = supplementNutrients.filter { activeSupplementIds.contains($0.supplementId) }
 
         var grouped: [String: (amount: Double, unit: String)] = [:]
@@ -316,7 +316,7 @@ struct PlanSupplementsView: View {
         syncService.queueChange(
             table: "userSupplements", action: "upsert",
             data: [
-                "id": userSup.id, "supplementId": userSup.supplementId,
+                "id": userSup.id, "supplementId": userSup.supplementId as Any,
                 "dosage": userSup.dosage, "frequency": userSup.frequency,
                 "timeOfDay": userSup.timeOfDay, "isActive": false,
             ],
