@@ -18,6 +18,7 @@ struct TodayView: View {
     @Query private var userSupplements: [UserSupplement]
     @Query private var supplementLogs: [SupplementLog]
     @Query private var coreExercises: [CoreExercise]
+    @Query private var coreProtocolCompletions: [CoreProtocolCompletion]
     @Query private var cycleLogs: [CycleLog]
     @Query private var profiles: [UserProfile]
     @Query private var schedules: [DailySchedule]
@@ -37,13 +38,15 @@ struct TodayView: View {
     @State private var showLogSupplement = false
     @State private var showLogMeal = false
     @State private var showLogWorkout = false
-    @State private var appearedBlocks: Set<TimeBlockKind> = []
+    @State private var showFullDay = false
     @State private var showLogPeriod = false
     @State private var showSymptoms = false
-    @State private var showPhaseDetail = false
     @State private var showQiGong = false
     @State private var mealPresentation: MealDetailPresentation?
-    @State private var workoutPresentation: WorkoutDetailPresentation?
+
+    @State private var showCelebration = false
+
+    @Namespace private var zoomNS
 
     @AppStorage("lastOverdueDismissDate") private var lastOverdueDismissDate: String = ""
 
@@ -106,6 +109,10 @@ struct TodayView: View {
 
     private var todayWorkoutCompletionIds: Set<String> {
         Set(workoutCompletions.filter { $0.date == today }.map(\.workoutId))
+    }
+
+    private var coreProtocolCompletedToday: Bool {
+        coreProtocolCompletions.contains { $0.date == today }
     }
 
     private var todayMeals: [Meal] {
@@ -270,86 +277,16 @@ struct TodayView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: NamahSpacing.relaxed) {
                     // 1. Greeting + Phase Hero
-                    VStack(alignment: .leading, spacing: 16) {
-                        if !firstName.isEmpty {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("\(timeGreeting), \(firstName).")
-                                    .font(.prose(42))
-                                    .foregroundStyle(.primary)
+                    greetingAndHeroSection
 
-                                if let oneLiner = phaseOneLiner {
-                                    Text(oneLiner)
-                                        .font(.prose(17, relativeTo: .body))
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-
-                        if let phase = cycleService.currentPhase {
-                            Button { showPhaseDetail = true } label: {
-                                PhaseHeroCard(
-                                    phase: phase,
-                                    cycleStats: cycleService.cycleStats,
-                                    heroTitle: currentPhaseRecord?.heroTitle,
-                                    heroSubtitle: currentPhaseRecord?.heroSubtitle,
-                                    exerciseIntensity: currentPhaseRecord?.exerciseIntensity
-                                )
-                            }
-                            .buttonStyle(.plain)
-
-                            Button { showQiGong = true } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "figure.mind.and.body")
-                                        .font(.sans(14))
-                                        .foregroundStyle(phaseColor)
-                                    Text("Qi Gong Resources")
-                                        .font(.nCaption)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(.primary)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.sans(10))
-                                        .foregroundStyle(.tertiary)
-                                }
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 10)
-                                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
-                            .buttonStyle(.plain)
-
-                            Button { showSymptoms = true } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: hasAnyCheckIn ? "checkmark.circle.fill" : "heart.text.square")
-                                        .font(.sans(14))
-                                        .foregroundStyle(hasAnyCheckIn ? phaseColor : .secondary)
-                                    Text(hasAnyCheckIn ? "Check-In Complete" : "Symptom Check-In")
-                                        .font(.nCaption)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(.primary)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.sans(10))
-                                        .foregroundStyle(.tertiary)
-                                }
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 10)
-                                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 4)
-
-                    // 2. Period prompt + Time Block Sections
+                    // 2. Period prompt + Current Block Card
                     if hasCycleData {
                         if shouldShowPeriodPrompt {
                             periodPromptBanner
                                 .padding(.horizontal)
                         }
-                        timeBlockSections
+                        currentBlockCard
+                            .padding(.horizontal)
                     } else {
                         logCycleCTA
                             .padding(.horizontal)
@@ -372,6 +309,12 @@ struct TodayView: View {
 
                     Spacer()
                         .frame(height: 32)
+                }
+            }
+            .overlay {
+                if showCelebration {
+                    celebrationOverlay
+                        .transition(.opacity.combined(with: .scale(scale: 0.8)))
                 }
             }
             .refreshable {
@@ -409,20 +352,35 @@ struct TodayView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showPhaseDetail) {
-                NavigationStack {
-                    if let phase = phases.first(where: { $0.slug == cycleService.currentPhase?.phaseSlug }) {
-                        PhaseDetailView(phase: phase, cycleService: cycleService)
-                            .toolbar {
-                                ToolbarItem(placement: .cancellationAction) {
-                                    Button("Done") { showPhaseDetail = false }
-                                }
-                            }
-                    }
-                }
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
+            // MARK: - Zoom Navigation Destinations
+            .navigationDestination(isPresented: $showFullDay) {
+                FullDayTimelineView(cycleService: cycleService)
+                .toolbar(.hidden, for: .tabBar)
             }
+            .navigationDestination(isPresented: $showQiGong) {
+                QiGongResourcesSheet(isSheet: false)
+                    .navigationTransition(.zoom(sourceID: "qigong", in: zoomNS))
+                    .toolbar(.hidden, for: .tabBar)
+            }
+            .navigationDestination(isPresented: $showSymptoms) {
+                DailyTrackingFormView(
+                    symptomLog: todaySymptomLog,
+                    dailyNote: todayNote,
+                    bbtLog: todayBBTLog,
+                    sexualActivityLogs: todaySexualActivityLogs,
+                    date: today,
+                    phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual",
+                    onDismiss: { showSymptoms = false }
+                )
+                .toolbar(.hidden, for: .tabBar)
+                .navigationTransition(.zoom(sourceID: "symptoms", in: zoomNS))
+            }
+            .navigationDestination(isPresented: $showCoreProtocol) {
+                coreProtocolContent
+                    .toolbar(.hidden, for: .tabBar)
+                    .navigationTransition(.zoom(sourceID: "coreProtocol", in: zoomNS))
+            }
+            // MARK: - Sheets (toolbar menu items + period logging)
             .sheet(isPresented: $showLogPeriod) {
                 if let manager = cycleLogManager {
                     LogPeriodSheet(
@@ -430,45 +388,6 @@ struct TodayView: View {
                         isPresented: $showLogPeriod
                     )
                 }
-            }
-            .sheet(isPresented: $showSymptoms) {
-                let slug = cycleService.currentPhase?.phaseSlug ?? "menstrual"
-                NavigationStack {
-                    ScrollView {
-                        DailyTrackingView(
-                            symptomLog: todaySymptomLog,
-                            dailyNote: todayNote,
-                            bbtLog: todayBBTLog,
-                            sexualActivityLogs: todaySexualActivityLogs,
-                            date: today,
-                            phaseSlug: slug
-                        )
-                        .padding()
-                    }
-                    .background(
-                        PhaseColors.forSlug(slug).soft.opacity(0.3)
-                    )
-                    .navigationTitle("Today's Check-in")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showSymptoms = false }
-                        }
-                    }
-                }
-                .presentationDragIndicator(.visible)
-            }
-            .sheet(item: $mealPresentation) { presentation in
-                NavigationStack {
-                    MealDetailView(
-                        meal: presentation.meal,
-                        mealId: presentation.id,
-                        phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual",
-                        phaseColor: phaseColor
-                    )
-                }
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $showLogSupplement) {
                 LogSupplementSheet(phaseColor: phaseColor)
@@ -493,20 +412,17 @@ struct TodayView: View {
                 }
                 .presentationDragIndicator(.visible)
             }
-            .sheet(isPresented: $showCoreProtocol) {
-                coreProtocolSheet
-            }
-            .sheet(isPresented: $showQiGong) {
-                QiGongResourcesSheet()
-            }
-            .sheet(item: $workoutPresentation) { presentation in
-                WorkoutDetailView(
-                    session: presentation.session,
-                    customItem: presentation.customItem,
-                    dayFocus: presentation.dayFocus,
-                    phaseColor: phaseColor,
-                    coreExercises: presentation.hasCoreProtocol ? Array(coreExercises) : []
-                )
+            .sheet(item: $mealPresentation) { presentation in
+                NavigationStack {
+                    MealDetailView(
+                        meal: presentation.meal,
+                        mealId: presentation.id,
+                        phaseSlug: cycleService.currentPhase?.phaseSlug ?? "menstrual",
+                        phaseColor: phaseColor
+                    )
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
             .onChange(of: timeBlockService.currentDate) {
                 // Day rollover — force refresh of date-dependent computed properties
@@ -514,90 +430,137 @@ struct TodayView: View {
         }
     }
 
-    // MARK: - Time Block Sections
+    // MARK: - Greeting and Hero Section
 
-    @ViewBuilder
-    private var timeBlockSections: some View {
-        let blocks = timeBlockService.blocks
-        let currentKind = timeBlockService.currentBlock?.kind
+    private var greetingAndHeroSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if !firstName.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(timeGreeting), \(firstName).")
+                        .font(.prose(42))
+                        .foregroundStyle(.primary)
 
-        ForEach(Array(blocks.enumerated()), id: \.element.id) { index, block in
-            let meals = mealsForBlock(block.kind)
-            let supps = supplementsForBlock(block.kind)
-            let sessions = workoutSessionsForBlock(block.kind)
-            let blockHabits = habitsForBlock(block.kind)
-            let isCheckIn = block.kind == .evening
-            let isCurrentBlock = block.kind == currentKind
-
-            // Use index instead of linear search - O(1) instead of O(n)
-            let nextBlock: TimeBlock? = index + 1 < blocks.count ? blocks[index + 1] : nil
-
-            TimeBlockSectionView(
-                block: block,
-                isCurrent: isCurrentBlock,
-                meals: meals,
-                supplements: supps,
-                workoutSessions: sessions,
-                habitItems: blockHabits,
-                isCheckInBlock: false,
-                hasCheckedIn: hasAnyCheckIn,
-                nextBlockName: nextBlock?.displayName,
-                nextBlockTime: nextBlock?.startTimeLabel,
-                phaseColor: phaseColor,
-                onToggleMeal: { mealId in
-                    toggleMeal(mealId)
-                    Haptics.completion()
-                },
-                onTapMeal: { item in
-                    let displayable: any MealDisplayable = item.meal ?? item.customItem!
-                    mealPresentation = MealDetailPresentation(id: item.id, meal: displayable)
-                },
-                onToggleSupplement: { suppId in
-                    toggleSupplement(suppId)
-                    Haptics.completion()
-                },
-                onCheckIn: {
-                    showSymptoms = true
-                },
-                onToggleWorkout: { sessionId in
-                    toggleWorkout(sessionId)
-                    Haptics.completion()
-                },
-                onTapWorkout: { item in
-                    let sessionIsCoreRelated = item.session?.title.localizedCaseInsensitiveContains("core") == true
-                    workoutPresentation = WorkoutDetailPresentation(
-                        id: item.id,
-                        session: item.session,
-                        customItem: item.customItem,
-                        dayFocus: item.dayFocus,
-                        hasCoreProtocol: sessionIsCoreRelated
-                    )
-                },
-                onToggleHabit: { habitId in
-                    toggleHabit(habitId)
-                    Haptics.completion()
+                    if let oneLiner = phaseOneLiner {
+                        Text(oneLiner)
+                            .font(.prose(17, relativeTo: .body))
+                            .foregroundStyle(.secondary)
+                    }
                 }
-            )
-            .padding(.horizontal)
-            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCurrentBlock)
-            .opacity(appearedBlocks.contains(block.kind) ? 1 : 0)
-            .onAppear {
-                withAnimation(.easeOut(duration: 0.3).delay(Double(index) * 0.08)) {
-                    _ = appearedBlocks.insert(block.kind)
+            }
+
+            if let phase = cycleService.currentPhase,
+               let phaseRecord = phases.first(where: { $0.slug == phase.phaseSlug }) {
+                NavigationLink {
+                    PhaseDetailView(phase: phaseRecord, cycleService: cycleService)
+                        .navigationTransition(.zoom(sourceID: "heroCard", in: zoomNS))
+                } label: {
+                    PhaseHeroCard(
+                        phase: phase,
+                        cycleStats: cycleService.cycleStats,
+                        heroTitle: currentPhaseRecord?.heroTitle,
+                        heroSubtitle: currentPhaseRecord?.heroSubtitle,
+                        exerciseIntensity: currentPhaseRecord?.exerciseIntensity
+                    )
+                }
+                .matchedTransitionSource(id: "heroCard", in: zoomNS)
+                .buttonStyle(.plain)
+
+                quickActionRows
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top, 4)
+    }
+
+    private var quickActionRows: some View {
+        VStack(spacing: 16) {
+            Button { showQiGong = true } label: {
+                quickActionRow(icon: "figure.mind.and.body", label: "Qi Gong Resources", iconColor: phaseColor)
+            }
+            .matchedTransitionSource(id: "qigong", in: zoomNS)
+            .buttonStyle(.plain)
+
+            Button { showSymptoms = true } label: {
+                quickActionRow(
+                    icon: hasAnyCheckIn ? "checkmark.circle.fill" : "heart.text.square",
+                    label: hasAnyCheckIn ? "Check-In Complete" : "Symptom Check-In",
+                    iconColor: hasAnyCheckIn ? phaseColor : .secondary
+                )
+            }
+            .matchedTransitionSource(id: "symptoms", in: zoomNS)
+            .buttonStyle(.plain)
+
+            if let (workout, _) = todayWorkout, !workout.isRestDay, !coreExercises.isEmpty {
+                coreProtocolRow
+            }
+        }
+    }
+
+    private func quickActionRow(icon: String, label: String, iconColor: Color) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.sans(14))
+                .foregroundStyle(iconColor)
+            Text(label)
+                .font(.nCaption)
+                .fontWeight(.medium)
+                .foregroundStyle(.primary)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.sans(10))
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var coreProtocolRow: some View {
+        HStack(spacing: 8) {
+            Button { toggleCoreProtocol() } label: {
+                Image(systemName: coreProtocolCompletedToday ? "checkmark.circle.fill" : "circle")
+                    .font(.sans(16))
+                    .foregroundStyle(coreProtocolCompletedToday ? phaseColor : Color(uiColor: .tertiaryLabel))
+            }
+            Button { showCoreProtocol = true } label: {
+                HStack(spacing: 8) {
+                    Text("Core Protocol")
+                        .font(.nCaption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(coreProtocolCompletedToday ? .secondary : .primary)
+                        .strikethrough(coreProtocolCompletedToday)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.sans(10))
+                        .foregroundStyle(.tertiary)
                 }
             }
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .matchedTransitionSource(id: "coreProtocol", in: zoomNS)
+        .buttonStyle(.plain)
+    }
 
-        // Core Protocol (shown once, after time blocks, if workout exists and not rest day)
-        if let (workout, _) = todayWorkout, !workout.isRestDay, !coreExercises.isEmpty {
-            coreProtocolCard
-                .padding(.horizontal)
-        }
+    // MARK: - Current Block Card
+
+    @ViewBuilder
+    private var currentBlockCard: some View {
+        CurrentBlockCard(
+            cycleService: cycleService,
+            onSeeFullDay: { showFullDay = true },
+            onOpenMealDetail: { mealObj, customObj, id in
+                let displayable: any MealDisplayable = mealObj ?? customObj!
+                mealPresentation = MealDetailPresentation(id: id, meal: displayable)
+            }
+        )
 
         // Rest day indicator
         if let (workout, _) = todayWorkout, workout.isRestDay {
             restDayCard
-                .padding(.horizontal)
         }
     }
 
@@ -721,42 +684,6 @@ struct TodayView: View {
         }
     }
 
-    // MARK: - Core Protocol Card
-
-    private var coreProtocolCard: some View {
-        Button { showCoreProtocol = true } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "figure.core.training")
-                    .font(.sans(18))
-                    .foregroundStyle(phaseColor)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Core Protocol")
-                        .font(.nSubheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                    Text("\(coreExercises.count) exercises · phase-matched intensity")
-                        .font(.nCaption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.nCaption)
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(12)
-            .background(phaseColor.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: NamahRadius.medium))
-            .overlay(
-                RoundedRectangle(cornerRadius: NamahRadius.medium)
-                    .stroke(phaseColor.opacity(0.15), lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
     private var restDayCard: some View {
         HStack(spacing: 10) {
             Image(systemName: "leaf.fill")
@@ -827,47 +754,73 @@ struct TodayView: View {
         }
     }
 
-    // MARK: - Core Protocol Sheet
+    // MARK: - Core Protocol Content
 
-    private var coreProtocolSheet: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(Array(coreExercises.enumerated()), id: \.element.id) { index, exercise in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(exercise.name)
-                                    .font(.nSubheadline)
-                                    .fontWeight(.medium)
-                                Spacer()
-                                Text(exercise.sets)
-                                    .font(.nCaption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Text(exercise.exerciseDescription)
+    private var coreProtocolContent: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(Array(coreExercises.enumerated()), id: \.element.id) { index, exercise in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(exercise.name)
+                                .font(.nSubheadline)
+                                .fontWeight(.medium)
+                            Spacer()
+                            Text(exercise.sets)
                                 .font(.nCaption)
                                 .foregroundStyle(.secondary)
                         }
-                        .padding(14)
-                        if index < coreExercises.count - 1 {
-                            Divider().padding(.leading, 14)
-                        }
+                        Text(exercise.exerciseDescription)
+                            .font(.nCaption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(14)
+                    if index < coreExercises.count - 1 {
+                        Divider().padding(.leading, 14)
                     }
                 }
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .padding()
             }
-            .background(Color(uiColor: .systemGroupedBackground))
-            .navigationTitle("Daily Core Protocol")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { showCoreProtocol = false }
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding()
+        }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle("Daily Core Protocol")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showCoreProtocol = false } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.black, .white)
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+    }
+
+    // MARK: - Celebration Overlay
+
+    private var celebrationOverlay: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 40))
+                .foregroundStyle(phaseColor)
+                .symbolEffect(.bounce, value: showCelebration)
+
+            Text("All done!")
+                .font(.display(24))
+                .foregroundStyle(.primary)
+
+            Text("You crushed it today")
+                .font(.nSubheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(32)
+        .frame(maxWidth: 260)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.1), radius: 20, y: 10)
     }
 
     // MARK: - Period Prompt Banner
@@ -1007,6 +960,21 @@ struct TodayView: View {
         }
     }
 
+    private func toggleCoreProtocol() {
+        if let existing = coreProtocolCompletions.first(where: { $0.date == today }) {
+            syncService.queueChange(table: "coreProtocolCompletions", action: "delete",
+                                    data: ["id": existing.id], modelContext: modelContext)
+            modelContext.delete(existing)
+        } else {
+            let completion = CoreProtocolCompletion(date: today)
+            modelContext.insert(completion)
+            syncService.queueChange(table: "coreProtocolCompletions", action: "upsert",
+                                    data: ["id": completion.id, "date": today],
+                                    modelContext: modelContext)
+            Haptics.completion()
+        }
+    }
+
     private func toggleSupplement(_ suppId: String) {
         guard let userSup = activeRegimen.first(where: { $0.id == suppId }) else { return }
         if let existing = supplementLogs.first(where: { $0.userSupplementId == userSup.id && $0.date == today }) {
@@ -1045,6 +1013,14 @@ struct TodayView: View {
         let willBeCompleted = completedActionableItems + 1
         if willBeCompleted >= totalActionableItems && totalActionableItems > 0 {
             Haptics.celebration()
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                showCelebration = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                withAnimation(.easeOut(duration: 0.4)) {
+                    showCelebration = false
+                }
+            }
         }
     }
 }

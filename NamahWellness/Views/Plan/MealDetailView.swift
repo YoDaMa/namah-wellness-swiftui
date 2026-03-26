@@ -117,9 +117,14 @@ struct MealDetailView: View {
         }
         .navigationTitle("Recipe")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.black, .white)
+                }
             }
             if hasRecipe {
                 ToolbarItem(placement: .topBarTrailing) {

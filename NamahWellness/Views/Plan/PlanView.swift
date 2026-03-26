@@ -6,7 +6,6 @@ import SwiftData
 enum PlanTab: String, CaseIterable, Identifiable {
     case nourish = "NOURISH"
     case move = "MOVE"
-    case supplements = "SUPPS"
     case habits = "HABITS"
 
     var id: String { rawValue }
@@ -23,8 +22,8 @@ struct PlanView: View {
 
     @State private var selectedTab: PlanTab = .nourish
     @State private var showProfile = false
-    @State private var showPhaseDetail = false
     @State private var showAddItem = false
+    @State private var showPhaseDetail = false
     @State private var selectedPhaseIndex: Int? = nil
     @State private var swipeDirection: Edge = .trailing
 
@@ -103,8 +102,6 @@ struct PlanView: View {
                                     customWorkouts: customWorkouts,
                                     hiddenIds: hiddenIds
                                 )
-                            case .supplements:
-                                PlanSupplementsView()
                             case .habits:
                                 HabitsView(phaseSlug: displayedSlug)
                             }
@@ -118,6 +115,11 @@ struct PlanView: View {
                 }
             }
             .onAppear { selectedPhaseIndex = nil }
+            .navigationDestination(isPresented: $showPhaseDetail) {
+                if let phase = displayedPhase {
+                    PhaseDetailView(phase: phase, cycleService: cycleService)
+                }
+            }
             .background(Color.paper.ignoresSafeArea())
             .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Plan")
@@ -146,20 +148,6 @@ struct PlanView: View {
                     defaultCategory: selectedTab == .move ? .workout : selectedTab == .habits ? .habit : .meal,
                     phaseSlug: displayedSlug
                 )
-            }
-            .sheet(isPresented: $showPhaseDetail) {
-                NavigationStack {
-                    if let phase = displayedPhase {
-                        PhaseDetailView(phase: phase, cycleService: cycleService)
-                            .toolbar {
-                                ToolbarItem(placement: .cancellationAction) {
-                                    Button("Done") { showPhaseDetail = false }
-                                }
-                            }
-                    }
-                }
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
             }
         }
     }

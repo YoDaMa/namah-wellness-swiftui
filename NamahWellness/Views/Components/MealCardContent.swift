@@ -113,6 +113,5 @@ struct MealCardContent: View {
                     .stroke((phaseColor ?? Color.secondary).opacity(0.2), lineWidth: 1)
             }
         }
-        .sensoryFeedback(.success, trigger: isCompleted)
     }
 }

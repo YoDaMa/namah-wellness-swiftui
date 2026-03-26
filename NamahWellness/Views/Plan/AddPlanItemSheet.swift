@@ -33,6 +33,10 @@ struct AddPlanItemSheet: View {
     // Grocery fields
     @State private var groceryCategory = "Produce"
 
+    // Medication fields
+    @State private var reminderEnabled = false
+    @State private var reminderTime = "8:00am"
+
     // Recurrence
     @State private var recurrence: HabitRecurrence = .specificDays
     @State private var selectedDays: Set<Int> = []  // 0=Monday
@@ -88,7 +92,8 @@ struct AddPlanItemSheet: View {
                     case .workout: workoutFields
                     case .grocery: groceryFields
                     case .habit: habitFields
-                    case .medication, .supplement: EmptyView()
+                    case .medication: medicationFields
+                    case .supplement: EmptyView()
                     }
 
                     // Recurrence (not for grocery)
@@ -123,27 +128,29 @@ struct AddPlanItemSheet: View {
             Text("TYPE")
                 .namahLabel()
 
-            HStack(spacing: 8) {
-                ForEach(allowedCategories, id: \.rawValue) { cat in
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            category = cat
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(allowedCategories, id: \.rawValue) { cat in
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                category = cat
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: cat.icon)
+                                    .font(.system(size: 12))
+                                Text(cat.displayName)
+                                    .font(.nCaption)
+                                    .fontWeight(.medium)
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .foregroundStyle(category == cat ? .white : .secondary)
+                            .background(category == cat ? phaseColors.color : Color(uiColor: .secondarySystemGroupedBackground))
+                            .clipShape(Capsule())
                         }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: cat.icon)
-                                .font(.system(size: 12))
-                            Text(cat.displayName)
-                                .font(.nCaption)
-                                .fontWeight(.medium)
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .foregroundStyle(category == cat ? .white : .secondary)
-                        .background(category == cat ? phaseColors.color : Color(uiColor: .secondarySystemGroupedBackground))
-                        .clipShape(Capsule())
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
@@ -284,6 +291,46 @@ struct AddPlanItemSheet: View {
                         .background(Color(uiColor: .secondarySystemGroupedBackground))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
+            }
+        }
+    }
+
+    // MARK: - Medication Fields
+
+    private var medicationFields: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("TIME")
+                .namahLabel()
+
+            TextField("8:00am", text: $time)
+                .font(.nSubheadline)
+                .padding(14)
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+            Text("REMINDER")
+                .namahLabel()
+
+            Toggle(isOn: $reminderEnabled) {
+                HStack(spacing: 8) {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(reminderEnabled ? phaseColors.color : .secondary)
+                    Text("Daily reminder")
+                        .font(.nSubheadline)
+                }
+            }
+            .tint(phaseColors.color)
+            .padding(14)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+
+            if reminderEnabled {
+                TextField("8:00am", text: $reminderTime)
+                    .font(.nSubheadline)
+                    .padding(14)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
     }
@@ -435,13 +482,39 @@ struct AddPlanItemSheet: View {
             fatG: category == .meal ? Int(fatG) : nil,
             workoutFocus: category == .workout ? workoutFocus : nil,
             duration: category == .workout && !duration.isEmpty ? duration : nil,
-            groceryCategory: category == .grocery ? groceryCategory : nil
+            groceryCategory: category == .grocery ? groceryCategory : nil,
+            reminderEnabled: category == .medication ? reminderEnabled : false,
+            reminderTime: category == .medication && reminderEnabled ? reminderTime : nil
         )
 
         modelContext.insert(item)
+
+        var syncData: [String: Any] = [
+            "id": item.id,
+            "category": item.categoryRaw,
+            "title": item.title,
+            "recurrence": item.recurrenceRaw,
+            "isActive": item.isActive,
+        ]
+        if let v = item.subtitle { syncData["subtitle"] = v }
+        if let v = item.time { syncData["time"] = v }
+        if let v = item.phaseSlug { syncData["phaseSlug"] = v }
+        if let v = item.recurrenceDays { syncData["recurrenceDays"] = v }
+        if let v = item.specificDate { syncData["specificDate"] = v }
+        if let v = item.mealType { syncData["mealType"] = v }
+        if let v = item.calories { syncData["calories"] = v }
+        if let v = item.proteinG { syncData["proteinG"] = v }
+        if let v = item.carbsG { syncData["carbsG"] = v }
+        if let v = item.fatG { syncData["fatG"] = v }
+        if let v = item.workoutFocus { syncData["workoutFocus"] = v }
+        if let v = item.duration { syncData["duration"] = v }
+        if let v = item.groceryCategory { syncData["groceryCategory"] = v }
+        if item.reminderEnabled { syncData["reminderEnabled"] = true }
+        if let v = item.reminderTime { syncData["reminderTime"] = v }
+
         syncService.queueChange(
             table: "habits", action: "upsert",
-            data: ["id": item.id], modelContext: modelContext
+            data: syncData, modelContext: modelContext
         )
 
         dismiss()

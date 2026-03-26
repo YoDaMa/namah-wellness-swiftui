@@ -11,27 +11,15 @@ struct NourishView: View {
     let hiddenIds: Set<String>
 
     @Query(sort: \Phase.dayStart) private var phases: [Phase]
-    @Query private var phaseNutrients: [PhaseNutrient]
-    @Query private var reminders: [PhaseReminder]
     @Query(sort: \Meal.dayNumber) private var allMeals: [Meal]
     @Query(sort: \RecipeIngredient.sortOrder) private var recipeIngredients: [RecipeIngredient]
+    @Query private var userSupplements: [UserSupplement]
+    @Query private var medications: [Habit]
 
-    @State private var showNutrients = false
-    @State private var showInsights = false
     @State private var showGroceryList = false
 
     private var phase: Phase? { phases.first { $0.slug == phaseSlug } }
     private var phaseColors: PhaseColors { PhaseColors.forSlug(phaseSlug) }
-
-    private var nutrientCount: Int {
-        guard let id = phase?.id else { return 0 }
-        return phaseNutrients.filter { $0.phaseId == id }.count
-    }
-
-    private var insightCount: Int {
-        guard let id = phase?.id else { return 0 }
-        return reminders.filter { $0.phaseId == id }.count
-    }
 
     private var groceryCount: Int {
         guard let p = phase else { return 0 }
@@ -45,6 +33,14 @@ struct NourishView: View {
         return allMeals.contains { $0.phaseId == p.id && $0.proteinG != nil }
     }
 
+    private var activeSupplementCount: Int {
+        userSupplements.filter { $0.isActive && !$0.isMedication }.count
+    }
+
+    private var activeMedicationCount: Int {
+        medications.filter { $0.category == .medication && $0.isActive }.count
+    }
+
     // MARK: - Body
 
     var body: some View {
@@ -56,12 +52,6 @@ struct NourishView: View {
                 SACalloutView(text: p.saNote)
             }
         }
-        .sheet(isPresented: $showNutrients) {
-            NutrientSheetView(phaseSlug: phaseSlug)
-        }
-        .sheet(isPresented: $showInsights) {
-            InsightsSheetView(phaseSlug: phaseSlug)
-        }
         .sheet(isPresented: $showGroceryList) {
             GroceryListView(phaseSlug: phaseSlug, phaseColor: phaseColors.color)
         }
@@ -71,100 +61,128 @@ struct NourishView: View {
 
     private var bentoGrid: some View {
         let columns = [
-            GridItem(.flexible(), spacing: 10),
-            GridItem(.flexible(), spacing: 10),
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12),
         ]
 
-        return LazyVGrid(columns: columns, spacing: 10) {
-            // Key Nutrients → sheet
-            bentoTile(
-                icon: "leaf",
-                label: "Key Nutrients",
-                preview: nutrientCount > 0 ? "\(nutrientCount) nutrients" : nil,
-                color: phaseColors
-            ) {
-                showNutrients = true
-            }
-
-            // Meal Plan → pushed full screen
+        return LazyVGrid(columns: columns, spacing: 12) {
+            // Meal Plan
             NavigationLink {
                 MealPlanView(phaseSlug: phaseSlug)
             } label: {
-                bentoTileContent(
+                BentoTile(
                     icon: "fork.knife",
                     label: "Meal Plan",
-                    preview: hasMeals ? "View meals" : nil,
-                    color: phaseColors
+                    preview: hasMeals ? "View meals" : "Get started",
+                    accentColor: phaseColors.color
                 )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(BentoButtonStyle())
 
-            // Phase Insights → sheet
-            bentoTile(
-                icon: "brain.head.profile",
-                label: "Phase Insights",
-                preview: insightCount > 0 ? "\(insightCount) insights" : nil,
-                color: phaseColors
-            ) {
-                showInsights = true
+            // Grocery List
+            Button { showGroceryList = true } label: {
+                BentoTile(
+                    icon: "bag.fill",
+                    label: "Grocery List",
+                    preview: groceryCount > 0 ? "\(groceryCount) items" : "View list",
+                    accentColor: phaseColors.color
+                )
             }
+            .buttonStyle(BentoButtonStyle())
 
-            // Grocery List → sheet
-            bentoTile(
-                icon: "bag",
-                label: "Grocery List",
-                preview: groceryCount > 0 ? "\(groceryCount) items" : nil,
-                color: phaseColors
-            ) {
-                showGroceryList = true
+            // Supplements
+            NavigationLink {
+                PlanSupplementsView()
+            } label: {
+                BentoTile(
+                    icon: "pill.fill",
+                    label: "Supplements",
+                    preview: activeSupplementCount > 0 ? "\(activeSupplementCount) active" : "Browse library",
+                    accentColor: phaseColors.color
+                )
             }
+            .buttonStyle(BentoButtonStyle())
+
+            // Medications
+            NavigationLink {
+                MedicationsView(phaseSlug: phaseSlug)
+            } label: {
+                BentoTile(
+                    icon: "pills.fill",
+                    label: "Medications",
+                    preview: activeMedicationCount > 0 ? "\(activeMedicationCount) active" : "Add meds",
+                    accentColor: phaseColors.color
+                )
+            }
+            .buttonStyle(BentoButtonStyle())
         }
     }
+}
 
-    // MARK: - Bento Tile (button variant)
+// MARK: - Bento Tile
 
-    private func bentoTile(
-        icon: String,
-        label: String,
-        preview: String?,
-        color: PhaseColors,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            bentoTileContent(icon: icon, label: label, preview: preview, color: color)
-        }
-        .buttonStyle(.plain)
-    }
+private struct BentoTile: View {
+    let icon: String
+    let label: String
+    let preview: String
+    let accentColor: Color
 
-    // MARK: - Bento Tile Content
-
-    private func bentoTileContent(
-        icon: String,
-        label: String,
-        preview: String?,
-        color: PhaseColors
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Icon badge
             Image(systemName: icon)
-                .font(.sans(20))
-                .foregroundStyle(color.color)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 30, height: 30)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(accentColor)
+                )
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 16)
 
-            Text(label)
-                .font(.nSubheadline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.primary)
+            // Label + chevron
+            VStack(alignment: .leading, spacing: 3) {
+                Text(label)
+                    .font(.nSubheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
 
-            if let preview {
-                Text(preview)
-                    .font(.nCaption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 0) {
+                    Text(preview)
+                        .font(.nCaption2)
+                        .foregroundStyle(.secondary)
+
+                    Spacer(minLength: 4)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.tertiary)
+                }
             }
         }
         .padding(14)
-        .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
-        .background(color.soft)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .frame(maxWidth: .infinity, minHeight: 140, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(uiColor: .secondarySystemGroupedBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.05), lineWidth: 0.5)
+        )
+        .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+        .shadow(color: .black.opacity(0.02), radius: 2, y: 1)
+    }
+}
+
+// MARK: - Bento Button Style
+
+private struct BentoButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .opacity(configuration.isPressed ? 0.85 : 1.0)
+            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }
 }

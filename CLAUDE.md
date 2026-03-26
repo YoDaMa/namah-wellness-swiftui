@@ -17,7 +17,7 @@ xcodebuild -project NamahWellness.xcodeproj -scheme NamahWellness -sdk iphonesim
 open NamahWellness.xcodeproj
 ```
 
-- **Deployment target**: iOS 17.0
+- **Deployment target**: iOS 26.0
 - **Swift version**: 5.0
 - **No external dependencies** — pure SwiftUI + SwiftData
 - **Test target**: `NamahWellnessTests` (unit tests for TimeParser, TimeBlockService)

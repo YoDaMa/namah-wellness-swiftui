@@ -36,6 +36,21 @@ final class WorkoutCompletion {
 }
 
 @Model
+final class CoreProtocolCompletion {
+    @Attribute(.unique) var id: String
+    var userId: String = ""
+    var date: String          // "YYYY-MM-DD"
+    var completedAt: Date
+
+    init(id: String = UUID().uuidString, userId: String = "", date: String, completedAt: Date = Date()) {
+        self.id = id
+        self.userId = userId
+        self.date = date
+        self.completedAt = completedAt
+    }
+}
+
+@Model
 final class GroceryCheck {
     @Attribute(.unique) var id: String
     var userId: String = ""

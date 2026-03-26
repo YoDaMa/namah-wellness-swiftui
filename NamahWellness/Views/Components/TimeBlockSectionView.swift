@@ -121,15 +121,7 @@ struct TimeBlockSectionView: View {
                 // Items
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(meals) { item in
-                        if let meal = item.meal {
-                            MealCardContent(meal: meal, isCompleted: item.isCompleted)
-                                .onTapGesture { onTapMeal(item) }
-                                .onLongPressGesture { onToggleMeal(item.id) }
-                        } else if let custom = item.customItem {
-                            MealCardContent(customItem: custom, isCompleted: item.isCompleted, phaseColor: phaseColor)
-                                .onTapGesture { onTapMeal(item) }
-                                .onLongPressGesture { onToggleMeal(item.id) }
-                        }
+                        mealRow(item)
                     }
 
                     ForEach(supplements) { item in
@@ -137,11 +129,16 @@ struct TimeBlockSectionView: View {
                     }
 
                     ForEach(workoutSessions) { item in
-                        if item.session != nil {
-                            workoutRow(item)
-                        } else if item.customItem != nil {
-                            customWorkoutRow(item)
+                        Button {
+                            onToggleWorkout(item.id)
+                        } label: {
+                            if item.session != nil {
+                                workoutRowContent(item)
+                            } else if item.customItem != nil {
+                                customWorkoutRowContent(item)
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
 
                     ForEach(habitItems) { item in
@@ -153,10 +150,6 @@ struct TimeBlockSectionView: View {
                     }
                 }
 
-                // All done state
-                if allDone, let nextName = nextBlockName, let nextTime = nextBlockTime {
-                    allDoneCard(nextName: nextName, nextTime: nextTime)
-                }
             }
             .padding(.vertical, 4)
         }
@@ -189,12 +182,111 @@ struct TimeBlockSectionView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(phaseColor)
-                    .clipShape(Capsule())
+                    .glassEffect(.regular.tint(phaseColor))
             } else if allDone && totalItems > 0 {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.sans(14))
                     .foregroundStyle(phaseColor)
+            }
+        }
+    }
+
+    // MARK: - Meal Row
+
+    private func mealRow(_ item: MealItem) -> some View {
+        HStack(spacing: 0) {
+            // Tap card body → toggle completion
+            Button {
+                onToggleMeal(item.id)
+            } label: {
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                        .font(.sans(18))
+                        .foregroundStyle(item.isCompleted ? (item.isCustom ? phaseColor : .secondary) : item.isCustom ? Color(uiColor: .tertiaryLabel) : .primary)
+                        .padding(.top, 2)
+
+                    mealTextContent(item)
+
+                    Spacer(minLength: 0)
+                }
+            }
+            .buttonStyle(.plain)
+
+            // Chevron → open detail
+            Button { onTapMeal(item) } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+                    .frame(width: 32)
+                    .frame(maxHeight: .infinity)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(12)
+        .background(item.isCustom ? phaseColor.opacity(0.08) : Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay {
+            if item.isCustom {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(phaseColor.opacity(0.2), lineWidth: 1)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func mealTextContent(_ item: MealItem) -> some View {
+        if let meal = item.meal {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(meal.time)
+                        .font(.nCaption2)
+                        .fontWeight(.medium)
+                        .textCase(.uppercase)
+                        .tracking(1)
+                        .foregroundStyle(.secondary)
+                    Text("·").foregroundStyle(.tertiary)
+                    Text(meal.mealType)
+                        .font(.nCaption2)
+                        .fontWeight(.medium)
+                        .textCase(.uppercase)
+                        .tracking(1)
+                        .foregroundStyle(.tertiary)
+                }
+                Text(meal.title)
+                    .font(.nSubheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(item.isCompleted ? .secondary : .primary)
+                    .strikethrough(item.isCompleted)
+                if let p = meal.proteinG, let c = meal.carbsG, let f = meal.fatG {
+                    let macroText = "\(p)P · \(c)C · \(f)F · \(meal.calories)"
+                    Text(macroText)
+                        .font(.nCaption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        } else if let custom = item.customItem {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    if let time = custom.time {
+                        Text(time)
+                            .font(.nCaption2)
+                            .fontWeight(.medium)
+                            .textCase(.uppercase)
+                            .tracking(1)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text("CUSTOM")
+                        .font(.sans(7))
+                        .fontWeight(.bold)
+                        .tracking(0.5)
+                        .foregroundStyle(phaseColor)
+                }
+                Text(custom.title)
+                    .font(.nSubheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(item.isCompleted ? .secondary : .primary)
+                    .strikethrough(item.isCompleted)
             }
         }
     }
@@ -259,7 +351,7 @@ struct TimeBlockSectionView: View {
     // MARK: - Workout Row
 
     @ViewBuilder
-    private func workoutRow(_ item: WorkoutSessionItem) -> some View {
+    private func workoutRowContent(_ item: WorkoutSessionItem) -> some View {
         if let session = item.session {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
@@ -298,15 +390,13 @@ struct TimeBlockSectionView: View {
         .padding(12)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .onTapGesture { onTapWorkout(item) }
-        .onLongPressGesture { onToggleWorkout(item.id) }
         }
     }
 
-    // MARK: - Custom Workout Row
+    // MARK: - Custom Workout Row Content
 
     @ViewBuilder
-    private func customWorkoutRow(_ item: WorkoutSessionItem) -> some View {
+    private func customWorkoutRowContent(_ item: WorkoutSessionItem) -> some View {
         if let custom = item.customItem {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
@@ -364,8 +454,6 @@ struct TimeBlockSectionView: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(phaseColor.opacity(0.2), lineWidth: 1)
         )
-        .onTapGesture { onTapWorkout(item) }
-        .onLongPressGesture { onToggleWorkout(item.id) }
         }
     }
 
@@ -513,31 +601,6 @@ struct TimeBlockSectionView: View {
             )
         }
         .buttonStyle(.plain)
-    }
-
-    // MARK: - All Done Card
-
-    private func allDoneCard(nextName: String, nextTime: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "checkmark.seal.fill")
-                .font(.sans(18))
-                .foregroundStyle(phaseColor)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("You're all set until \(nextTime)")
-                    .font(.nSubheadline)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.primary)
-                Text("Up next: \(nextName)")
-                    .font(.nCaption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-        }
-        .padding(12)
-        .background(phaseColor.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: - Helpers

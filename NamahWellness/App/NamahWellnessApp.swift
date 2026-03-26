@@ -39,6 +39,7 @@ struct NamahWellnessApp: App {
             Habit.self,
             UserItemHidden.self,
             HabitLog.self,
+            CoreProtocolCompletion.self,
         ])
 
         do {

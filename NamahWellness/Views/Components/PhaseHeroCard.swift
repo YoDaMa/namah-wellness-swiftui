@@ -85,17 +85,7 @@ struct PhaseHeroCard: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(.white.opacity(0.2))
-                        .clipShape(Capsule())
-                } else {
-                    HStack(spacing: 6) {
-                        ForEach(slugOrder, id: \.self) { slug in
-                            let isCurrent = phase.phaseSlug == slug
-                            Circle()
-                                .fill(isCurrent ? .white : .white.opacity(0.3))
-                                .frame(width: isCurrent ? 8 : 6, height: isCurrent ? 8 : 6)
-                        }
-                    }
+                        .glassEffect()
                 }
             }
             .padding(.horizontal, 16)

@@ -40,95 +40,105 @@ struct ContentView: View {
     var body: some View {
         Group {
             if authService.isAuthenticated {
-                Group {
-                    if !hasInitialSync {
-                    // Loading screen while first sync fetches data from backend
-                    VStack(spacing: 16) {
-                        ProgressView()
-                            .controlSize(.large)
-                        Text("Loading your data...")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(uiColor: .systemGroupedBackground))
-                    .task {
-                        syncService.configure(modelContext: modelContext, authService: authService)
-                        if cycleLogManager == nil {
-                            let manager = CycleLogManager(
-                                modelContext: modelContext,
-                                syncService: syncService,
-                                authService: authService
-                            )
-                            manager.cleanupDuplicates()
-                            cycleLogManager = manager
-                        }
-                        ensureDefaultSchedule()
-                        await syncService.sync()
-                        recalculate()
-                        updateTimeBlocks()
-                        hasInitialSync = true
-                    }
-                } else {
-                    TabView(selection: $selectedTab) {
-                        TodayView(cycleService: cycleService)
-                            .tabItem {
-                                Image(systemName: "sun.max")
-                                Text("Today")
-                            }
-                            .tag(0)
-
-                        MyCycleView(cycleService: cycleService)
-                            .tabItem {
-                                Image(systemName: "circle.dotted.circle")
-                                Text("My Cycle")
-                            }
-                            .tag(1)
-
-                        PlanView(cycleService: cycleService)
-                            .tabItem {
-                                Image(systemName: "list.bullet.rectangle")
-                                Text("Plan")
-                            }
-                            .tag(2)
-
-                        LearnView(cycleService: cycleService)
-                            .tabItem {
-                                Image(systemName: "book")
-                                Text("Learn")
-                            }
-                            .tag(3)
-                    }
-                    .tint(currentPhaseColor)
-                    .environment(syncService)
-                    .environment(authService)
-                    .environment(cycleLogManager)
-                    .environment(timeBlockService)
-                    .environment(planAggregator)
-                    .onAppear {
-                        recalculate()
-                        recalculatePlan()
-                        updateTimeBlocks()
-                    }
-                    }
-                }
-                .onChange(of: cycleLogSnapshot) { recalculate() }
-                .onChange(of: profileSnapshot) { recalculate() }
-                .onChange(of: phases.count) { recalculate() }
-                .onChange(of: planDataSnapshot) { recalculatePlan() }
-                .onChange(of: scenePhase) {
-                    if scenePhase == .active, hasInitialSync {
-                        cycleLogManager?.checkAndAutoLog(
-                            stats: cycleService.cycleStats
-                        )
-                        timeBlockService.refresh()
-                        updateTimeBlocks()
-                        Task { await syncService.sync(); recalculate() }
-                    }
-                }
+                authenticatedContent
             } else {
                 LoginView(authService: authService)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var authenticatedContent: some View {
+        Group {
+            if !hasInitialSync {
+                loadingView
+            } else {
+                mainTabView
+            }
+        }
+        .onChange(of: cycleLogSnapshot) { recalculate() }
+        .onChange(of: profileSnapshot) { recalculate() }
+        .onChange(of: phases.count) { recalculate() }
+        .onChange(of: planDataSnapshot) { recalculatePlan() }
+        .onChange(of: scenePhase) {
+            if scenePhase == .active, hasInitialSync {
+                cycleLogManager?.checkAndAutoLog(stats: cycleService.cycleStats)
+                timeBlockService.refresh()
+                updateTimeBlocks()
+                Task { await syncService.sync(); recalculate() }
+            }
+        }
+    }
+
+    private var loadingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .controlSize(.large)
+            Text("Loading your data...")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(uiColor: .systemGroupedBackground))
+        .task {
+            syncService.configure(modelContext: modelContext, authService: authService)
+            if cycleLogManager == nil {
+                let manager = CycleLogManager(
+                    modelContext: modelContext,
+                    syncService: syncService,
+                    authService: authService
+                )
+                manager.cleanupDuplicates()
+                cycleLogManager = manager
+            }
+            ensureDefaultSchedule()
+            await syncService.sync()
+            recalculate()
+            updateTimeBlocks()
+            hasInitialSync = true
+        }
+    }
+
+    private var mainTabView: some View {
+        TabView(selection: $selectedTab) {
+            TodayView(cycleService: cycleService)
+                .tabItem {
+                    Image(systemName: "sun.max")
+                    Text("Today")
+                }
+                .tag(0)
+
+            MyCycleView(cycleService: cycleService)
+                .tabItem {
+                    Image(systemName: "circle.dotted.circle")
+                    Text("My Cycle")
+                }
+                .tag(1)
+
+            PlanView(cycleService: cycleService)
+                .tabItem {
+                    Image(systemName: "list.bullet.rectangle")
+                    Text("Plan")
+                }
+                .tag(2)
+
+            LearnView(cycleService: cycleService)
+                .tabItem {
+                    Image(systemName: "book")
+                    Text("Learn")
+                }
+                .tag(3)
+        }
+        .tint(currentPhaseColor)
+        .environment(syncService)
+        .environment(authService)
+        .environment(cycleLogManager)
+        .environment(timeBlockService)
+        .environment(planAggregator)
+        .onAppear {
+            recalculate()
+            recalculatePlan()
+            updateTimeBlocks()
         }
     }
 
